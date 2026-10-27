@@ -767,13 +767,40 @@ let phoneMovingUntil=0;
 addEventListener("devicemotion",e=>{
   const r=e.rotationRate;if(!r)return;
   const rot=Math.hypot(r.alpha||0,r.beta||0,r.gamma||0);
-  if(rot>(CFG?.ball?.phoneMotionDeg??20)) phoneMovingUntil=performance.now()+700;
+  if(rot>(CFG?.ball?.phoneMotionDeg??60)) phoneMovingUntil=performance.now()+700;
 });
 function askMotionPermission(){
   try{ if(typeof DeviceMotionEvent!=="undefined"&&DeviceMotionEvent.requestPermission) DeviceMotionEvent.requestPermission().catch(()=>{}); }catch(e){}
 }
 
-const AR={on:false,stream:null,raf:0,lastT:0,watcher:null,throwActive:false,W:96,H:72,cv:null};
+const AR={on:false,stream:null,raf:0,lastT:0,watcher:null,throwActive:false,W:96,H:72,cv:null,
+          detector:null,detLoading:false,detFailed:false,lastDetT:0,balls:[],ballTrack:[],pendingUntil:0};
+function odConfig(){return {enabled:true,requireBall:true,scoreThreshold:0.3,categories:["sports ball"],confirmWindowMs:1500,minTravel:0.06,detectEveryMs:100,...(arConfig().objectDetection||{})};}
+
+/* ---------- 球辨識：MediaPipe 物件偵測（COCO 的 sports ball） ---------- */
+async function loadBallDetector(){
+  const c=odConfig();
+  if(!c.enabled||AR.detector||AR.detLoading||AR.detFailed) return;
+  AR.detLoading=true;
+  try{
+    const vision=await import(c.moduleUrl);
+    const files=await vision.FilesetResolver.forVisionTasks(c.wasmUrl);
+    const opts=d=>({baseOptions:{modelAssetPath:c.modelUrl,delegate:d},runningMode:"VIDEO",scoreThreshold:c.scoreThreshold,maxResults:3,categoryAllowlist:c.categories});
+    try{ AR.detector=await vision.ObjectDetector.createFromOptions(files,opts("GPU")); }
+    catch(e){ AR.detector=await vision.ObjectDetector.createFromOptions(files,opts("CPU")); }
+  }catch(e){
+    console.warn("球辨識模型載入失敗",e);AR.detFailed=true;
+    toast("球辨識模型載入失敗，改用移動偵測");
+  }
+  AR.detLoading=false;
+}
+function detectBalls(t){
+  const v=$("arVideo");
+  try{
+    const res=AR.detector.detectForVideo(v,t);
+    return (res.detections||[]).map(d=>{const b=d.boundingBox;return {x:(b.originX+b.width/2)/v.videoWidth,y:(b.originY+b.height/2)/v.videoHeight,w:b.width/v.videoWidth,h:b.height/v.videoHeight,score:d.categories?.[0]?.score||0};});
+  }catch(e){return AR.balls;}
+}
 const BALL_MODE_KEY="colormon-ball-mode";
 function arConfig(){return CFG?.ball||{};}
 function arArmed(){return screen==="encounter"&&current&&!busy&&ballsLeft>0&&!$("throwBtn").disabled;}
@@ -785,7 +812,8 @@ async function startAR(){
   }catch(e){toast("相機打不開，請確認有給相機權限");setBallMode(false);return;}
   const v=$("arVideo");v.srcObject=AR.stream;v.hidden=false;try{await v.play();}catch(e){}
   $("scene").classList.add("ar");$("arChip").hidden=false;
-  AR.watcher=new ThrowWatcher(arConfig());
+  AR.watcher=new ThrowWatcher(arConfig());AR.balls=[];AR.ballTrack=[];AR.pendingUntil=0;
+  loadBallDetector();
   AR.cv??=Object.assign(document.createElement("canvas"),{width:AR.W,height:AR.H});
   cancelAnimationFrame(AR.raf);AR.raf=requestAnimationFrame(arLoop);
 }
@@ -815,17 +843,49 @@ function arLoop(t){
   AR.lastT=t;
   const w=AR.watcher;
   if(performance.now()<phoneMovingUntil){
-    w.pause();$("ballMark").hidden=true;$("arChip").textContent="手機在動，請放穩";return;
+    w.pause();$("ballMark").hidden=true;$("arChip").textContent="手機晃動太大，稍微拿穩一點";return;
   }
   const {blob,event}=w.update(t,arFrameGray(),AR.W,AR.H);
+  const oc=odConfig(), useBall=!!AR.detector&&oc.requireBall;
+
+  // 球辨識（每 100ms 一次）
+  if(AR.detector&&t-AR.lastDetT>=oc.detectEveryMs){
+    AR.lastDetT=t;AR.balls=detectBalls(t);
+    const b=AR.balls[0];
+    if(b){AR.ballTrack.push({x:b.x,y:b.y,t});AR.ballTrack=AR.ballTrack.filter(p=>t-p.t<600);} else AR.ballTrack=[];
+  }
+  const ball=AR.balls[0];
+
+  // 標記：辨識到的球用綠框，只有移動用黃圈
   const mark=$("ballMark");
-  if(blob&&arConfig().showMarker!==false){
-    const p=videoToScene(blob.x,blob.y),d=Math.max(28,blob.r*2*$("scene").clientWidth*1.3);
-    mark.hidden=false;mark.style.width=mark.style.height=d+"px";mark.style.margin=`${-d/2}px 0 0 ${-d/2}px`;mark.style.transform=`translate(${p.x}px,${p.y}px)`;
+  const target=ball?{x:ball.x,y:ball.y,r:Math.max(ball.w,ball.h)/2}:blob;
+  if(target&&arConfig().showMarker!==false){
+    const p=videoToScene(target.x,target.y),d=Math.max(28,target.r*2*$("scene").clientWidth*1.3);
+    mark.hidden=false;mark.style.borderColor=ball?"#4CC27E":"#FFC53D";
+    mark.style.width=mark.style.height=d+"px";mark.style.margin=`${-d/2}px 0 0 ${-d/2}px`;mark.style.transform=`translate(${p.x}px,${p.y}px)`;
   }else mark.hidden=true;
-  if(event==="thrown"&&arArmed()){AR.throwActive=true;sfx("throw");window.onBallThrown();}
-  else if(event==="landed"&&AR.throwActive){AR.throwActive=false;window.onBallLanded();}
-  $("arChip").textContent=w.state==="flying"?"丟進來了！":arArmed()?"把球丟進畫面裡！":"等一下…";
+
+  const fire=()=>{AR.throwActive=true;AR.pendingUntil=0;sfx("throw");window.onBallThrown();};
+  if(!useBall){
+    // 沒有球辨識：只靠移動偵測
+    if(event==="thrown"&&arArmed()) fire();
+  }else{
+    // 有球辨識：移動之後 1.5 秒內要看到球；或直接看到球在移動
+    if(event==="thrown"&&arArmed()&&!AR.throwActive) AR.pendingUntil=t+oc.confirmWindowMs;
+    const tr=AR.ballTrack,moved=tr.length>=2&&Math.hypot(tr[tr.length-1].x-tr[0].x,tr[tr.length-1].y-tr[0].y)>=oc.minTravel;
+    if(arArmed()&&!AR.throwActive){
+      if((AR.pendingUntil&&t<=AR.pendingUntil&&ball)||moved){
+        fire(); if(w.state!=="flying"){w.state="flying";w.flyStart=t;w.lastMotionT=t;}
+      }else if(AR.pendingUntil&&t>AR.pendingUntil){
+        AR.pendingUntil=0; if(w.state==="flying") w.reset();
+        $("arChip").textContent="有東西在動，但看不出是球";return;
+      }
+    }
+  }
+  if(event==="landed"&&AR.throwActive){AR.throwActive=false;window.onBallLanded();}
+
+  const mode=AR.detector?"球辨識":AR.detLoading?"載入球辨識中…":"移動偵測";
+  $("arChip").textContent=(w.state==="flying"&&AR.throwActive)?"丟進來了！":AR.pendingUntil?"有東西在動…是球嗎？":arArmed()?`把球丟進畫面裡！（${mode}）`:"等一下…";
 }
 function setBallMode(on){
   AR.on=on;
