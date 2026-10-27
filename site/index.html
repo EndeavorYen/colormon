@@ -217,6 +217,56 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 .ball-guide .row img{width:28px;height:28px;image-rendering:pixelated}
 .ball-guide .row span{color:var(--muted)}
 
+/* dex management */
+.player-chip{display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:5px 12px;font-weight:700;font-size:.88rem}
+.dex-sum{display:flex;flex-direction:column;gap:6px}
+.dex-sum b{font-variant-numeric:tabular-nums}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 14px}
+.panel summary{font-weight:700;cursor:pointer}
+.gen-bars{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.gen-row{display:grid;grid-template-columns:4.2em 1fr 4.6em;gap:8px;align-items:center;font-size:.84rem}
+.gen-row b{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;color:var(--muted)}
+.dex-tools{display:flex;flex-direction:column;gap:8px}
+.dex-tools input[type=search]{font:inherit;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);width:100%}
+.seg{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:var(--line);padding:3px;border-radius:12px}
+.seg button{border:0;background:transparent;border-radius:9px;padding:7px 2px;font-weight:700;font-size:.85rem}
+.seg button[aria-pressed="true"]{background:var(--card);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.dex-selects{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.dex-selects select{font:inherit;font-size:.82rem;padding:7px 4px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);min-width:0}
+@media (max-width:380px){.dex-selects{grid-template-columns:repeat(2,1fr)}}
+.dex-result{font-size:.8rem;color:var(--muted)}
+.dex div[data-id]{cursor:pointer}
+.dex div small{color:#E8A100;font-size:.62rem;letter-spacing:-1px}
+.dex div.unknown{opacity:.55}
+.dex div.unknown .q{display:grid;place-items:center;width:64px;height:64px;font-size:1.6rem;font-weight:900;color:var(--muted)}
+.manage h3{margin:14px 0 4px;font-size:.95rem}
+.note.left{text-align:left;margin:0 0 6px}
+.profiles{display:flex;flex-direction:column;gap:6px}
+.profile{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.profile small{color:var(--muted);flex:1}
+.profile .chip[aria-pressed="true"]{border-color:var(--good);color:var(--good);font-weight:700}
+.chip.danger,.btn.danger{color:var(--bad)}
+.btn.ghost.danger{border-color:color-mix(in srgb,var(--bad) 45%,var(--line))}
+.profile-form{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:8px}
+.profile-form input{font:inherit;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);min-width:0}
+.profile-form .btn{padding:10px 14px;font-size:.92rem}
+.manage-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.manage-row .btn{font-size:.9rem;padding:12px 8px}
+/* detail sheet */
+.sheet-wrap{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center}
+.sheet{position:relative;width:100%;max-width:480px;max-height:88vh;overflow:auto;background:var(--bg);border-radius:22px 22px 0 0;
+  padding:18px max(16px,env(safe-area-inset-right,0px)) calc(18px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:10px;align-items:center;text-align:center}
+.sheet-close{position:absolute;right:12px;top:12px}
+.sheet-art{width:min(60vw,220px);aspect-ratio:1;object-fit:contain}
+.sheet h2{margin:0;font-family:var(--display);font-weight:900;font-size:1.7rem}
+.sheet-meta{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;font-size:.88rem;color:var(--muted)}
+.sheet-stats{width:100%;display:flex;flex-direction:column;gap:2px;text-align:left}
+.sheet-stats div{display:grid;grid-template-columns:6em 1fr;gap:8px;padding:7px 2px;border-bottom:1px solid var(--line);font-size:.9rem}
+.sheet-stats span{color:var(--muted)}
+.sheet-stats .balls{display:flex;flex-wrap:wrap;gap:4px 10px;font-weight:600}
+.sheet-stats .balls img{width:22px;height:22px;image-rendering:pixelated;vertical-align:-6px}
+.sheet .btn{width:100%}
+
 /* result screen */
 .result{align-items:center;text-align:center;justify-content:center}
 .burst{position:relative;width:min(78vw,300px);aspect-ratio:1;display:grid;place-items:center}
@@ -384,17 +434,59 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 
   <!-- 圖鑑 -->
   <section class="screen" id="s-dex" hidden>
-    <div class="dex-head"><h2>我的圖鑑</h2><span id="dexTotal"></span></div>
+    <div class="dex-head"><b id="dexTotal"></b>
+      <button class="player-chip" id="playerChip" aria-label="切換玩家"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9zm0 2c-4.4 0-8 2.2-8 5v2h16v-2c0-2.8-3.6-5-8-5z"/></svg><span id="playerName"></span></button>
+    </div>
     <div class="progress"><i id="dexBar" style="width:0"></i></div>
-    <label class="setting"><input type="checkbox" id="silToggle"><span>沒抓過的寶可夢先用剪影顯示，抓到或跳出來時才揭曉</span></label>
+    <details class="panel"><summary>各世代收集進度</summary><div id="genBars" class="gen-bars"></div></details>
+    <div class="dex-tools">
+      <input type="search" id="dexSearch" placeholder="搜尋名字或編號" autocomplete="off">
+      <div class="seg" id="dexStatus" role="group" aria-label="狀態">
+        <button data-s="all" aria-pressed="true">全部</button><button data-s="caught" aria-pressed="false">抓到的</button>
+        <button data-s="seen" aria-pressed="false">見過</button><button data-s="unknown" aria-pressed="false">還沒發現</button>
+      </div>
+      <div class="dex-selects">
+        <select id="dexGen" aria-label="世代"></select>
+        <select id="dexType" aria-label="屬性"></select>
+        <select id="dexStar" aria-label="星數"><option value="">全部星數</option><option value="1">★1</option><option value="2">★2</option><option value="3">★3</option><option value="4">★4</option><option value="5">★5</option></select>
+        <select id="dexSort" aria-label="排序"><option value="id">依編號</option><option value="recent">最近抓到</option><option value="star">星數高到低</option><option value="count">抓到次數</option></select>
+      </div>
+      <div class="dex-result" id="dexResult"></div>
+    </div>
     <div class="dex" id="dex"></div>
+    <button class="btn ghost" id="dexMore" hidden>再顯示更多</button>
+
+    <details class="panel manage" id="dexManage"><summary>圖鑑管理</summary>
+      <label class="setting"><input type="checkbox" id="silToggle"><span>沒抓過的寶可夢先用剪影顯示，抓到或跳出來時才揭曉</span></label>
+      <h3>玩家</h3>
+      <p class="note left">兄弟姊妹共用手機時，每個人有自己的圖鑑。</p>
+      <div id="profileList" class="profiles"></div>
+      <form id="profileForm" class="profile-form"><input id="profileName" maxlength="12" placeholder="玩家名字" autocomplete="off"><button class="btn sun" id="profileAdd" type="submit">新增玩家</button></form>
+      <h3>備份</h3>
+      <p class="note left">圖鑑存在這支手機的瀏覽器裡，清除瀏覽器資料就會不見。可以先下載備份檔，換手機或清除後再還原。</p>
+      <div class="manage-row"><button class="btn ghost" id="exportBtn">下載備份檔</button><label class="btn ghost" for="importFile">從備份檔還原<input type="file" id="importFile" accept="application/json,.json"></label></div>
+      <p class="note left" id="importInfo"></p>
+      <button class="btn sun" id="importConfirm" hidden>還原這個備份</button>
+      <h3>重設</h3>
+      <button class="btn ghost danger" id="resetBtn">清空目前玩家的圖鑑</button>
+    </details>
   </section>
+</div>
+<div class="sheet-wrap" id="monSheet" hidden>
+  <div class="sheet" role="dialog" aria-label="寶可夢資料">
+    <button class="icon-btn sheet-close" id="sheetClose" aria-label="關閉"><svg viewBox="0 0 24 24"><path d="M18.3 5.7 16.9 4.3 12 9.2 7.1 4.3 5.7 5.7 10.6 10.6 5.7 15.5l1.4 1.4 4.9-4.9 4.9 4.9 1.4-1.4-4.9-4.9z"/></svg></button>
+    <img id="sheetArt" class="sheet-art" alt="">
+    <h2 id="sheetName"></h2>
+    <div class="sheet-meta"><span id="sheetNo"></span><span class="type-pill" id="sheetType"></span><span class="stars" id="sheetStars"></span><span class="dots" id="sheetColors"></span></div>
+    <div class="sheet-stats" id="sheetStats"></div>
+    <button class="btn ghost danger" id="releaseBtn">放生（從圖鑑移除）</button>
+  </div>
 </div>
 <div class="toast" id="toast"></div>
 <canvas id="cv" width="48" height="48" hidden></canvas>
 
 <script>
-const BUILD="2026.10.28-0152";
+const BUILD="2026.10.28-0202";
 /* =========================================================
    顏色寶可夢探險
    資料都在 data/：config.json 列出要載入的資料包（packs），
@@ -964,26 +1056,201 @@ function showResult(mon){
 }
 
 /* ---------- 圖鑑（存在這支手機的瀏覽器裡） ---------- */
-const DEX_KEY="colormon-dex";
-let dex={};try{dex=JSON.parse(localStorage.getItem(DEX_KEY))||{};}catch(e){}
-const SEEN_KEY="colormon-seen";
-let seen={};try{seen=JSON.parse(localStorage.getItem(SEEN_KEY))||{};}catch(e){}
-function markSeen(m){if(seen[m.id])return;seen[m.id]=1;try{localStorage.setItem(SEEN_KEY,JSON.stringify(seen));}catch(e){}}
-function saveDex(m){markSeen(m);(dex[m.id]??={n:0}).n++;dex[m.id].last=Date.now();if(lastBall)dex[m.id].ball=lastBall.key;try{localStorage.setItem(DEX_KEY,JSON.stringify(dex));}catch(e){}updateCount();}
-function updateCount(){$("dexCount").textContent=Object.keys(dex).filter(id=>MONS.some(m=>m.id==id)).length;}
+/* =========================================================
+   圖鑑資料：每位玩家有自己的圖鑑（dex：抓到的）和見過的紀錄（seen）
+   localStorage：colormon-profiles、colormon-dex:<玩家>、colormon-seen:<玩家>
+   ========================================================= */
+const PROFILES_KEY="colormon-profiles";
+const lsGet=(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}};
+const lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return true;}catch(e){return false;}};
+let PROFILES=lsGet(PROFILES_KEY,null);
+if(!PROFILES){                                                   // 第一次：把舊版的圖鑑搬到第一位玩家
+  PROFILES={cur:"p1",list:[{id:"p1",name:"我"}]};
+  const oldDex=lsGet("colormon-dex",null),oldSeen=lsGet("colormon-seen",null);
+  if(oldDex)lsSet("colormon-dex:p1",oldDex);
+  if(oldSeen)lsSet("colormon-seen:p1",oldSeen);
+  lsSet(PROFILES_KEY,PROFILES);
+}
+const dexKey=id=>`colormon-dex:${id}`,seenKey=id=>`colormon-seen:${id}`;
+let dex=lsGet(dexKey(PROFILES.cur),{}),seen=lsGet(seenKey(PROFILES.cur),{});
+const curProfile=()=>PROFILES.list.find(p=>p.id===PROFILES.cur)||PROFILES.list[0];
+function saveDexStore(){lsSet(dexKey(PROFILES.cur),dex);}
+function markSeen(m){if(seen[m.id])return;seen[m.id]=Date.now();lsSet(seenKey(PROFILES.cur),seen);}
+function saveDex(m){
+  markSeen(m);
+  const e=(dex[m.id]??={n:0,first:Date.now()});
+  e.n++;e.last=Date.now();e.first??=e.last;
+  if(lastBall){e.ball=lastBall.key;(e.balls??={})[lastBall.key]=(e.balls[lastBall.key]||0)+1;}
+  saveDexStore();updateCount();
+}
+function updateCount(){$("dexCount").textContent=MONS.filter(m=>dex[m.id]).length;}
+function switchProfile(id){
+  if(!PROFILES.list.some(p=>p.id===id))return;
+  PROFILES.cur=id;lsSet(PROFILES_KEY,PROFILES);
+  dex=lsGet(dexKey(id),{});seen=lsGet(seenKey(id),{});
+  updateCount();renderDex();
+}
+
+/* ---------- 圖鑑畫面 ---------- */
+const GEN_END=[151,251,386,493,649,721,809,905,1025];
+const genOf=id=>{const i=GEN_END.findIndex(e=>id<=e);return i<0?GEN_END.length:i+1;};
+const pad3=n=>String(n).padStart(3,"0");
+const DEXUI={status:"all",gen:"",type:"",star:"",sort:"id",q:"",shown:150};
+function dexStatus(m){return dex[m.id]?"caught":seen[m.id]?"seen":"unknown";}
+function dexFiltered(){
+  const q=DEXUI.q.trim();
+  let list=MONS.filter(m=>{
+    const st=dexStatus(m);
+    if(DEXUI.status!=="all"&&st!==DEXUI.status)return false;
+    if(DEXUI.gen&&genOf(m.id)!=DEXUI.gen)return false;
+    if(DEXUI.type&&(st==="unknown"||m.type!==DEXUI.type))return false;      // 沒發現的不透露屬性
+    if(DEXUI.star&&(st==="unknown"||m.rarity!=DEXUI.star))return false;
+    if(q){ if(/^\d+$/.test(q)){ if(!String(m.id).includes(q))return false; } else if(st==="unknown"||!m.name.includes(q))return false; }
+    return true;
+  });
+  const by={id:(a,b)=>a.id-b.id,
+            recent:(a,b)=>(dex[b.id]?.last||seen[b.id]||0)-(dex[a.id]?.last||seen[a.id]||0)||a.id-b.id,
+            star:(a,b)=>(dex[b.id]||seen[b.id]?b.rarity:0)-(dex[a.id]||seen[a.id]?a.rarity:0)||a.id-b.id,
+            count:(a,b)=>(dex[b.id]?.n||0)-(dex[a.id]?.n||0)||a.id-b.id};
+  return list.sort(by[DEXUI.sort]||by.id);
+}
 function renderDex(){
-  const got=MONS.filter(m=>dex[m.id]).length;
-  const list=MONS.filter(m=>dex[m.id]||seen[m.id]).sort((a,b)=>a.id-b.id);
-  $("dexTotal").textContent=`抓到 ${got} / ${MONS.length}`;
-  $("dexBar").style.width=(MONS.length?got/MONS.length*100:0)+"%";
-  $("dex").innerHTML=list.length?list.map(m=>{const c=dex[m.id];
-    return `<div class="${c?"":"seen"}">${c&&c.n>1?`<em>×${c.n}</em>`:""}${c?"":"<em>見過</em>"}
+  if(!MONS.length)return;
+  const got=MONS.filter(m=>dex[m.id]).length,seenN=MONS.filter(m=>!dex[m.id]&&seen[m.id]).length;
+  const pn=curProfile().name;
+  $("playerName").textContent=pn;
+  if(screen==="dex")$("barTitle").textContent=pn==="我"?"我的圖鑑":`${pn}的圖鑑`;
+  $("dexTotal").textContent=`抓到 ${got} / ${MONS.length}　見過 ${seenN}`;
+  $("dexBar").style.width=(got/MONS.length*100)+"%";
+  // 各世代進度
+  $("genBars").innerHTML=GEN_END.map((e,i)=>{const g=i+1,ms=MONS.filter(m=>genOf(m.id)===g),c=ms.filter(m=>dex[m.id]).length;
+    return `<div class="gen-row"><span>第 ${g} 代</span><div class="progress"><i style="width:${ms.length?c/ms.length*100:0}%"></i></div><b>${c}/${ms.length}</b></div>`;}).join("");
+  const list=dexFiltered();
+  $("dexResult").textContent=`${list.length} 隻`;
+  const cells=list.slice(0,DEXUI.shown).map(m=>{
+    const st=dexStatus(m),c=dex[m.id];
+    if(st==="unknown") return `<div class="unknown"><i class="q">？</i><b>#${pad3(m.id)}</b><span>？？？</span></div>`;
+    return `<div class="${st}" data-id="${m.id}" role="button" tabindex="0">${c&&c.n>1?`<em>×${c.n}</em>`:""}${st==="seen"?"<em>見過</em>":""}
       <img src="${spriteUrl(m.id)}" alt="" loading="lazy" onerror="this.outerHTML='<i class=sw style=background:${m.colors[0]}></i>'">
-      <b>#${String(m.id).padStart(3,"0")}</b><span>${m.name}</span></div>`;}).join("")
-    :`<p class="empty">還沒有抓到寶可夢。<br>去拍張照片吧！</p>`;
+      <b>#${pad3(m.id)}</b><span>${m.name}</span><small>${"★".repeat(m.rarity)}</small></div>`;
+  });
+  $("dex").innerHTML=cells.length?cells.join(""):`<p class="empty">${got?"沒有符合的寶可夢":"還沒有抓到寶可夢。<br>去拍張照片吧！"}</p>`;
+  $("dexMore").hidden=list.length<=DEXUI.shown;
+  $("dexMore").textContent=`再顯示 ${Math.min(150,list.length-DEXUI.shown)} 隻`;
   $("silToggle").checked=silhouetteOn();
+  renderProfiles();
 }
 $("silToggle").addEventListener("change",e=>{try{localStorage.setItem(SIL_KEY,e.target.checked?"1":"0");}catch(err){}});
+// 篩選、排序、搜尋
+document.querySelectorAll("#dexStatus button").forEach(b=>b.onclick=()=>{DEXUI.status=b.dataset.s;DEXUI.shown=150;
+  document.querySelectorAll("#dexStatus button").forEach(x=>x.setAttribute("aria-pressed",x===b));renderDex();});
+for(const [id,key] of [["dexGen","gen"],["dexType","type"],["dexStar","star"],["dexSort","sort"]])
+  $(id).addEventListener("change",e=>{DEXUI[key]=e.target.value;DEXUI.shown=150;renderDex();});
+$("dexSearch").addEventListener("input",e=>{DEXUI.q=e.target.value;DEXUI.shown=150;renderDex();});
+$("dexMore").onclick=()=>{DEXUI.shown+=150;renderDex();};
+$("playerChip").onclick=()=>{$("dexManage").open=true;$("dexManage").scrollIntoView({behavior:"smooth"});};
+$("dex").addEventListener("click",e=>{const el=e.target.closest("[data-id]");if(el)openMonSheet(+el.dataset.id);});
+$("dex").addEventListener("keydown",e=>{if(e.key==="Enter"){const el=e.target.closest("[data-id]");if(el)openMonSheet(+el.dataset.id);}});
+function fillDexSelects(){
+  $("dexGen").innerHTML=`<option value="">全部世代</option>`+GEN_END.map((_,i)=>`<option value="${i+1}">第 ${i+1} 代</option>`).join("");
+  $("dexType").innerHTML=`<option value="">全部屬性</option>`+Object.entries(TYPES).map(([k,t])=>`<option value="${k}">${t.name}</option>`).join("");
+}
+
+/* ---------- 按兩次才執行（放生、重設、刪除玩家…避免小朋友誤按） ---------- */
+function twoStep(btn,confirmText,action){
+  if(btn.dataset.armed){delete btn.dataset.armed;clearTimeout(btn._t);btn.textContent=btn.dataset.label;action();return;}
+  btn.dataset.label??=btn.textContent;btn.dataset.armed="1";btn.textContent=confirmText;
+  clearTimeout(btn._t);btn._t=setTimeout(()=>{delete btn.dataset.armed;btn.textContent=btn.dataset.label;},3500);
+}
+
+/* ---------- 寶可夢詳細頁 ---------- */
+let sheetMon=null;
+const fmtDate=t=>{if(!t)return"—";const d=new Date(t);return `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;};
+function openMonSheet(id){
+  const m=MONS.find(x=>x.id===id);if(!m)return;
+  sheetMon=m;const c=dex[id],T=TYPES[m.type];
+  $("sheetArt").src=artUrl(id);$("sheetArt").alt=m.name;
+  $("sheetName").textContent=m.name;$("sheetNo").textContent=`#${pad3(id)}・第 ${genOf(id)} 代`;
+  $("sheetType").textContent=T.name;$("sheetType").style.background=T.color;
+  $("sheetStars").textContent=starText(m.rarity);
+  $("sheetColors").innerHTML=m.colors.map(x=>`<i style="background:${x}"></i>`).join("");
+  const ballName=k=>BALLS?.balls.find(b=>b.key===k)?.name||k;
+  $("sheetStats").innerHTML=c?`
+    <div><span>抓到</span><b>${c.n} 次</b></div>
+    <div><span>第一次</span><b>${fmtDate(c.first||c.last)}</b></div>
+    <div><span>最近一次</span><b>${fmtDate(c.last)}</b></div>
+    <div><span>用過的球</span><b class="balls">${c.balls?Object.entries(c.balls).map(([k,n])=>`<span title="${ballName(k)}">${BALLS?`<img src="${BALLS.spriteUrl.replace("{key}",k)}" alt="">`:""}${ballName(k)}${n>1?`×${n}`:""}</span>`).join(""):(c.ball?ballName(c.ball):"—")}</b></div>`
+    :`<div><span>狀態</span><b>見過，還沒抓到</b></div><div><span>第一次見到</span><b>${typeof seen[id]==="number"&&seen[id]>1?fmtDate(seen[id]):"—"}</b></div>`;
+  $("releaseBtn").hidden=!c;delete $("releaseBtn").dataset.armed;$("releaseBtn").textContent="放生（從圖鑑移除）";
+  $("monSheet").hidden=false;
+  anim($("monSheet").firstElementChild,[{transform:"translateY(40px)",opacity:0},{transform:"translateY(0)",opacity:1}],{duration:220,easing:"ease-out"});
+}
+function closeMonSheet(){$("monSheet").hidden=true;sheetMon=null;}
+$("sheetClose").onclick=closeMonSheet;
+$("monSheet").addEventListener("click",e=>{if(e.target===$("monSheet"))closeMonSheet();});
+$("releaseBtn").onclick=()=>twoStep($("releaseBtn"),"真的要放生嗎？再按一次",()=>{
+  if(!sheetMon)return;const name=sheetMon.name;
+  delete dex[sheetMon.id];saveDexStore();updateCount();closeMonSheet();renderDex();
+  sfx("flee");toast(`${name}回到大自然了`);
+});
+
+/* ---------- 玩家管理 ---------- */
+function renderProfiles(){
+  $("profileList").innerHTML=PROFILES.list.map(p=>{const n=Object.keys(lsGet(dexKey(p.id),{})).length,cur=p.id===PROFILES.cur;
+    return `<div class="profile ${cur?"cur":""}"><button class="chip" data-switch="${p.id}" aria-pressed="${cur}">${p.name}</button><small>抓到 ${n} 隻</small>
+      <button class="chip" data-rename="${p.id}">改名</button>${PROFILES.list.length>1?`<button class="chip danger" data-del="${p.id}">刪除</button>`:""}</div>`;}).join("");
+}
+$("profileList").addEventListener("click",e=>{
+  const b=e.target.closest("button");if(!b)return;
+  if(b.dataset.switch){switchProfile(b.dataset.switch);toast(`換成 ${curProfile().name} 的圖鑑`);}
+  if(b.dataset.rename){const p=PROFILES.list.find(x=>x.id===b.dataset.rename);$("profileName").value=p.name;$("profileName").focus();$("profileName").dataset.rename=p.id;$("profileAdd").textContent="改名";}
+  if(b.dataset.del) twoStep(b,"確定刪除？",()=>{
+    const id=b.dataset.del;PROFILES.list=PROFILES.list.filter(p=>p.id!==id);
+    try{localStorage.removeItem(dexKey(id));localStorage.removeItem(seenKey(id));}catch(err){}
+    if(PROFILES.cur===id)PROFILES.cur=PROFILES.list[0].id;
+    lsSet(PROFILES_KEY,PROFILES);switchProfile(PROFILES.cur);
+  });
+});
+$("profileForm").addEventListener("submit",e=>{
+  e.preventDefault();const name=$("profileName").value.trim().slice(0,12);if(!name)return;
+  const rid=$("profileName").dataset.rename;
+  if(rid){PROFILES.list.find(p=>p.id===rid).name=name;delete $("profileName").dataset.rename;$("profileAdd").textContent="新增玩家";}
+  else{const id="p"+Date.now().toString(36);PROFILES.list.push({id,name});PROFILES.cur=id;dex={};seen={};}
+  lsSet(PROFILES_KEY,PROFILES);$("profileName").value="";switchProfile(PROFILES.cur);
+});
+
+/* ---------- 備份、還原、重設 ---------- */
+$("exportBtn").onclick=()=>{
+  const data={app:"colormon",format:1,exported:new Date().toISOString(),cur:PROFILES.cur,
+    players:PROFILES.list.map(p=>({id:p.id,name:p.name,dex:lsGet(dexKey(p.id),{}),seen:lsGet(seenKey(p.id),{})}))};
+  const blob=new Blob([JSON.stringify(data)],{type:"application/json"}),a=document.createElement("a");
+  const d=new Date();a.href=URL.createObjectURL(blob);a.download=`寶可夢圖鑑備份-${d.getFullYear()}${String(d.getMonth()+1).padStart(2,"0")}${String(d.getDate()).padStart(2,"0")}.json`;
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+  toast("備份檔已下載");
+};
+let pendingImport=null;
+$("importFile").addEventListener("change",async e=>{
+  const f=e.target.files[0];e.target.value="";if(!f)return;
+  try{
+    const d=JSON.parse(await f.text());
+    if(d.app!=="colormon"||!Array.isArray(d.players)||!d.players.length)throw new Error("不是圖鑑備份檔");
+    pendingImport=d;
+    const total=d.players.reduce((a,p)=>a+Object.keys(p.dex||{}).length,0);
+    $("importInfo").textContent=`備份裡有 ${d.players.length} 位玩家、共 ${total} 筆抓到的紀錄。還原會取代目前所有玩家的資料。`;
+    $("importConfirm").hidden=false;
+  }catch(err){toast("這個檔案不是圖鑑備份檔");}
+});
+$("importConfirm").onclick=()=>twoStep($("importConfirm"),"確定取代？再按一次",()=>{
+  const d=pendingImport;if(!d)return;
+  for(const p of PROFILES.list){try{localStorage.removeItem(dexKey(p.id));localStorage.removeItem(seenKey(p.id));}catch(e){}}
+  PROFILES={cur:d.players.some(p=>p.id===d.cur)?d.cur:d.players[0].id,list:d.players.map(p=>({id:p.id,name:p.name}))};
+  for(const p of d.players){lsSet(dexKey(p.id),p.dex||{});lsSet(seenKey(p.id),p.seen||{});}
+  lsSet(PROFILES_KEY,PROFILES);pendingImport=null;$("importConfirm").hidden=true;$("importInfo").textContent="";
+  switchProfile(PROFILES.cur);toast("圖鑑還原好了");
+});
+$("resetBtn").onclick=()=>twoStep($("resetBtn"),`確定清空 ${curProfile().name} 的圖鑑？`,()=>{
+  dex={};seen={};saveDexStore();lsSet(seenKey(PROFILES.cur),seen);updateCount();renderDex();toast("圖鑑清空了");
+});
 
 /* ---------- 範例照片 ---------- */
 function sample(kind){
@@ -1685,7 +1952,7 @@ if("serviceWorker" in navigator&&(location.protocol==="https:"||location.hostnam
 })();
 history.replaceState(null,"","#camera");
 show("camera");
-loadData().then(()=>{updateCount();setupBallArt();setBallMode(AR.on);loadChangelog();}).catch(err=>{
+loadData().then(()=>{updateCount();fillDexSelects();setupBallArt();setBallMode(AR.on);loadChangelog();}).catch(err=>{
   console.error(err);
   $("camMsg").textContent="寶可夢資料載入失敗。請用網址（例如 GitHub Pages）開啟，而不是直接打開檔案。";
 });

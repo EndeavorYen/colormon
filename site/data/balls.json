@@ -1,6 +1,6 @@
 {
   "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/{key}.png",
-  "cycleMs": 220,
+  "cycleMs": 90,
   "balls": [
     {"key":"poke-ball","name":"精靈球","weight":30},
     {"key":"great-ball","name":"超級球","weight":18,"bonus":1.25},
