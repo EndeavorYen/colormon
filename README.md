@@ -26,18 +26,19 @@
 不用一直拍照：相機一直開著，跟著提示在房間裡找寶可夢。
 
 1. 拍照畫面按「探索模式」，再按「開始探險」（iPhone 會詢問動作與方向的權限）。
-2. 寶可夢藏在某個方向、某個高度（可能在上面或下面），而且在幾步遠的地方。
+2. 寶可夢藏在某個方向、某個高度（可能在上面或下面）。
 3. 拿著手機轉動、抬頭低頭找：畫面四邊的箭頭指出往左右或上下轉。越接近，畫面邊緣的呼吸光越閃越快（藍→黃→紅），雷達聲越密越高，Android 手機越震越強（iPhone 的 Safari 不支援網頁震動，靠光和聲音提示）。
-4. 對準之後提示「往前走 N 步」，朝寶可夢的方向走過去（背對著走不算）。
-5. 走到了、對準一下子，就會「噔噔噔」自動截下畫面，用那裡的顏色決定出現哪隻寶可夢。
-6. 抓到或逃跑後回到探索，相機一直保持開著，繼續找下一隻。
+4. 對準一下子，就會「噔噔噔」自動截下畫面，用那裡的顏色決定出現哪隻寶可夢。很暗的地方也可以，會遇到夜行性寶可夢。
+5. 抓到或逃跑後回到探索，相機一直保持開著，繼續找下一隻。
 
 感測器：
 - **方向**：用陀螺儀（deviceorientation 的 alpha、beta、gamma 三個軸）算出手機背面鏡頭在空間中的方向（水平角度＋仰角），目標距離用立體夾角計算，任何握法都適用。
-- **走路**：用加速度計（devicemotion）偵測每一步的加速度尖峰。
-- 沒有這些感測器（電腦、拒絕權限）時：在畫面上滑動轉向（左右、上下），用「往前走一步」按鈕或 W 鍵代替走路。
+- 沒有陀螺儀（電腦、拒絕權限）時：在畫面上滑動轉向（左右、上下），或用方向鍵。
 
-設定在 `config.json` 的 `explore`：`foundDeg` 對準的容許角度、`holdMs` 要對準多久、`minTargetDeg`／`maxTargetDeg` 寶可夢離起點多遠、`minPitch`／`maxPitch` 高度範圍、`minSteps`／`maxSteps` 要走幾步（都設 0 就不用走路）、`towardDeg` 走路時要朝向多準、`stepThreshold` 步伐偵測靈敏度、`slowBeatMs`／`fastBeatMs` 提示節拍。
+設定在 `config.json` 的 `explore`：`foundDeg` 對準的容許角度、`holdMs` 要對準多久、`minTargetDeg`／`maxTargetDeg` 寶可夢離起點多遠、`minPitch`／`maxPitch` 高度範圍、`slowBeatMs`／`fastBeatMs` 提示節拍。
+
+### 很暗的地方
+照片或探索畫面平均亮度很低時（`night.darkL`），會出現「黑暗中有東西在動！」，從夜行性寶可夢裡挑：幽靈、惡屬性，加上 `night.ids` 列的晚上出沒的寶可夢（超音蝠、咕咕、燈籠魚、皮皮、月石、電螢蟲……）。暗處分不太出顏色，所以顏色的影響調低（`night.colorFactor`）。探索模式判斷相機有沒有在運作是看串流狀態和影像有沒有更新，不看亮度，所以暗處也能正常截圖。
 
 ## 音效
 Game Boy 風格的原創音效，用程式即時合成（兩個方波通道加一個噪音通道，跟 Game Boy 的音源一樣），不用音效檔：寶可夢出現的上升琶音、揭曉的閃亮聲、丟球的「咻」、晃動的「喀噠」、抓到的小勝利曲、跳出來的「啵」、逃跑的下降音，以及探索模式的雷達聲和「噔噔噔」。右上角的喇叭按鈕可以靜音。
@@ -66,16 +67,14 @@ Game Boy 風格的原創音效，用程式即時合成（兩個方波通道加�
 設定在 `config.json` 的 `ball`：`longTravel`（標準模式的長距離門檻）、`edgeMargin`（多靠近邊緣算「從邊緣進來」）、`minDirCos`（方向連貫程度）、`diffThreshold`、`chromaWeight`、`phoneMotionDeg`、`objectDetection.scoreThreshold` 等。
 
 ## 資料與擴充
-寶可夢不寫死在網頁裡，全部放在 `site/data/`，目前收錄第一到三代共 386 隻：
+寶可夢不寫死在網頁裡，全部放在 `site/data/`，目前收錄第一到九代，全國圖鑑共 1025 隻：
 
 ```
 site/data/
 ├── config.json            要載入哪些資料包、捕捉率、候選與機率設定、圖片網址
 ├── types.json             18 種屬性（名稱、顏色、圖示的 SVG path）
 └── packs/
-    ├── gen1.json          第一代（151）
-    ├── gen2.json          第二代（100）
-    ├── gen3.json          第三代（135）
+    ├── gen1.json … gen9.json   第一代（151）到第九代（120）
     └── color-tweaks.json  手動調整過的代表色，覆蓋自動算出的顏色
 ```
 
@@ -93,8 +92,8 @@ site/data/
 ### 自動產生資料包
 ```
 pip install pillow
-python3 tools/build-packs.py          # 第 1～3 代
-python3 tools/build-packs.py 1 2 3 4  # 加上第四代（再把 packs/gen4.json 加進 config.json）
+python3 tools/build-packs.py                    # 預設第 1～3 代
+python3 tools/build-packs.py 1 2 3 4 5 6 7 8 9  # 全部九代（新增的資料包要加進 config.json 的 packs）
 ```
 程式從 PokeAPI 在 GitHub 上的資料取得編號、名稱、屬性和稀有度依據，再從官方插圖自動抓出主色和配色（Lab 空間 k-means、排除描邊、提高彩度讓顏色接近大家印象中的寶可夢）。下載的檔案快取在 `tools/.cache/`。
 

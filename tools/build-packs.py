@@ -23,7 +23,8 @@ OUT = os.path.join(ROOT, "site", "data", "packs")
 CSV_URL = "https://raw.githubusercontent.com/PokeAPI/pokeapi/master/data/v2/csv/{}.csv"
 ART_URL = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/{}.png"
 ZH_HANT = "4"          # PokeAPI 的語言編號：繁體中文
-GEN_NAMES = {1: "第一代（關都）", 2: "第二代（城都）", 3: "第三代（豐緣）", 4: "第四代（神奧）"}
+GEN_NAMES = {1: "第一代（關都）", 2: "第二代（城都）", 3: "第三代（豐緣）", 4: "第四代（神奧）", 5: "第五代（合眾）",
+             6: "第六代（卡洛斯）", 7: "第七代（阿羅拉）", 8: "第八代（伽勒爾）", 9: "第九代（帕底亞）"}
 TYPE_IDS = {1: "normal", 2: "fighting", 3: "flying", 4: "poison", 5: "ground", 6: "rock", 7: "bug", 8: "ghost", 9: "steel",
             10: "fire", 11: "water", 12: "grass", 13: "electric", 14: "psychic", 15: "ice", 16: "dragon", 17: "dark", 18: "fairy"}
 

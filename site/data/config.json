@@ -3,6 +3,12 @@
     "packs/gen1.json",
     "packs/gen2.json",
     "packs/gen3.json",
+    "packs/gen4.json",
+    "packs/gen5.json",
+    "packs/gen6.json",
+    "packs/gen7.json",
+    "packs/gen8.json",
+    "packs/gen9.json",
     "packs/color-tweaks.json"
   ],
   "catchBase": {
@@ -72,11 +78,48 @@
     "maxTargetDeg": 170,
     "minPitch": -20,
     "maxPitch": 35,
-    "minSteps": 2,
-    "maxSteps": 5,
-    "towardDeg": 50,
-    "stepThreshold": 2.2,
     "slowBeatMs": 1300,
     "fastBeatMs": 140
+  },
+  "night": {
+    "darkL": 22,
+    "colorFactor": 0.1,
+    "types": [
+      "ghost",
+      "dark"
+    ],
+    "ids": [
+      41,
+      42,
+      169,
+      163,
+      164,
+      43,
+      35,
+      36,
+      170,
+      171,
+      313,
+      314,
+      337,
+      198,
+      197,
+      200,
+      215,
+      228,
+      229,
+      261,
+      262,
+      302,
+      353,
+      354,
+      355,
+      356,
+      359,
+      92,
+      93,
+      94,
+      269
+    ]
   }
 }

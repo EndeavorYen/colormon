@@ -267,7 +267,7 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
       <div class="live-chip ex-chip" id="exChip" hidden><i id="exDot"></i><span id="exText"></span></div>
       <div class="ex-start" id="exStart">
         <p class="ex-title">附近好像有寶可夢！</p>
-        <p>拿著手機慢慢轉一圈，也看看上面和下面。越靠近寶可夢，畫面邊緣的光會閃得越快、聲音越密，手機也會震動得越厲害。對準以後往前走幾步，牠就會跳出來！</p>
+        <p>拿著手機慢慢轉一圈，也看看上面和下面。越靠近寶可夢，畫面邊緣的光會閃得越快、聲音越密，手機也會震動得越厲害。對準了牠就會跳出來！</p>
         <button class="btn sun" id="exStartBtn">開始探險</button>
         <p class="ex-small" id="exNote"></p>
       </div>
@@ -348,7 +348,7 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 <canvas id="cv" width="48" height="48" hidden></canvas>
 
 <script>
-const BUILD="2026.10.27-1817";
+const BUILD="2026.10.27-1843";
 /* =========================================================
    顏色寶可夢探險
    資料都在 data/：config.json 列出要載入的資料包（packs），
@@ -463,9 +463,20 @@ function pickFrom(scored,pal,r){
   for(let i=0;i<cands.length;i++){acc+=ws[i]/tot;if(r<acc)return cands[i];}
   return cands[0];
 }
+/* 畫面很暗：從夜行性寶可夢裡挑（幽靈、惡，加上晚上出沒的） */
+function photoBrightness(pal){return pal.reduce((a,c)=>a+c.share*c.lab[0],0)/pal.reduce((a,c)=>a+c.share,0);}
+function isNight(pal){return photoBrightness(pal)<(CFG.night?.darkL??22);}
+function pickNight(pal,rand){
+  const n=CFG.night||{},ids=new Set(n.ids||[]),types=new Set(n.types||["ghost","dark"]);
+  const pool=MONS.filter(m=>ids.has(m.id)||types.has(m.type));
+  // 暗處的顏色很難分辨，所以範圍放寬，讓夜行性寶可夢都有機會
+  const scored=pool.map(m=>({m,d:scoreMon(pal,m)*(CFG.night?.colorFactor??0.1)})).sort((a,b)=>a.d-b.d);
+  return pickFrom(scored,pal,rand());
+}
 function pickMon(pal){
   const seed=CFG.sameResultPerDay ? pal.slice(0,2).map(c=>c.lab.map(v=>Math.round(v/12)).join(",")).join("|")+"|"+today() : `${Date.now()}|${Math.random()}`;
   const rand=rng(fnv1a(seed));
+  if(isNight(pal)&&MONS.length){const p=pickNight(pal,rand);return {mon:p.m,sim:Math.max(5,Math.min(99,Math.round(100-scoreMon(pal,p.m)*1.3))),night:true};}
   // 分數 = 寶可夢本身顏色的距離 和 屬性代表色系的距離 加權（越小越像）
   const lam=CFG.typeWeight??0.4, td=typeDistances(pal);
   const all=MONS.map(m=>{const c=scoreMon(pal,m);return {m,c,d:(1-lam)*c+lam*(td[m.type]??c)};});
@@ -598,8 +609,8 @@ function startScan(src){
     [...$("palette").children].forEach((el,i)=>el.style.flex=pal[i].share);
     $("palLegend").innerHTML=pal.map(c=>`<span style="--c:${css(c.rgb)}">${c.word} ${Math.round(c.share*100)}%</span>`).join("");
     const words=pal.slice(0,2).map(c=>c.word).filter((w,i,a)=>a.indexOf(w)===i);
-    await wait(600); $("scanText").textContent=`看到${words.join(" + ")}！`;
-    await wait(900); $("scanText").textContent="草叢裡有東西在動…";
+    await wait(600); $("scanText").textContent=picked.night?"好暗喔…什麼都看不清楚":`看到${words.join(" + ")}！`;
+    await wait(900); $("scanText").textContent=picked.night?"黑暗中有東西在動！":"草叢裡有東西在動…";
     await Promise.race([preload,wait(800)]);
     scanning=false;
     startEncounter(pal,picked);
@@ -1093,7 +1104,7 @@ try{AR.on=localStorage.getItem(BALL_MODE_KEY)==="1";}catch(e){}
    ========================================================= */
 const EX={started:false,stream:null,raf:0,rawYaw:null,rawPitch:null,manual:0,manualPitch:0,target:{yaw:0,pitch:0},steps0:0,stepsLeft:0,
           lock:0,nextBeat:0,flat:false,hasOrient:false,hasMotion:false,found:false,lastStepT:0,stepArmed:true,gBase:9.8};
-function exConfig(){return {foundDeg:15,holdMs:700,minTargetDeg:70,maxTargetDeg:170,minPitch:-20,maxPitch:35,minSteps:2,maxSteps:5,
+function exConfig(){return {foundDeg:15,holdMs:700,minTargetDeg:70,maxTargetDeg:170,minPitch:-20,maxPitch:35,minSteps:0,maxSteps:0,
   towardDeg:50,stepThreshold:2.2,slowBeatMs:1300,fastBeatMs:140,...(CFG?.explore||{})};}
 /* 鏡頭（手機背面）朝向：水平角度 yaw ＋ 仰角 pitch（三個軸都用到，任何握法都適用） */
 function cameraYaw(a,b,g){
@@ -1235,6 +1246,14 @@ function exLoop(t){
   if(aimed&&EX.stepsLeft<=0){EX.lock||=t;if(t-EX.lock>=c.holdMs)foundPokemon();}
   else EX.lock=0;
 }
+/* 相機有沒有真的在運作：看串流狀態、影像有沒有在更新（不看亮度，很暗的房間也是正常的） */
+async function cameraWorking(v,st){
+  if(!streamLive(st)) return false;
+  const track=st.getVideoTracks()[0];
+  if(track.muted||v.readyState<2||!v.videoWidth) return false;
+  const t0=v.currentTime;await new Promise(r=>setTimeout(r,250));
+  return v.currentTime!==t0||!v.paused&&v.readyState>=3;
+}
 function frameIsBlack(v){
   const c=document.createElement("canvas");c.width=32;c.height=24;const g=c.getContext("2d",{willReadFrequently:true});
   try{g.drawImage(v,0,0,32,24);}catch(e){return true;}
@@ -1262,10 +1281,12 @@ async function foundPokemon(){
   $("exGlow").animate([{opacity:1},{opacity:.2}],{duration:700});
   // 截下對準時的畫面，用它的顏色決定寶可夢
   const v=$("exVideo");let src;
-  if(EX.stream&&(!v.videoWidth||frameIsBlack(v))){             // 相機畫面是黑的（被停掉或還沒好）→ 不截圖，重新開相機
-    EX.stream=streamLive(EX.stream)?EX.stream:null;await startExploreCamera();await wait(900);
-    if(!v.videoWidth||frameIsBlack(v)){toast("相機畫面是黑的，請再對準一次");EX.found=false;EX.lock=0;return;}
+  if(EX.stream&&!(await cameraWorking(v,EX.stream))){           // 相機沒在運作（被停掉或還沒好）→ 重新開，不截圖
+    if(!streamLive(EX.stream))EX.stream=null;
+    await startExploreCamera();await wait(900);
+    if(!(await cameraWorking(v,EX.stream))){toast("相機沒有畫面，請再對準一次");EX.found=false;EX.lock=0;return;}
   }
+  // 相機正常、只是很暗 → 照常截圖，會遇到夜行性寶可夢
   if(v.videoWidth){const c=document.createElement("canvas");c.width=v.videoWidth;c.height=v.videoHeight;c.getContext("2d").drawImage(v,0,0);src=c.toDataURL("image/jpeg",.85);}
   else src=sample(["grass","sky","sunset","banana","night"][Math.floor(Math.random()*5)]);
   await wait(900);
