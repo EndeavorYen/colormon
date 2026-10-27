@@ -13,10 +13,15 @@
   "catchBonusPerMiss": 0.15,
   "guaranteeAfter": 4,
   "silhouetteUnseen": true,
-  "caughtWeight": 0.3,
+  "caughtWeight": 0.15,
+  "typeWeight": 0.4,
+  "colorOnlyChance": 0.3,
+  "typeWindow": 14,
+  "typeTemp": 7,
+  "maxTypes": 4,
   "candidates": 30,
   "minCandidates": 6,
-  "widenFactor": 2.5,
+  "widenFactor": 3,
   "randomness": 6,
   "similarityWindow": 10,
   "sameResultPerDay": false,
@@ -59,5 +64,19 @@
     "minDirCos": 0.2,
     "chromaWeight": 0.8,
     "useColor": true
+  },
+  "explore": {
+    "foundDeg": 15,
+    "holdMs": 700,
+    "minTargetDeg": 70,
+    "maxTargetDeg": 170,
+    "minPitch": -20,
+    "maxPitch": 35,
+    "minSteps": 2,
+    "maxSteps": 5,
+    "towardDeg": 50,
+    "stepThreshold": 2.2,
+    "slowBeatMs": 1300,
+    "fastBeatMs": 140
   }
 }

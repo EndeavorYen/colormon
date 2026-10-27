@@ -72,7 +72,15 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 .ex-arrow{position:absolute;top:50%;width:56px;height:56px;margin-top:-28px;border-radius:50%;background:rgba(0,0,0,.45);display:grid;place-items:center;z-index:3;animation:nudge 1s ease-in-out infinite}
 .ex-arrow svg{width:34px;height:34px;fill:#fff}
 .ex-arrow.left{left:12px;--dir:-1} .ex-arrow.right{right:12px;--dir:1}
+.ex-arrow.up{top:14px;left:50%;margin:0 0 0 -28px;animation-name:nudgeV;--dir:-1} .ex-arrow.down{top:auto;bottom:62px;left:50%;margin:0 0 0 -28px;animation-name:nudgeV;--dir:1}
 @keyframes nudge{50%{transform:translateX(calc(8px*var(--dir)))}}
+@keyframes nudgeV{50%{transform:translateY(calc(8px*var(--dir)))}}
+.ex-walk{position:absolute;left:50%;top:18%;transform:translateX(-50%);z-index:4;display:flex;align-items:center;gap:6px;background:#ffd54a;color:#3a2a00;font-weight:900;border-radius:999px;padding:6px 14px;animation:walkpulse .8s ease-in-out infinite}
+.ex-walk svg{width:22px;height:22px;fill:currentColor}
+@keyframes walkpulse{50%{transform:translateX(-50%) scale(1.08)}}
+.ex-steps{position:absolute;right:12px;top:12px;z-index:3;background:rgba(0,0,0,.5);color:#fff;font-size:.8rem;font-weight:700;border-radius:999px;padding:3px 10px}
+.ex-steps:empty{display:none}
+.ex-step-btn{position:absolute;right:12px;bottom:58px;z-index:4;padding:10px 14px;font-size:.9rem}
 .ex-reticle{z-index:3;transition:border-color .2s,transform .2s}
 .ex-reticle.hot{border-color:#ffd54a;transform:scale(1.08)}
 .ex-chip{z-index:3}
@@ -83,7 +91,7 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 .heat-row{display:flex;align-items:center;gap:8px;font-size:.8rem;color:var(--muted);font-weight:700}
 .heat{flex:1;height:12px;border-radius:6px;background:var(--line);overflow:hidden}
 .heat i{display:block;height:100%;width:0;border-radius:6px;background:linear-gradient(90deg,#5aa8ff,#ffd54a,#ff5a3c);transition:width .15s}
-@media (prefers-reduced-motion:reduce){.ex-arrow{animation:none}}
+@media (prefers-reduced-motion:reduce){.ex-arrow,.ex-walk{animation:none}}
 
 /* scan screen */
 .scan-photo{position:relative;width:100%;max-width:100%;aspect-ratio:1;max-height:52vh;margin:0 auto;border-radius:20px;overflow:hidden;background:#000}
@@ -250,17 +258,22 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
       <div class="ex-glow" id="exGlow"></div>
       <div class="ex-arrow left" id="exLeft" hidden><svg viewBox="0 0 24 24"><path d="M15.4 4.6 14 3.2 5.2 12 14 20.8l1.4-1.4L8 12z"/></svg></div>
       <div class="ex-arrow right" id="exRight" hidden><svg viewBox="0 0 24 24"><path d="m8.6 4.6 1.4-1.4 8.8 8.8-8.8 8.8-1.4-1.4L16 12z"/></svg></div>
+      <div class="ex-arrow up" id="exUp" hidden><svg viewBox="0 0 24 24"><path d="M4.6 15.4 3.2 14 12 5.2l8.8 8.8-1.4 1.4L12 8z"/></svg></div>
+      <div class="ex-arrow down" id="exDown" hidden><svg viewBox="0 0 24 24"><path d="M4.6 8.6 3.2 10l8.8 8.8 8.8-8.8-1.4-1.4L12 16z"/></svg></div>
+      <div class="ex-walk" id="exWalk" hidden><svg viewBox="0 0 24 24"><path d="M13.5 5.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM9.8 8.9 7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3A7.3 7.3 0 0 0 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6a2 2 0 0 0-2.4-.8L6 8.3V13h2V9.6z"/></svg>往前走</div>
+      <div class="ex-steps" id="exSteps"></div>
+      <button class="btn sun ex-step-btn" id="exStepBtn" hidden>往前走一步</button>
       <div class="reticle ex-reticle" id="exReticle" hidden></div>
       <div class="live-chip ex-chip" id="exChip" hidden><i id="exDot"></i><span id="exText"></span></div>
       <div class="ex-start" id="exStart">
         <p class="ex-title">附近好像有寶可夢！</p>
-        <p>拿著手機慢慢轉一圈。越靠近寶可夢，畫面邊緣的光會閃得越快、聲音越密，手機也會震動得越厲害。對準了牠就會跳出來！</p>
+        <p>拿著手機慢慢轉一圈，也看看上面和下面。越靠近寶可夢，畫面邊緣的光會閃得越快、聲音越密，手機也會震動得越厲害。對準以後往前走幾步，牠就會跳出來！</p>
         <button class="btn sun" id="exStartBtn">開始探險</button>
         <p class="ex-small" id="exNote"></p>
       </div>
     </div>
     <div class="heat-row"><span>冷</span><div class="heat"><i id="heatBar"></i></div><span>熱</span></div>
-    <p class="note" id="exHint">手機要立起來，鏡頭朝前。沒有陀螺儀的話，可以在畫面上左右滑動來轉向。</p>
+    <p class="note" id="exHint">手機要立起來，鏡頭朝前。沒有陀螺儀的話，可以在畫面上滑動來轉向（左右、上下）。</p>
   </section>
 
   <!-- 2 分析 -->
@@ -335,7 +348,7 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 <canvas id="cv" width="48" height="48" hidden></canvas>
 
 <script>
-const BUILD="2026.10.27-1707";
+const BUILD="2026.10.27-1817";
 /* =========================================================
    顏色寶可夢探險
    資料都在 data/：config.json 列出要載入的資料包（packs），
@@ -423,29 +436,55 @@ function scoreMon(pal,mon){
   mon.labs.forEach((l,j)=>{ monToPhoto+=mw[j]*Math.min(...top.map(c=>dE(c.lab,l))); });
   return 0.5*photoToMon+0.5*monToPhoto+0.25*dE(pal[0].lab,mon.labs[0]);
 }
-function pickMon(pal){
-  const scored=MONS.map(m=>({m,d:scoreMon(pal,m)})).sort((a,b)=>a.d-b.d);
+/* 照片顏色和每個屬性「代表色系」的距離（黑→幽靈/惡、木頭→地面/岩石/一般…） */
+function typeDistances(pal){
+  const top=pal.slice(0,3),tot=top.reduce((a,c)=>a+c.share,0),out={};
+  for(const [k,t] of Object.entries(TYPES)){
+    if(!t.affLabs) continue;
+    let d=0; for(const c of top) d+=(c.share/tot)*Math.min(...t.affLabs.map(l=>dE(c.lab,l)));
+    out[k]=d;
+  }
+  return out;
+}
+/* 在一群寶可夢裡依分數挑一隻（越像、越不稀有、沒抓過的越容易） */
+function pickFrom(scored,pal,r){
   const dmin=scored[0].d, win=CFG.similarityWindow??10;
-  // 只在「夠像」的範圍內隨機：和最像的那隻差不到 win 的才有機會
-  // 候選：和最像的差不到 win 的；太少就補到 minCandidates 隻
   let cands=scored.filter(c=>c.d<=dmin+win).slice(0,CFG.candidates||30);
   if(cands.length<(CFG.minCandidates??6)) cands=scored.slice(0,CFG.minCandidates??6);
-  // 候選全都抓過了 → 放寬顏色範圍，找稍微不那麼像、但還沒抓過的
-  if(cands.every(c=>dex[c.m.id])){
-    const extra=scored.filter(c=>!dex[c.m.id]&&c.d<=dmin+win*(CFG.widenFactor??2.5)).slice(0,4);
+  if(cands.filter(c=>!dex[c.m.id]).length<2){                  // 沒抓過的太少 → 放寬範圍找沒抓過的
+    const extra=scored.filter(c=>!dex[c.m.id]&&!cands.includes(c)&&c.d<=dmin+win*(CFG.widenFactor??3)).slice(0,6);
     cands=[...cands,...extra];
   }
   const p0=pal[0].lab, vivid=Math.min(1,Math.hypot(p0[1],p0[2])/70);
   const rar={1:1,2:0.45,3:0.12+0.25*vivid};
-  const temp=CFG.randomness??6;
-  const caughtW=CFG.caughtWeight??0.3;                  // 抓過的寶可夢比較少出現，幫忙收集完整圖鑑
+  const temp=CFG.randomness??6, caughtW=CFG.caughtWeight??0.3;
   const ws=cands.map(c=>Math.exp(-(c.d-dmin)/temp)*(rar[c.m.rarity]??1)*(dex[c.m.id]?caughtW:1));
-  const q=l=>l.map(v=>Math.round(v/12)).join(",");
-  const seed=CFG.sameResultPerDay ? pal.slice(0,2).map(c=>q(c.lab)).join("|")+"|"+today() : `${Date.now()}|${Math.random()}`;
-  const r=rng(fnv1a(seed))();
-  let acc=0,tot=ws.reduce((a,b)=>a+b,0),pick=cands[0];
-  for(let i=0;i<cands.length;i++){acc+=ws[i]/tot;if(r<acc){pick=cands[i];break;}}
-  return {mon:pick.m, sim:Math.max(5,Math.min(99,Math.round(100-pick.d*1.3)))};
+  let acc=0,tot=ws.reduce((a,b)=>a+b,0);
+  for(let i=0;i<cands.length;i++){acc+=ws[i]/tot;if(r<acc)return cands[i];}
+  return cands[0];
+}
+function pickMon(pal){
+  const seed=CFG.sameResultPerDay ? pal.slice(0,2).map(c=>c.lab.map(v=>Math.round(v/12)).join(",")).join("|")+"|"+today() : `${Date.now()}|${Math.random()}`;
+  const rand=rng(fnv1a(seed));
+  // 分數 = 寶可夢本身顏色的距離 和 屬性代表色系的距離 加權（越小越像）
+  const lam=CFG.typeWeight??0.4, td=typeDistances(pal);
+  const all=MONS.map(m=>{const c=scoreMon(pal,m);return {m,c,d:(1-lam)*c+lam*(td[m.type]??c)};});
+  let pick;
+  if(rand()<(CFG.colorOnlyChance??0.3)){
+    // 只看顏色：顏色剛好很像的驚喜（紅色的球 → 霹靂電球）
+    pick=pickFrom(all.map(x=>({m:x.m,d:x.c})).sort((a,b)=>a.d-b.d),pal,rand());
+  }else{
+    // 兩階段：先從顏色搭的幾個屬性抽一個，再在這個屬性裡挑
+    const ts=Object.entries(td).sort((a,b)=>a[1]-b[1]), tmin=ts[0][1];
+    const tc=ts.filter(([,d])=>d<=tmin+(CFG.typeWindow??14)).slice(0,CFG.maxTypes??4);
+    const tw=tc.map(([,d])=>Math.exp(-(d-tmin)/(CFG.typeTemp??7)));
+    let r=rand()*tw.reduce((a,b)=>a+b,0),type=tc[0][0];
+    for(let i=0;i<tc.length;i++){r-=tw[i];if(r<=0){type=tc[i][0];break;}}
+    const inType=all.filter(x=>x.m.type===type).sort((a,b)=>a.d-b.d);
+    pick=pickFrom(inType.length?inType:all.sort((a,b)=>a.d-b.d),pal,rand());
+  }
+  const colorD=all.find(x=>x.m===pick.m).c;
+  return {mon:pick.m, sim:Math.max(5,Math.min(99,Math.round(100-colorD*1.3)))};
 }
 
 /* ---------- 載入資料 ---------- */
@@ -453,6 +492,7 @@ async function loadData(){
   const get=async p=>{const r=await fetch(DATA_BASE+p,{cache:"no-cache"});if(!r.ok)throw new Error(p+" "+r.status);return r.json();};
   CFG=await get("config.json");
   TYPES=await get("types.json");
+  for(const t of Object.values(TYPES)) if(t.affinity) t.affLabs=t.affinity.map(hexLab);
   const packs=await Promise.all(CFG.packs.map(get));
   const seen=new Map();
   for(const pack of packs) for(const raw of pack.pokemon){
@@ -487,7 +527,7 @@ function show(name){
   $("backBtn").hidden=name==="camera";
   $("dexBtn").hidden=name==="dex";
   if(name==="camera") resumeCamera(); else pauseCamera();
-  if(name==="explore") resumeExplore(); else pauseExplore();
+  if(name==="explore") resumeExplore(); else pauseExplore(name);
   if(name==="camera"||name==="explore") home=name;           // 抓完、逃跑後回到哪裡
   $("moreBtn").textContent=home==="explore"?"繼續探險":"繼續拍照";
   if(name==="encounter"&&AR.on) startAR(); else if(name!=="encounter") stopAR();
@@ -944,8 +984,9 @@ function arArmed(){return screen==="encounter"&&current&&!busy&&!$("throwBtn").d
 async function startAR(){
   if(AR.stream) return;
   if(!navigator.mediaDevices?.getUserMedia||!isSecureContext){toast("這裡不能開相機（需要 https）");setBallMode(false);return;}
-  try{
-    AR.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment",width:{ideal:640}},audio:false});
+  if(streamLive(EX.stream)){AR.stream=EX.stream;AR.shared=true;}       // 從探索模式來：共用同一個相機
+  else try{
+    AR.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment",width:{ideal:640}},audio:false});AR.shared=false;
   }catch(e){toast("相機打不開，請確認有給相機權限");setBallMode(false);return;}
   const v=$("arVideo");v.srcObject=AR.stream;v.hidden=false;try{await v.play();}catch(e){}
   $("scene").classList.add("ar");$("arChip").hidden=false;
@@ -956,7 +997,7 @@ async function startAR(){
 }
 function stopAR(){
   cancelAnimationFrame(AR.raf);
-  if(AR.stream){AR.stream.getTracks().forEach(t=>t.stop());AR.stream=null;}
+  if(AR.stream){if(!AR.shared)AR.stream.getTracks().forEach(t=>t.stop());AR.stream=null;}
   $("arVideo").hidden=true;$("scene").classList.remove("ar");$("arChip").hidden=true;$("ballMark").hidden=true;
   AR.watcher=null;AR.longWatcher=null;AR.throwActive=false;
 }
@@ -1050,30 +1091,61 @@ try{AR.on=localStorage.getItem(BALL_MODE_KEY)==="1";}catch(e){}
    探索模式：相機一直開著，寶可夢藏在某個方向，
    用陀螺儀算出鏡頭朝向，越接近提示越強（呼吸光、雷達聲、震動），對準就自動截圖
    ========================================================= */
-const EX={started:false,stream:null,raf:0,yaw:null,rawYaw:null,manual:0,target:0,lock:0,nextBeat:0,flat:false,hasOrient:false,found:false};
-function exConfig(){return {foundDeg:14,holdMs:700,minTargetDeg:70,maxTargetDeg:170,slowBeatMs:1300,fastBeatMs:140,...(CFG?.explore||{})};}
-/* 鏡頭（手機背面）朝向的水平角度，任何握法都適用 */
+const EX={started:false,stream:null,raf:0,rawYaw:null,rawPitch:null,manual:0,manualPitch:0,target:{yaw:0,pitch:0},steps0:0,stepsLeft:0,
+          lock:0,nextBeat:0,flat:false,hasOrient:false,hasMotion:false,found:false,lastStepT:0,stepArmed:true,gBase:9.8};
+function exConfig(){return {foundDeg:15,holdMs:700,minTargetDeg:70,maxTargetDeg:170,minPitch:-20,maxPitch:35,minSteps:2,maxSteps:5,
+  towardDeg:50,stepThreshold:2.2,slowBeatMs:1300,fastBeatMs:140,...(CFG?.explore||{})};}
+/* 鏡頭（手機背面）朝向：水平角度 yaw ＋ 仰角 pitch（三個軸都用到，任何握法都適用） */
 function cameraYaw(a,b,g){
   const A=a*Math.PI/180,B=b*Math.PI/180,G=g*Math.PI/180;
   const vx=-(Math.cos(A)*Math.sin(G)+Math.sin(A)*Math.sin(B)*Math.cos(G));
   const vy=-(Math.sin(A)*Math.sin(G)-Math.cos(A)*Math.sin(B)*Math.cos(G));
-  return {yaw:Math.atan2(vx,vy)*180/Math.PI, flat:Math.abs(Math.cos(B)*Math.cos(G))>0.85};
+  const vz=-(Math.cos(B)*Math.cos(G));
+  const pitch=Math.asin(Math.max(-1,Math.min(1,vz)))*180/Math.PI;
+  return {yaw:Math.atan2(vx,vy)*180/Math.PI, pitch, flat:Math.abs(pitch)>65};
 }
+const dirVec=(y,p)=>{const Y=y*Math.PI/180,P=p*Math.PI/180;return [Math.cos(P)*Math.sin(Y),Math.cos(P)*Math.cos(Y),Math.sin(P)];};
+const angBetween=(a,b)=>{const u=dirVec(a.yaw,a.pitch),v=dirVec(b.yaw,b.pitch);return Math.acos(Math.max(-1,Math.min(1,u[0]*v[0]+u[1]*v[1]+u[2]*v[2])))*180/Math.PI;};
 const angDiff=(a,b)=>((a-b+540)%360)-180;
 addEventListener("deviceorientation",e=>{
   if(e.alpha==null)return;
   const r=cameraYaw(e.alpha,e.beta,e.gamma);
   EX.hasOrient=true;EX.flat=r.flat;
   EX.rawYaw=EX.rawYaw==null?r.yaw:EX.rawYaw+angDiff(r.yaw,EX.rawYaw)*0.35;   // 平滑
+  EX.rawPitch=EX.rawPitch==null?r.pitch:EX.rawPitch+(r.pitch-EX.rawPitch)*0.35;
 });
 function currentYaw(){return (EX.rawYaw??0)+EX.manual;}
+function currentPitch(){return Math.max(-80,Math.min(80,(EX.rawPitch??0)+EX.manualPitch));}
+/* 走路：加速度計的步伐偵測（每一步會有一個重力以外的加速度尖峰） */
+addEventListener("devicemotion",e=>{
+  const a=e.accelerationIncludingGravity;if(!a||a.x==null)return;
+  EX.hasMotion=true;
+  const mag=Math.hypot(a.x,a.y,a.z);
+  EX.gBase+= (mag-EX.gBase)*0.05;                                 // 慢慢追蹤重力基準
+  const dev=mag-EX.gBase,c=exConfig(),now=performance.now();
+  if(dev>c.stepThreshold&&EX.stepArmed&&now-EX.lastStepT>330){EX.stepArmed=false;EX.lastStepT=now;exStep();}
+  if(dev<c.stepThreshold*0.4) EX.stepArmed=true;
+});
+function exStep(){
+  if(screen!=="explore"||!EX.started||EX.found||EX.stepsLeft<=0)return;
+  const c=exConfig(),dy=Math.abs(angDiff(EX.target.yaw,currentYaw()));
+  if(dy>c.towardDeg){ $("exText").textContent="方向不對，先轉過去再走"; return; }   // 要朝寶可夢的方向走才算
+  EX.stepsLeft--;
+  sfx("step");try{navigator.vibrate&&navigator.vibrate(25);}catch(e){}
+  $("exSteps").textContent=EX.stepsLeft>0?`還要走 ${EX.stepsLeft} 步`:"到了！";
+}
 /* 沒有陀螺儀（電腦、拒絕權限）：在畫面上左右滑動轉向 */
 (function(){
   let dragX=null;const v=$("exView");
   v.addEventListener("pointerdown",e=>{if(EX.started)dragX=e.clientX;});
-  addEventListener("pointermove",e=>{if(dragX==null)return;EX.manual-=(e.clientX-dragX)*0.35;dragX=e.clientX;});
-  addEventListener("pointerup",()=>dragX=null);
-  addEventListener("keydown",e=>{if(screen!=="explore"||!EX.started)return;if(e.key==="ArrowLeft")EX.manual+=8;if(e.key==="ArrowRight")EX.manual-=8;});
+  let dragY=null;
+  v.addEventListener("pointerdown",e=>{if(EX.started)dragY=e.clientY;});
+  addEventListener("pointermove",e=>{if(dragX==null)return;EX.manual-=(e.clientX-dragX)*0.35;EX.manualPitch+=(e.clientY-dragY)*0.25;dragX=e.clientX;dragY=e.clientY;});
+  addEventListener("pointerup",()=>{dragX=null;dragY=null;});
+  addEventListener("keydown",e=>{if(screen!=="explore"||!EX.started)return;
+    if(e.key==="ArrowLeft")EX.manual+=8;if(e.key==="ArrowRight")EX.manual-=8;
+    if(e.key==="ArrowUp")EX.manualPitch+=6;if(e.key==="ArrowDown")EX.manualPitch-=6;
+    if(e.key==="w"||e.key==="W")exStep();});
 })();
 async function askOrientation(){
   try{
@@ -1093,9 +1165,16 @@ $("exStartBtn").onclick=async()=>{
   newTarget();
 };
 $("toExploreBtn").onclick=()=>{home="explore";go("explore");};
+$("exStepBtn").onclick=e=>{e.stopPropagation();exStep();};
+$("exStepBtn").addEventListener("pointerdown",e=>e.stopPropagation());
+const streamLive=st=>!!st&&st.getVideoTracks().some(t=>t.readyState==="live");
 async function startExploreCamera(){
-  if(EX.stream)return;
-  if(navigator.mediaDevices?.getUserMedia&&isSecureContext){
+  if(EX.stream&&!streamLive(EX.stream)) EX.stream=null;      // 被系統停掉了 → 重新開
+  const v=$("exVideo");
+  if(EX.stream){                                               // 還在運作：確認畫面有接上、有在播放
+    if(v.srcObject!==EX.stream) v.srcObject=EX.stream;
+    v.hidden=false;if(v.paused){try{await v.play();}catch(e){}}
+  }else if(navigator.mediaDevices?.getUserMedia&&isSecureContext){
     try{
       EX.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment",width:{ideal:1280}},audio:false});
       const v=$("exVideo");v.srcObject=EX.stream;v.hidden=false;try{await v.play();}catch(e){}
@@ -1113,33 +1192,55 @@ function resumeExplore(){
   $("exStart").hidden=EX.started;
   if(EX.started){startExploreCamera();newTarget();}
 }
-function pauseExplore(){stopExploreCamera();}
+/* 離開探索畫面：如果是去遭遇／結果（還會回來），相機保持開著，只停提示；回到拍照畫面才關相機 */
+function pauseExplore(next){
+  cancelAnimationFrame(EX.raf);
+  if(next==="camera"||!EX.started) stopExploreCamera();
+}
 function newTarget(){
   const c=exConfig(),off=c.minTargetDeg+Math.random()*(c.maxTargetDeg-c.minTargetDeg);
-  EX.target=currentYaw()+(Math.random()<.5?-off:off);
+  EX.target={yaw:currentYaw()+(Math.random()<.5?-off:off), pitch:c.minPitch+Math.random()*(c.maxPitch-c.minPitch)};
+  EX.steps0=EX.stepsLeft=c.minSteps+Math.floor(Math.random()*(c.maxSteps-c.minSteps+1));
   EX.lock=0;EX.found=false;EX.nextBeat=0;
   $("exText").textContent="附近有寶可夢的氣息…";
+  $("exSteps").textContent=EX.stepsLeft>0?`寶可夢在 ${EX.stepsLeft} 步遠的地方`:"";
+  $("exStepBtn").hidden=EX.hasMotion||EX.stepsLeft<=0;          // 沒有加速度計：用按鈕代替走路
 }
 function exLoop(t){
   EX.raf=requestAnimationFrame(exLoop);
   if(screen!=="explore"||!EX.started||EX.found)return;
   const c=exConfig();
   if(EX.flat&&EX.hasOrient){$("exText").textContent="把手機立起來，鏡頭朝前";setWarm(0);return;}
-  const d=angDiff(EX.target,currentYaw()), ad=Math.abs(d);
-  const warm=Math.max(0,1-ad/180)**2;                       // 越近變化越明顯
+  const cur={yaw:currentYaw(),pitch:currentPitch()};
+  const ad=angBetween(EX.target,cur), dYaw=angDiff(EX.target.yaw,cur.yaw), dPitch=EX.target.pitch-cur.pitch;
+  // 熱度：方向越準越熱；還沒走到的話打折，走越近越熱
+  const stepFactor=EX.steps0?1-0.45*EX.stepsLeft/EX.steps0:1;
+  const warm=Math.max(0,1-ad/180)**2*stepFactor;
   setWarm(warm);
-  $("exLeft").hidden=!(ad>c.foundDeg&&d>0);$("exRight").hidden=!(ad>c.foundDeg&&d<0);
-  $("exText").textContent=ad<=c.foundDeg?"就在這裡！別動…":ad<35?"非常接近了！":ad<80?"越來越近了":"慢慢轉動手機找找看";
-  $("exReticle").classList.toggle("hot",ad<=c.foundDeg);
+  const aimed=ad<=c.foundDeg, slack=c.foundDeg*0.7;
+  $("exLeft").hidden=!(!aimed&&dYaw>slack);$("exRight").hidden=!(!aimed&&dYaw<-slack);
+  $("exUp").hidden=!(!aimed&&dPitch>slack);$("exDown").hidden=!(!aimed&&dPitch<-slack);
+  $("exWalk").hidden=!(aimed&&EX.stepsLeft>0);
+  $("exText").textContent=aimed?(EX.stepsLeft>0?`對準了！往前走 ${EX.stepsLeft} 步`:"就在這裡！別動…")
+    :ad<35?(Math.abs(dPitch)>Math.abs(dYaw)?(dPitch>0?"在上面一點！":"在下面一點！"):"非常接近了！")
+    :ad<80?"越來越近了":"慢慢轉動手機找找看";
+  $("exReticle").classList.toggle("hot",aimed);
   // 節拍：越近越快，每一拍同時閃光、雷達聲、震動
   if(t>=EX.nextBeat){
     const iv=c.slowBeatMs-(c.slowBeatMs-c.fastBeatMs)*warm;
     EX.nextBeat=t+iv;
     pulse(warm,iv);
   }
-  // 對準一段時間就找到
-  if(ad<=c.foundDeg){EX.lock||=t;if(t-EX.lock>=c.holdMs)foundPokemon();}
+  // 對準、而且走到了，維持一下就找到
+  if(aimed&&EX.stepsLeft<=0){EX.lock||=t;if(t-EX.lock>=c.holdMs)foundPokemon();}
   else EX.lock=0;
+}
+function frameIsBlack(v){
+  const c=document.createElement("canvas");c.width=32;c.height=24;const g=c.getContext("2d",{willReadFrequently:true});
+  try{g.drawImage(v,0,0,32,24);}catch(e){return true;}
+  const d=g.getImageData(0,0,32,24).data;let sum=0,max=0;
+  for(let i=0;i<d.length;i+=4){const l=(d[i]+d[i+1]+d[i+2])/3;sum+=l;if(l>max)max=l;}
+  return sum/(d.length/4)<6&&max<20;                           // 全黑（真的很暗的房間也會有一點雜訊）
 }
 function setWarm(w){
   const v=$("exView");v.style.setProperty("--warm",w.toFixed(3));
@@ -1161,6 +1262,10 @@ async function foundPokemon(){
   $("exGlow").animate([{opacity:1},{opacity:.2}],{duration:700});
   // 截下對準時的畫面，用它的顏色決定寶可夢
   const v=$("exVideo");let src;
+  if(EX.stream&&(!v.videoWidth||frameIsBlack(v))){             // 相機畫面是黑的（被停掉或還沒好）→ 不截圖，重新開相機
+    EX.stream=streamLive(EX.stream)?EX.stream:null;await startExploreCamera();await wait(900);
+    if(!v.videoWidth||frameIsBlack(v)){toast("相機畫面是黑的，請再對準一次");EX.found=false;EX.lock=0;return;}
+  }
   if(v.videoWidth){const c=document.createElement("canvas");c.width=v.videoWidth;c.height=v.videoHeight;c.getContext("2d").drawImage(v,0,0);src=c.toDataURL("image/jpeg",.85);}
   else src=sample(["grass","sky","sunset","banana","night"][Math.floor(Math.random()*5)]);
   await wait(900);
@@ -1229,6 +1334,7 @@ const SFX={
   escape:t=>{ GB.noise(t,.12,{v:.4,hp:400}); GB.seq(t+.05,"G5:1 D5:1 G4:2",.06,{duty:.5,v:.35}); },            // 跳出來：啵
   flee:t=>{ GB.seq(t,"A5:1 F5:1 D5:1 A4:1 F4:2",.05,{duty:.25,v:.35}); },                                      // 玩家逃跑：快速下降
   tap:t=>{ GB.tone(t,1320,.03,{duty:.5,v:.2}); },
+  step:t=>{ GB.noise(t,.04,{v:.25,hp:300}); GB.tone(t,240,.05,{duty:.5,v:.25,slide:160}); },                  // 腳步：咚
   radar:(t,w=0)=>{ GB.tone(t,500+900*w,.05+.03*w,{duty:.125,v:.25+.2*w}); },                                  // 探索雷達：越近越高
   found:t=>{ const e=GB.seq(t,"C6:1 -:1 C6:1 -:1 C6:1 -:1",.07,{duty:.25,v:.45});                              // 噔噔噔
              GB.seq(e,"G5:1 C6:1 E6:1 G6:4",.06,{duty:.125,v:.4}); GB.seq(e,"C4:7",.06,{duty:.5,v:.25}); },
