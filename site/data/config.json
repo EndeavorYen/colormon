@@ -8,6 +8,12 @@
     "3": 0.2
   },
   "ballsPerEncounter": 3,
+  "fleeChance": {
+    "1": 0.1,
+    "2": 0.2,
+    "3": 0.35
+  },
+  "silhouetteUnseen": true,
   "candidates": 8,
   "randomness": 6,
   "similarityWindow": 10,

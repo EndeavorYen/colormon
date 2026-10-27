@@ -137,6 +137,14 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 .sens button[aria-pressed="true"]{border-color:var(--good);color:var(--good)}
 .mode-btn[aria-pressed="true"]{border-color:var(--good);color:var(--good)}
 
+.mon img,.mon .fb{transition:filter .8s ease}
+.mon.silhouette img,.mon.silhouette .fb{filter:brightness(0) drop-shadow(0 0 2px #fff) drop-shadow(0 0 2px #fff) drop-shadow(0 0 10px rgba(255,255,255,.8))}
+.why .dots b{font-weight:900;color:var(--muted)}
+.setting{display:flex;gap:10px;align-items:flex-start;font-size:.88rem;color:var(--muted);cursor:pointer}
+.setting input{width:20px;height:20px;accent-color:var(--good);flex:none;margin-top:2px}
+.dex div.seen img{filter:grayscale(1) opacity(.55)}
+.dex div.seen span{color:var(--muted)}
+
 /* result screen */
 .result{align-items:center;text-align:center;justify-content:center}
 .burst{position:relative;width:min(78vw,300px);aspect-ratio:1;display:grid;place-items:center}
@@ -266,6 +274,7 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
   <section class="screen" id="s-dex" hidden>
     <div class="dex-head"><h2>我的圖鑑</h2><span id="dexTotal"></span></div>
     <div class="progress"><i id="dexBar" style="width:0"></i></div>
+    <label class="setting"><input type="checkbox" id="silToggle"><span>沒抓過的寶可夢先用剪影顯示，抓到或跳出來時才揭曉</span></label>
     <div class="dex" id="dex"></div>
   </section>
 </div>
@@ -273,7 +282,7 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 <canvas id="cv" width="48" height="48" hidden></canvas>
 
 <script>
-const BUILD="2026.10.27-1508";
+const BUILD="2026.10.27-1518";
 /* =========================================================
    顏色寶可夢探險
    資料都在 data/：config.json 列出要載入的資料包（packs），
@@ -510,11 +519,11 @@ async function startEncounter(pal,picked){
   current=mon;fled=false;ballsLeft=CFG.ballsPerEncounter||3;busy=false;encounterId++;
   $("glow").getAnimations().forEach(a=>a.cancel());
   setMonVisual(mon,{imgEl:$("art"),fbEl:$("monFb"),glyphEl:$("glyph")});
-  $("monName").textContent=mon.name;
-  $("monType").textContent=T.name;
+  revealed=!silhouetteOn()||!!dex[mon.id];                 // 沒抓過的寶可夢先用剪影
+  $("mon").classList.toggle("silhouette",!revealed);
+  showMonInfo(mon,revealed);
   $("monStars").textContent="★".repeat(mon.rarity)+"☆".repeat(3-mon.rarity);
   $("whyPhoto").innerHTML=pal.slice(0,3).map(c=>`<i style="background:${css(c.rgb)}"></i>`).join("");
-  $("whyMon").innerHTML=mon.colors.map(c=>`<i style="background:${c}"></i>`).join("");
   $("sim").textContent=`相似 ${sim}%`;
   $("throwArea").hidden=false;$("fledBtn").hidden=true;$("throwBtn").disabled=true;
   const ball=$("ball");ball.getAnimations().forEach(a=>a.cancel());ball.hidden=true;ball.classList.remove("locked");
@@ -525,9 +534,28 @@ async function startEncounter(pal,picked){
   // 從草叢跳出來
   await anim(m,[{transform:"translate(-50%,-10%) scale(.6)",opacity:0},{transform:"translate(-50%,-62%) scale(1.05)",opacity:1,offset:.6},{transform:"translate(-50%,-50%) scale(1)",opacity:1}],{duration:550,easing:"ease-out"});
   shakeScene(5,300);
-  bubble(`野生的${mon.name}出現了！`);sfx("appear");
+  bubble(revealed?`野生的${mon.name}出現了！`:"野生的寶可夢出現了！是誰呢？");sfx("appear");
   Hardware.notifyEncounter(mon);
   $("throwBtn").disabled=false;
+}
+/* ---------- 剪影：沒抓過的寶可夢先藏起來，抓到或跳出來時揭曉 ---------- */
+let revealed=true;
+const SIL_KEY="colormon-silhouette";
+function silhouetteOn(){try{const v=localStorage.getItem(SIL_KEY);if(v!==null)return v==="1";}catch(e){}return CFG?.silhouetteUnseen!==false;}
+function showMonInfo(mon,show){
+  $("monName").textContent=show?mon.name:"？？？";
+  $("monType").textContent=show?TYPES[mon.type].name:"？";
+  $("monType").style.background=show?"":"var(--muted)";
+  $("whyMon").innerHTML=show?mon.colors.map(c=>`<i style="background:${c}"></i>`).join(""):"<b>？</b>";
+}
+async function revealMon(mon){
+  if(revealed)return;
+  revealed=true;markSeen(mon);
+  $("mon").classList.remove("silhouette");
+  showMonInfo(mon,true);
+  const P=pts();stars(P.mon,10);sfx("appear");
+  bubble(`原來是${mon.name}！`);
+  await wait(1100);
 }
 let ballArtOk=false;
 function drawOrbs(){const n=CFG.ballsPerEncounter||3;$("orbs").innerHTML=Array.from({length:n},(_,i)=>{const u=i<n-ballsLeft?"used":"";return ballArtOk?`<img class="${u}" src="${CFG.ballUrl}" alt="">`:`<b class="${u}"></b>`;}).join("");}
@@ -620,13 +648,16 @@ async function throwBall(){
     anim($("glow"),[{opacity:1},{opacity:.6,offset:.65},{opacity:0}],{duration:520,fill:"none"});
     await anim(monEl,[{transform:`translate(-50%,calc(-50% + ${dy}px)) scale(0)`,opacity:0},{transform:"translate(-50%,-62%) scale(1.12)",opacity:1,offset:.65},{transform:"translate(-50%,-50%) scale(1)",opacity:1}],{duration:520,easing:"ease-out"});if(stale())return;
     $("shakeDots").hidden=true;
-    if(ballsLeft>0){
+    if(!revealed){await revealMon(mon);if(stale())return;}
+    markSeen(mon);
+    const fleeNow=ballsLeft>0&&Math.random()<(CFG.fleeChance?.[mon.rarity]??0);   // 跳出來後有機率直接逃走
+    if(ballsLeft>0&&!fleeNow){
       bubble(shakes===0?`${mon.name}一下就跳出來了！`:shakes===1?"啊！差一點點…":"可惜！只差一點！");
       $("hand").hidden=false;
       $("throwBtn").disabled=false;
     }else{
-      // 6. 球用完：寶可夢逃走
-      bubble(`${mon.name}看起來想逃走…`);
+      // 6. 寶可夢逃走（球用完，或被嚇跑）
+      bubble(fleeNow?`${mon.name}嚇了一跳…`:`${mon.name}看起來想逃走…`);
       await wait(900);if(stale())return;
       await anim(monEl,[{transform:"translate(-50%,-50%)",opacity:1},{transform:"translate(-50%,-65%)",opacity:1,offset:.25},{transform:"translate(-50%,-50%)",opacity:1,offset:.45},{transform:"translate(-50%,-160%) scale(.6)",opacity:0}],{duration:900,easing:"ease-in"});if(stale())return;
       bubble(`${mon.name}逃走了…`);sfx("flee");
@@ -670,17 +701,24 @@ function showResult(mon){
 /* ---------- 圖鑑（存在這支手機的瀏覽器裡） ---------- */
 const DEX_KEY="colormon-dex";
 let dex={};try{dex=JSON.parse(localStorage.getItem(DEX_KEY))||{};}catch(e){}
-function saveDex(m){(dex[m.id]??={n:0}).n++;dex[m.id].last=Date.now();try{localStorage.setItem(DEX_KEY,JSON.stringify(dex));}catch(e){}updateCount();}
+const SEEN_KEY="colormon-seen";
+let seen={};try{seen=JSON.parse(localStorage.getItem(SEEN_KEY))||{};}catch(e){}
+function markSeen(m){if(seen[m.id])return;seen[m.id]=1;try{localStorage.setItem(SEEN_KEY,JSON.stringify(seen));}catch(e){}}
+function saveDex(m){markSeen(m);(dex[m.id]??={n:0}).n++;dex[m.id].last=Date.now();try{localStorage.setItem(DEX_KEY,JSON.stringify(dex));}catch(e){}updateCount();}
 function updateCount(){$("dexCount").textContent=Object.keys(dex).filter(id=>MONS.some(m=>m.id==id)).length;}
 function renderDex(){
-  const got=MONS.filter(m=>dex[m.id]).sort((a,b)=>a.id-b.id);
-  $("dexTotal").textContent=`${got.length} / ${MONS.length}`;
-  $("dexBar").style.width=(MONS.length?got.length/MONS.length*100:0)+"%";
-  $("dex").innerHTML=got.length?got.map(m=>`<div>${dex[m.id].n>1?`<em>×${dex[m.id].n}</em>`:""}
+  const got=MONS.filter(m=>dex[m.id]).length;
+  const list=MONS.filter(m=>dex[m.id]||seen[m.id]).sort((a,b)=>a.id-b.id);
+  $("dexTotal").textContent=`抓到 ${got} / ${MONS.length}`;
+  $("dexBar").style.width=(MONS.length?got/MONS.length*100:0)+"%";
+  $("dex").innerHTML=list.length?list.map(m=>{const c=dex[m.id];
+    return `<div class="${c?"":"seen"}">${c&&c.n>1?`<em>×${c.n}</em>`:""}${c?"":"<em>見過</em>"}
       <img src="${spriteUrl(m.id)}" alt="" loading="lazy" onerror="this.outerHTML='<i class=sw style=background:${m.colors[0]}></i>'">
-      <b>#${String(m.id).padStart(3,"0")}</b><span>${m.name}</span></div>`).join("")
+      <b>#${String(m.id).padStart(3,"0")}</b><span>${m.name}</span></div>`;}).join("")
     :`<p class="empty">還沒有抓到寶可夢。<br>去拍張照片吧！</p>`;
+  $("silToggle").checked=silhouetteOn();
 }
+$("silToggle").addEventListener("change",e=>{try{localStorage.setItem(SIL_KEY,e.target.checked?"1":"0");}catch(err){}});
 
 /* ---------- 範例照片 ---------- */
 function sample(kind){
