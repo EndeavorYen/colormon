@@ -178,6 +178,24 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 .dex div.seen img{filter:grayscale(1) opacity(.55)}
 .dex div.seen span{color:var(--muted)}
 
+/* shields */
+.shields{position:absolute;inset:0;pointer-events:none;z-index:3}
+.shields i{position:absolute;border-radius:50%;border:3px solid rgba(120,205,255,.85);box-shadow:0 0 12px rgba(120,205,255,.7),inset 0 0 14px rgba(120,205,255,.45);background:radial-gradient(circle,transparent 55%,rgba(120,205,255,.12));animation:shieldspin 2.4s ease-in-out infinite}
+@keyframes shieldspin{50%{opacity:.6;transform:scale(1.03)}}
+.shield-hud{position:absolute;left:50%;transform:translateX(-50%);top:52px;z-index:6;background:rgba(10,30,60,.65);color:#9fdcff;font-weight:900;font-size:.85rem;border-radius:999px;padding:3px 10px;letter-spacing:1px}
+/* rarity entrance */
+.scene.gold::after,.scene.legend::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:4}
+.scene.gold::after{box-shadow:inset 0 0 40px 8px rgba(255,200,60,.75);animation:goldpulse 1.6s ease-in-out infinite}
+@keyframes goldpulse{50%{box-shadow:inset 0 0 70px 16px rgba(255,210,80,.95)}}
+.scene.legend::after{box-shadow:inset 0 0 60px 14px rgba(255,230,140,.9);animation:legendpulse 2.2s linear infinite}
+@keyframes legendpulse{0%{box-shadow:inset 0 0 60px 14px rgba(255,120,200,.85)}33%{box-shadow:inset 0 0 70px 16px rgba(120,200,255,.9)}66%{box-shadow:inset 0 0 70px 16px rgba(255,230,120,.95)}100%{box-shadow:inset 0 0 60px 14px rgba(255,120,200,.85)}}
+.rare-dim{position:absolute;inset:0;background:#000;opacity:0;z-index:5;pointer-events:none}
+.rare-flash{position:absolute;inset:0;background:#fff;opacity:0;z-index:7;pointer-events:none}
+/* swipe ball */
+.hand.swipe{box-shadow:0 0 0 6px rgba(255,213,74,.35);border-radius:50%}
+.hand.touched{animation:none;transform:scale(1.2);box-shadow:0 0 0 10px rgba(76,194,126,.6);border-radius:50%}
+@media (prefers-reduced-motion:reduce){.shields i,.scene.gold::after,.scene.legend::after{animation:none}}
+
 /* result screen */
 .result{align-items:center;text-align:center;justify-content:center}
 .burst{position:relative;width:min(78vw,300px);aspect-ratio:1;display:grid;place-items:center}
@@ -290,7 +308,7 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
       <video class="ar-video" id="arVideo" playsinline muted autoplay hidden></video>
       <div class="scene-bg" id="sceneBg"></div>
       <div class="ground"></div>
-      <div class="mon" id="mon"><div class="glow" id="glow"></div><img id="art" alt="" hidden><div class="fb" id="monFb"><svg viewBox="0 0 24 24"><path id="glyph" d=""/></svg></div></div>
+      <div class="mon" id="mon"><div class="shields" id="shields"></div><div class="glow" id="glow"></div><img id="art" alt="" hidden><div class="fb" id="monFb"><svg viewBox="0 0 24 24"><path id="glyph" d=""/></svg></div></div>
       <div class="ball-shadow" id="ballShadow"></div>
       <div class="ball" id="ball" hidden><div class="cap"></div><img alt="" hidden></div>
       <div class="ball hand" id="hand"><div class="cap"></div><img alt="" hidden></div>
@@ -300,6 +318,9 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
       <div class="shake-dots" id="shakeDots" hidden><i></i><i></i><i></i></div>
       <div class="ball-mark" id="ballMark" hidden></div>
       <div class="ar-chip" id="arChip" hidden></div>
+      <div class="shield-hud" id="shieldHud" hidden></div>
+      <div class="rare-dim" id="rareDim" hidden></div>
+      <div class="rare-flash" id="rareFlash" hidden></div>
     </div>
     <div class="info">
       <h2 class="name" id="monName"></h2>
@@ -313,6 +334,10 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
         <button class="btn ghost run-btn" id="runBtn">逃跑</button>
       </div>
       <button class="btn ghost mode-btn" id="motionBtn" aria-pressed="false">真球模式：把球丟進鏡頭畫面</button>
+      <div class="sens method" id="method" hidden role="group" aria-label="丟球方式">
+        <button data-m="ball" aria-pressed="true">丟真的球<small>把球丟進畫面</small></button>
+        <button data-m="swipe" aria-pressed="false">揮手甩球<small>碰到球往上甩</small></button>
+      </div>
       <div class="sens" id="sens" hidden role="group" aria-label="偵測靈敏度">
         <button data-v="strict" aria-pressed="false">嚴格<small>要認出是球</small></button>
         <button data-v="standard" aria-pressed="true">標準<small>認出球或飛得夠遠</small></button>
@@ -348,7 +373,7 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 <canvas id="cv" width="48" height="48" hidden></canvas>
 
 <script>
-const BUILD="2026.10.27-2006";
+const BUILD="2026.10.27-2024";
 /* =========================================================
    顏色寶可夢探險
    資料都在 data/：config.json 列出要載入的資料包（packs），
@@ -369,7 +394,7 @@ const Hardware = {
     try { navigator.vibrate && navigator.vibrate([120, 80, 120]); } catch (e) {}
   },
 };
-window.onBallThrown = () => throwBall();
+window.onBallThrown = (speed) => throwBall(speed||1);
 window.onBallLanded = () => { landedResolve && landedResolve(); };
 
 /* ---------- 色彩工具：sRGB → CIELAB ---------- */
@@ -672,13 +697,17 @@ async function startEncounter(pal,picked){
   const ball=$("ball");ball.getAnimations().forEach(a=>a.cancel());ball.hidden=true;ball.classList.remove("locked");
   $("hand").hidden=false;$("shakeDots").hidden=true;
   const m=$("mon");m.getAnimations().forEach(a=>a.cancel());m.style.opacity="";
+  clearShields();$("scene").classList.remove("gold","legend");
   drawOrbs();bubble("！");
   go("encounter",true);
+  if(mon.rarity===5){m.style.opacity="0";await legendIntro();m.style.opacity="";if(current!==mon)return;}   // 五星：畫面先暗下來
   // 從草叢跳出來
   await anim(m,[{transform:"translate(-50%,-10%) scale(.6)",opacity:0},{transform:"translate(-50%,-62%) scale(1.05)",opacity:1,offset:.6},{transform:"translate(-50%,-50%) scale(1)",opacity:1}],{duration:550,easing:"ease-out"});
   shakeScene(5,300);
   bubble(revealed?`野生的${mon.name}出現了！`:"野生的寶可夢出現了！是誰呢？");sfx("appear");
-  if(mon.rarity>=4){ stars(pts().mon,mon.rarity===5?18:12); setTimeout(()=>{if(current===mon&&!busy)bubble(mon.rarity===5?"閃閃發光…是傳說中的寶可夢！":"好稀有的寶可夢！");sfx("reveal");},1200); }
+  await rarityEntrance(mon);
+  if(current!==mon)return;
+  setupShields(mon);
   Hardware.notifyEncounter(mon);
   $("throwBtn").disabled=false;
 }
@@ -736,15 +765,18 @@ function flash(p){const f=$("flash");return anim(f,[{transform:at(p,"scale(.2)")
    onBallThrown → 球飛出、寶可夢被吸進去 → 等 onBallLanded → 落地、晃動、結果
    抓到的機率只看稀有度（config.catchBase），不看丟得好不好                          */
 let landedResolve=null;
-async function throwBall(){
+async function throwBall(speed=1){
   if(!current||busy||screen!=="encounter")return;
   busy=true;$("throwBtn").disabled=true;$("runBtn").disabled=true;
   const myId=encounterId, stale=()=>myId!==encounterId;      // 換了新的寶可夢，舊動畫就停
   const landed=new Promise(r=>landedResolve=r);
   const mon=current, ball=$("ball"), monEl=$("mon"), sh=$("ballShadow"), P=pts();
   // 不限次數；每失敗一次捕捉率提高，失敗 guaranteeAfter 次後一定抓到
-  const guarantee=CFG.guaranteeAfter??4;
-  const p=misses>=guarantee?1:Math.min(0.95,(CFG.catchBase[mon.rarity]??0.5)+misses*(CFG.catchBonusPerMiss??0.15));
+  // 護盾還在的話比較難抓：每打破一層，捕捉率就往正常值靠近；保底次數也會多一點
+  const sh0=SHIELD.total, left=shieldLayersLeft();
+  const shieldMul=sh0?(CFG.shieldCatchMul??0.3)+(1-(CFG.shieldCatchMul??0.3))*(sh0-left)/sh0:1;
+  const guarantee=(CFG.guaranteeAfter??4)+left*2;
+  const p=misses>=guarantee?1:Math.min(0.95,((CFG.catchBase[mon.rarity]??0.5)+misses*(CFG.catchBonusPerMiss??0.15))*shieldMul);
   const q=Math.cbrt(p);                                       // 每晃一下撐住的機率，三下都撐住就抓到
   let shakes=0; while(shakes<3&&Math.random()<q) shakes++;
   const caught=shakes===3;
@@ -753,7 +785,8 @@ async function throwBall(){
   // 1. 拋物線飛向寶可夢
   $("hand").hidden=true;ball.hidden=false;ball.classList.remove("locked");
   const top={x:(P.hand.x+P.mon.x)/2,y:Math.min(P.hand.y,P.mon.y)-110};
-  await anim(ball,[{transform:at(P.hand,"rotate(0) scale(1.25)")},{transform:at(top,"rotate(400deg) scale(1)"),offset:.55},{transform:at(P.mon,"rotate(760deg) scale(.95)")}],{duration:650,easing:"cubic-bezier(.3,.6,.6,1)"});if(stale())return;
+  const flyMs=Math.round(650/Math.max(.6,Math.min(2,speed)));            // 甩得越快，球飛得越快
+  await anim(ball,[{transform:at(P.hand,"rotate(0) scale(1.25)")},{transform:at(top,"rotate(400deg) scale(1)"),offset:.55},{transform:at(P.mon,"rotate(760deg) scale(.95)")}],{duration:flyMs,easing:"cubic-bezier(.3,.6,.6,1)"});if(stale())return;
   // 2. 打中：球彈開一點、閃光、畫面晃一下，寶可夢變成光被吸進球裡
   flash(P.mon);shakeScene(7,320);sfx("hit");
   const up={x:P.mon.x,y:P.mon.y-40};
@@ -799,7 +832,7 @@ async function throwBall(){
     if(!revealed){await revealMon(mon);if(stale())return;}
     markSeen(mon);
     misses++;
-    bubble(shakes===0?`${mon.name}跳出來了！再丟一次！`:shakes===1?"啊！差一點點…再試一次！":"可惜！只差一點！再丟一次！");
+    bubble(shieldLayersLeft()>0&&shakes<2?"被護盾擋住了！先打破護盾比較好抓喔":shakes===0?`${mon.name}跳出來了！再丟一次！`:shakes===1?"啊！差一點點…再試一次！":"可惜！只差一點！再丟一次！");
     $("hand").hidden=false;
     $("throwBtn").disabled=false;$("runBtn").disabled=false;
   }
@@ -1063,9 +1096,12 @@ function arLoop(t){
   AR.lastT=t;
   const w=AR.watcher;
   if(performance.now()<phoneMovingUntil){
-    w.pause();AR.longWatcher.pause();$("ballMark").hidden=true;$("arChip").textContent="手機晃動太大，稍微拿穩一點";return;
+    w.pause();AR.longWatcher.pause();AR.motion?.reset();$("ballMark").hidden=true;$("arChip").textContent="手機晃動太大，稍微拿穩一點";return;
   }
   const fr=arFrameYUV();
+  AR.motion??=new MotionMap();
+  motionActions(t,AR.motion.update(fr,AR.W,AR.H));
+  if(AR.method==="swipe"){$("ballMark").hidden=true;if(!$("hand").classList.contains("touched"))$("arChip").textContent=arArmed()?"把手伸到寶貝球那裡，往上甩！":"等一下…";return;}
   const {blob,event}=w.update(t,fr.y,AR.W,AR.H,arConfig().useColor===false?null:fr.uv);
   const oc=odConfig();
 
@@ -1106,13 +1142,24 @@ function arLoop(t){
   const how=AR.detector?"球辨識":AR.detLoading?"載入球辨識中…":"移動偵測";
   $("arChip").textContent=(w.state==="flying"&&AR.throwActive)?"丟進來了！":AR.pendingUntil&&mode==="strict"?"有東西在動…是球嗎？":arArmed()?`把球丟進畫面裡！（${how}）`:"等一下…";
 }
+const METHOD_KEY="colormon-ball-method";
+try{AR.method=localStorage.getItem(METHOD_KEY)||"ball";}catch(e){AR.method="ball";}
+function setMethod(m){
+  AR.method=m;try{localStorage.setItem(METHOD_KEY,m);}catch(e){}
+  document.querySelectorAll("#method button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.m===m));
+  $("sens").hidden=!AR.on||m!=="ball";
+  $("hand").classList.toggle("swipe",AR.on&&m==="swipe");
+  if(AR.on)$("hwText").textContent=m==="swipe"?"手伸到畫面下方的寶貝球，往上甩就丟出去":"後鏡頭對著地板，把東西丟進畫面";
+}
+document.querySelectorAll("#method button").forEach(b=>b.onclick=()=>setMethod(b.dataset.m));
 function setBallMode(on){
   AR.on=on;
   try{localStorage.setItem(BALL_MODE_KEY,on?"1":"0");}catch(e){}
   $("motionBtn").setAttribute("aria-pressed",on);
   $("motionBtn").textContent=on?"關閉真球模式":"真球模式：把球丟進鏡頭畫面";
   $("hwText").textContent=on?"後鏡頭對著地板，把東西丟進畫面":"按「丟出寶貝球！」，或打開真球模式";
-  $("sens").hidden=!on;
+  $("method").hidden=!on;
+  setMethod(AR.method);
   if(on&&screen==="encounter") startAR(); else stopAR();
 }
 const SENS_KEY="colormon-ball-sensitivity";
@@ -1125,6 +1172,154 @@ document.querySelectorAll("#sens button").forEach(b=>b.onclick=()=>setSensitivit
 setSensitivity(AR.sensitivity);
 $("motionBtn").onclick=()=>{ if(!AR.on) askMotionPermission(); setBallMode(!AR.on); };
 try{AR.on=localStorage.getItem(BALL_MODE_KEY)==="1";}catch(e){}
+
+
+/* =========================================================
+   按星數分級的出場效果
+   ========================================================= */
+async function legendIntro(){
+  const d=$("rareDim");d.hidden=false;
+  sfx("legendIntro");
+  try{navigator.vibrate&&navigator.vibrate([60,80,60,80,60]);}catch(e){}
+  await anim(d,[{opacity:0},{opacity:.88}],{duration:700,easing:"ease-in"});
+  await wait(500);
+}
+async function rarityEntrance(mon){
+  const r=mon.rarity,P=pts(),sc=$("scene");
+  if(r<3) return;
+  if(r===3){
+    flash(P.mon);sfx("appear3");
+    try{navigator.vibrate&&navigator.vibrate(80);}catch(e){}
+    return;
+  }
+  if(r===4){
+    sc.classList.add("gold");stars(P.mon,14);sfx("appear4");
+    try{navigator.vibrate&&navigator.vibrate([90,70,90]);}catch(e){}
+    await wait(500);
+    if(current===mon&&!busy)bubble(revealed?`好稀有的${mon.name}！`:"好稀有的寶可夢！");
+    return;
+  }
+  // 五星：從暗處閃亮登場
+  const d=$("rareDim");
+  sc.classList.add("legend");
+  flash(P.mon);
+  anim(d,[{opacity:.88},{opacity:0}],{duration:900,easing:"ease-out"}).then(()=>d.hidden=true);
+  const f=$("rareFlash");f.hidden=false;anim(f,[{opacity:1},{opacity:0}],{duration:700}).then(()=>f.hidden=true);
+  for(let i=0;i<3;i++) setTimeout(()=>stars({x:P.mon.x+(Math.random()-.5)*160,y:P.mon.y+(Math.random()-.5)*160},14),i*250);
+  sfx("appear5");
+  try{navigator.vibrate&&navigator.vibrate([120,60,120,60,120,60,400]);}catch(e){}
+  await wait(900);
+  if(current===mon&&!busy)bubble(revealed?`閃閃發光…是傳說中的${mon.name}！`:"閃閃發光…是傳說中的寶可夢！");
+}
+
+/* =========================================================
+   護盾：三星 3 層、四星 4 層、五星 5 層（config.shields）
+   對著鏡頭在寶可夢的位置揮手、跳動，或直接點螢幕上的寶可夢，就能打護盾
+   ========================================================= */
+const SHIELD={total:0,hp:0,perLayer:3,lastHit:0};
+function shieldLayersLeft(){return SHIELD.total?Math.ceil(SHIELD.hp/SHIELD.perLayer):0;}
+function clearShields(){SHIELD.total=0;SHIELD.hp=0;$("shields").innerHTML="";$("shieldHud").hidden=true;}
+function setupShields(mon){
+  const layers=(CFG.shields||{3:3,4:4,5:5})[mon.rarity]||0;
+  SHIELD.perLayer=CFG.shieldHitsPerLayer??3;SHIELD.total=layers;SHIELD.hp=layers*SHIELD.perLayer;SHIELD.lastHit=0;
+  drawShields();
+  if(layers){
+    setTimeout(()=>{if(current===mon&&!busy)bubble(`牠有 ${layers} 層護盾！${AR.on?"對著鏡頭揮手打牠":"點牠"}可以打破護盾！`);},1600);
+  }
+}
+function drawShields(){
+  const left=shieldLayersLeft(),el=$("shields");
+  el.innerHTML=Array.from({length:left},(_,k)=>`<i style="inset:${-6-k*7}%;animation-delay:${-k*.4}s"></i>`).join("");
+  const hud=$("shieldHud");hud.hidden=!SHIELD.total;
+  hud.innerHTML=SHIELD.total?`護盾 ${"◆".repeat(left)}${"◇".repeat(SHIELD.total-left)}`:"";
+}
+function hitShield(){
+  if(!current||busy||!SHIELD.hp)return;
+  const now=performance.now();if(now-SHIELD.lastHit<(CFG.shieldHitCooldownMs??380))return;
+  SHIELD.lastHit=now;
+  const before=shieldLayersLeft();SHIELD.hp--;const after=shieldLayersLeft();
+  const P=pts();
+  anim($("shields"),[{transform:"scale(1)",filter:"brightness(1)"},{transform:"scale(1.08)",filter:"brightness(2.2)"},{transform:"scale(1)",filter:"brightness(1)"}],{duration:260,fill:"none"});
+  anim($("mon"),[{transform:"translate(-50%,-50%)"},{transform:"translate(calc(-50% + 6px),-50%)"},{transform:"translate(calc(-50% - 6px),-50%)"},{transform:"translate(-50%,-50%)"}],{duration:200,fill:"none"});
+  if(after<before){
+    // 一層護盾碎掉
+    sfx("shieldBreak");shakeScene(6,300);
+    for(let i=0;i<10;i++){const a=i/10*Math.PI*2;stars({x:P.mon.x+Math.cos(a)*90,y:P.mon.y+Math.sin(a)*90},1);}
+    try{navigator.vibrate&&navigator.vibrate(140);}catch(e){}
+    bubble(after?`打破一層護盾！還剩 ${after} 層`:"護盾全部打破了！現在很好抓！");
+  }else{
+    sfx("shieldHit");
+    try{navigator.vibrate&&navigator.vibrate(30);}catch(e){}
+    bubble(`碰！護盾裂開了…（再 ${SHIELD.hp-(after-1)*SHIELD.perLayer} 下）`);
+  }
+  drawShields();
+}
+$("mon").addEventListener("pointerdown",e=>{if(SHIELD.hp){e.preventDefault();hitShield();}});
+
+/* =========================================================
+   鏡頭動作偵測：揮手甩球、打護盾（比較前後兩張畫面的變化）
+   ========================================================= */
+class MotionMap{
+  constructor(){this.prev=null;this.prevUV=null;this.shifter=new ThrowWatcher({});}
+  reset(){this.prev=null;this.prevUV=null;}
+  update(fr,W,H){
+    const g=fr.y,uv=fr.uv,p=this.prev,pu=this.prevUV;this.prev=g;this.prevUV=uv;
+    if(!p)return null;
+    const [dx,dy]=this.shifter.globalShift(g,p,W,H),m=3,mask=new Uint8Array(W*H);
+    for(let y=m+1;y<H-m-1;y++)for(let x=m+1;x<W-m-1;x++){
+      const k=y*W+x,pk=(y-dy)*W+(x-dx);
+      const grad=Math.abs(p[pk+1]-p[pk-1])+Math.abs(p[pk+W]-p[pk-W]);
+      const diff=Math.abs(g[k]-p[pk])+0.8*(Math.abs(uv[0][k]-pu[0][pk])+Math.abs(uv[1][k]-pu[1][pk]));
+      if(diff>30+0.6*grad)mask[k]=1;
+    }
+    return mask;
+  }
+}
+/* 在影片座標 (cx,cy) 半徑 r（以寬度為單位）裡有多少變化、變化的中心在哪 */
+function regionMotion(mask,W,H,cx,cy,rx,ry=rx){
+  let n=0,sx=0,sy=0;
+  const x0=Math.max(0,Math.floor((cx-rx)*W)),x1=Math.min(W-1,Math.ceil((cx+rx)*W)),y0=Math.max(0,Math.floor((cy-ry)*H)),y1=Math.min(H-1,Math.ceil((cy+ry)*H));
+  for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++) if(mask[y*W+x]){n++;sx+=x;sy+=y;}
+  return {n,x:n?(sx/n+.5)/W:cx,y:n?(sy/n+.5)/H:cy};
+}
+/* 場景座標 → 影片座標（0~1） */
+function sceneToVideo(px,py){
+  const v=$("arVideo"),s=$("scene").getBoundingClientRect(),vw=v.videoWidth,vh=v.videoHeight;
+  const k=Math.max(s.width/vw,s.height/vh),dw=vw*k,dh=vh*k;
+  return {x:(px+(dw-s.width)/2)/dw,y:(py+(dh-s.height)/2)/dh};
+}
+const SWIPE={hist:[],touchT:0,cool:0};
+function swipeConfig(){return {touchRadius:.13,minTouch:6,riseMin:.09,windowMs:600,minHit:10,hitRadius:.2,...(CFG?.swipe||{})};}
+/* 每一格畫面：揮手甩球（碰到畫面下方的寶貝球、往上甩）和打護盾 */
+function motionActions(t,mask){
+  if(!mask||screen!=="encounter")return;
+  const c=swipeConfig(),W=AR.W,H=AR.H,sRect=$("scene").getBoundingClientRect();
+  // 打護盾：寶可夢的位置有夠多變化
+  if(SHIELD.hp&&!busy&&current){
+    const m=$("mon").getBoundingClientRect(),mc=sceneToVideo(m.left-sRect.left+m.width/2,m.top-sRect.top+m.height/2);
+    if(regionMotion(mask,W,H,mc.x,mc.y,c.hitRadius,c.hitRadius*1.2).n>=c.minHit) hitShield();
+  }
+  if(AR.method!=="swipe"||!arArmed()){SWIPE.hist=[];$("hand").classList.remove("touched");return;}
+  // 甩球：手碰到寶貝球，接著往上移動
+  const h=$("hand").getBoundingClientRect(),hc=sceneToVideo(h.left-sRect.left+h.width/2,h.top-sRect.top+h.height/2);
+  const touch=regionMotion(mask,W,H,hc.x,hc.y,c.touchRadius,c.touchRadius*1.3);
+  if(touch.n>=c.minTouch){SWIPE.touchT=t;$("hand").classList.add("touched");$("arChip").textContent="碰到了！往上甩！";}
+  else if(t-SWIPE.touchT>c.windowMs)$("hand").classList.remove("touched");
+  if(t-SWIPE.touchT<=c.windowMs){
+    const area=regionMotion(mask,W,H,hc.x,hc.y-c.touchRadius*2,c.touchRadius*2,c.touchRadius*3.2);   // 球上方一大塊
+    if(area.n>=c.minTouch) SWIPE.hist.push({y:area.y,t});
+    SWIPE.hist=SWIPE.hist.filter(p=>t-p.t<=c.windowMs);
+    if(SWIPE.hist.length>=2&&t>=SWIPE.cool){
+      const a=SWIPE.hist[0],z=SWIPE.hist[SWIPE.hist.length-1],rise=a.y-z.y;
+      if(rise>=c.riseMin){
+        const speed=Math.min(2,Math.max(.7,rise/((z.t-a.t)/1000||.1)/1.2));
+        SWIPE.hist=[];SWIPE.cool=t+1200;$("hand").classList.remove("touched");
+        sfx("throw");window.onBallThrown(speed);
+        setTimeout(()=>window.onBallLanded(),T_(650));
+      }
+    }
+  }
+}
 
 /* =========================================================
    探索模式：相機一直開著，寶可夢藏在某個方向，
@@ -1383,6 +1578,16 @@ const SFX={
   escape:t=>{ GB.noise(t,.12,{v:.4,hp:400}); GB.seq(t+.05,"G5:1 D5:1 G4:2",.06,{duty:.5,v:.35}); },            // 跳出來：啵
   flee:t=>{ GB.seq(t,"A5:1 F5:1 D5:1 A4:1 F4:2",.05,{duty:.25,v:.35}); },                                      // 玩家逃跑：快速下降
   tap:t=>{ GB.tone(t,1320,.03,{duty:.5,v:.2}); },
+  appear3:t=>{ GB.seq(t+.36,"B6:3",.05,{duty:.125,v:.35}); },                                                    // 三星：多一個上揚音
+  appear4:t=>{ const b=.09; GB.seq(t,"G4:2 C5:2 E5:2 G5:6",b,{duty:.25,v:.4,decay:false});                     // 四星：短號角
+               GB.seq(t,"E4:2 G4:2 C5:2 E5:6",b,{duty:.5,v:.22,decay:false}); GB.noise(t+6*b,.25,{v:.15,hp:5000}); },
+  legendIntro:t=>{ GB.tone(t,110,.7,{duty:.5,v:.3,slide:82}); GB.noise(t,.7,{v:.08,hp:200}); },                 // 五星：畫面變暗的低音
+  appear5:t=>{ const b=.12;                                                                                      // 五星：傳說登場曲
+               GB.seq(t,"A4:2 C5:2 E5:2 A5:4 G5:2 E5:2 F5:4 E5:2 D5:2 E5:8",b,{duty:.25,v:.4,decay:false});
+               GB.seq(t,"A3:8 F3:8 G3:8 A3:8",b,{duty:.5,v:.22,decay:false});
+               for(let i=0;i<6;i++) GB.noise(t+i*b*5,.18,{v:.12,hp:6000}); },
+  shieldHit:t=>{ GB.tone(t,1800,.06,{duty:.125,v:.3,slide:1200}); GB.noise(t,.05,{v:.2,hp:4000}); },            // 護盾：鏘
+  shieldBreak:t=>{ GB.noise(t,.35,{v:.4,hp:2500}); GB.seq(t+.05,"E7:1 B6:1 G6:1 E6:1 B5:2",.04,{duty:.125,v:.3}); },  // 碎掉
   step:t=>{ GB.noise(t,.04,{v:.25,hp:300}); GB.tone(t,240,.05,{duty:.5,v:.25,slide:160}); },                  // 腳步：咚
   radar:(t,w=0)=>{ GB.tone(t,500+900*w,.05+.03*w,{duty:.125,v:.25+.2*w}); },                                  // 探索雷達：越近越高
   found:t=>{ const e=GB.seq(t,"C6:1 -:1 C6:1 -:1 C6:1 -:1",.07,{duty:.25,v:.45});                              // 噔噔噔

@@ -137,5 +137,21 @@
     "minFraction": 0.015,
     "maxFraction": 0.7,
     "weight": 0.75
+  },
+  "shields": {
+    "3": 3,
+    "4": 4,
+    "5": 5
+  },
+  "shieldHitsPerLayer": 3,
+  "shieldCatchMul": 0.3,
+  "shieldHitCooldownMs": 380,
+  "swipe": {
+    "touchRadius": 0.13,
+    "minTouch": 6,
+    "riseMin": 0.09,
+    "windowMs": 600,
+    "minHit": 10,
+    "hitRadius": 0.2
   }
 }
