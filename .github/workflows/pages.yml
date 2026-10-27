@@ -22,6 +22,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Validate Pokémon data packs
+        run: node tools/validate-data.mjs
       - name: Check page script syntax
         run: |
           node -e "const s=require('fs').readFileSync('site/index.html','utf8');

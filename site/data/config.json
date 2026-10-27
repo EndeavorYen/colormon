@@ -1,0 +1,8 @@
+{
+  "packs": ["packs/gen1-starter.json"],
+  "catchBase": { "1": 0.75, "2": 0.45, "3": 0.2 },
+  "ballsPerEncounter": 3,
+  "candidates": 6,
+  "artUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/{id}.png",
+  "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{id}.png"
+}
