@@ -63,6 +63,28 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 .samples span{font-size:.84rem;color:var(--muted)}
 .chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:5px 12px;font-size:.86rem}
 
+/* explore mode */
+.explore-btn{background:color-mix(in srgb,var(--good) 18%,var(--card));color:var(--ink);border:2px solid var(--good)}
+.ex-view{touch-action:none;--glowc:#5aa8ff}
+.ex-view video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.ex-glow{position:absolute;inset:0;pointer-events:none;border-radius:inherit;opacity:.15;z-index:2;
+  box-shadow:inset 0 0 calc(18px + 70px*var(--warm,0)) calc(4px + 22px*var(--warm,0)) var(--glowc)}
+.ex-arrow{position:absolute;top:50%;width:56px;height:56px;margin-top:-28px;border-radius:50%;background:rgba(0,0,0,.45);display:grid;place-items:center;z-index:3;animation:nudge 1s ease-in-out infinite}
+.ex-arrow svg{width:34px;height:34px;fill:#fff}
+.ex-arrow.left{left:12px;--dir:-1} .ex-arrow.right{right:12px;--dir:1}
+@keyframes nudge{50%{transform:translateX(calc(8px*var(--dir)))}}
+.ex-reticle{z-index:3;transition:border-color .2s,transform .2s}
+.ex-reticle.hot{border-color:#ffd54a;transform:scale(1.08)}
+.ex-chip{z-index:3}
+.ex-start{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;text-align:center;color:#e9eef6;background:radial-gradient(circle at 50% 40%,#22314d,#0d1117 75%)}
+.ex-start p{margin:0;max-width:34ch;font-size:.92rem}
+.ex-start .ex-title{font-family:var(--display);font-weight:900;font-size:1.4rem;color:#fff}
+.ex-start .ex-small{font-size:.8rem;color:#aab4c4}
+.heat-row{display:flex;align-items:center;gap:8px;font-size:.8rem;color:var(--muted);font-weight:700}
+.heat{flex:1;height:12px;border-radius:6px;background:var(--line);overflow:hidden}
+.heat i{display:block;height:100%;width:0;border-radius:6px;background:linear-gradient(90deg,#5aa8ff,#ffd54a,#ff5a3c);transition:width .15s}
+@media (prefers-reduced-motion:reduce){.ex-arrow{animation:none}}
+
 /* scan screen */
 .scan-photo{position:relative;width:100%;max-width:100%;aspect-ratio:1;max-height:52vh;margin:0 auto;border-radius:20px;overflow:hidden;background:#000}
 .scan-photo img{width:100%;height:100%;object-fit:cover;display:block}
@@ -189,6 +211,7 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
   <div class="bar">
     <button class="icon-btn" id="backBtn" aria-label="回到拍照" hidden><svg viewBox="0 0 24 24"><path d="M15.4 4.6 14 3.2 5.2 12 14 20.8l1.4-1.4L8 12z"/></svg></button>
     <h1 id="barTitle">顏色寶可夢探險</h1>
+    <button class="icon-btn" id="muteBtn" aria-label="關閉音效" aria-pressed="false"><svg viewBox="0 0 24 24"><path id="muteIcon" d=""/></svg></button>
     <button class="dex-btn" id="dexBtn">圖鑑 <b id="dexCount">0</b></button>
   </div>
 
@@ -205,6 +228,10 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
       <div class="live-chip" id="liveChip" hidden><i id="liveDot"></i><span id="liveText">對準中…</span></div>
     </div>
     <button class="shutter" id="shutter" aria-label="拍照" hidden></button>
+    <button class="btn explore-btn" id="toExploreBtn">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 2a8 8 0 0 1 7.9 7H17a5 5 0 0 0-4-4V4.1L12 4zm-1 .1V7a5 5 0 0 0-4 4H4.1A8 8 0 0 1 11 4.1zM4.1 13H7a5 5 0 0 0 4 4v2.9A8 8 0 0 1 4.1 13zM13 19.9V17a5 5 0 0 0 4-4h2.9a8 8 0 0 1-6.9 6.9zM12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6z"/></svg>
+      探索模式：跟著提示找寶可夢
+    </button>
     <label class="btn ghost" for="photo">用手機相機拍一張 / 選照片
       <input id="photo" type="file" accept="image/*" capture="environment">
     </label>
@@ -214,6 +241,26 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
       <button class="chip" data-s="sunset">夕陽</button><button class="chip" data-s="banana">香蕉</button>
       <button class="chip" data-s="night">夜晚</button>
     </div>
+  </section>
+
+  <!-- 探索模式 -->
+  <section class="screen" id="s-explore" hidden>
+    <div class="viewer ex-view" id="exView">
+      <video id="exVideo" playsinline muted autoplay hidden></video>
+      <div class="ex-glow" id="exGlow"></div>
+      <div class="ex-arrow left" id="exLeft" hidden><svg viewBox="0 0 24 24"><path d="M15.4 4.6 14 3.2 5.2 12 14 20.8l1.4-1.4L8 12z"/></svg></div>
+      <div class="ex-arrow right" id="exRight" hidden><svg viewBox="0 0 24 24"><path d="m8.6 4.6 1.4-1.4 8.8 8.8-8.8 8.8-1.4-1.4L16 12z"/></svg></div>
+      <div class="reticle ex-reticle" id="exReticle" hidden></div>
+      <div class="live-chip ex-chip" id="exChip" hidden><i id="exDot"></i><span id="exText"></span></div>
+      <div class="ex-start" id="exStart">
+        <p class="ex-title">附近好像有寶可夢！</p>
+        <p>拿著手機慢慢轉一圈。越靠近寶可夢，畫面邊緣的光會閃得越快、聲音越密，手機也會震動得越厲害。對準了牠就會跳出來！</p>
+        <button class="btn sun" id="exStartBtn">開始探險</button>
+        <p class="ex-small" id="exNote"></p>
+      </div>
+    </div>
+    <div class="heat-row"><span>冷</span><div class="heat"><i id="heatBar"></i></div><span>熱</span></div>
+    <p class="note" id="exHint">手機要立起來，鏡頭朝前。沒有陀螺儀的話，可以在畫面上左右滑動來轉向。</p>
   </section>
 
   <!-- 2 分析 -->
@@ -288,7 +335,7 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 <canvas id="cv" width="48" height="48" hidden></canvas>
 
 <script>
-const BUILD="2026.10.27-1655";
+const BUILD="2026.10.27-1707";
 /* =========================================================
    顏色寶可夢探險
    資料都在 data/：config.json 列出要載入的資料包（packs），
@@ -420,8 +467,8 @@ const spriteUrl=id=>CFG.spriteUrl.replace("{id}",id);
 
 /* ---------- 畫面切換（用網址 # 記錄，手機返回鍵可用） ---------- */
 const $=id=>document.getElementById(id);
-const SCREENS=["camera","scan","encounter","result","dex"];
-const TITLES={camera:"顏色寶可夢探險",scan:"分析顏色",encounter:"野生寶可夢",result:"抓到了",dex:"我的圖鑑"};
+const SCREENS=["camera","explore","scan","encounter","result","dex"];
+const TITLES={camera:"顏色寶可夢探險",explore:"探索模式",scan:"分析顏色",encounter:"野生寶可夢",result:"抓到了",dex:"我的圖鑑"};
 let screen="camera";
 function go(name,replace){
   const h="#"+name;
@@ -440,16 +487,20 @@ function show(name){
   $("backBtn").hidden=name==="camera";
   $("dexBtn").hidden=name==="dex";
   if(name==="camera") resumeCamera(); else pauseCamera();
+  if(name==="explore") resumeExplore(); else pauseExplore();
+  if(name==="camera"||name==="explore") home=name;           // 抓完、逃跑後回到哪裡
+  $("moreBtn").textContent=home==="explore"?"繼續探險":"繼續拍照";
   if(name==="encounter"&&AR.on) startAR(); else if(name!=="encounter") stopAR();
   if(name==="dex") renderDex();
   scrollTo(0,0);
 }
 addEventListener("popstate",()=>show(location.hash.slice(1)));
-$("backBtn").onclick=()=>go("camera");
+let home="camera";
+$("backBtn").onclick=()=>go(screen==="explore"?"camera":home);
 $("dexBtn").onclick=()=>go("dex");
-$("moreBtn").onclick=()=>go("camera");
+$("moreBtn").onclick=()=>go(home);
 $("toDexBtn").onclick=()=>go("dex");
-$("fledBtn").onclick=()=>go("camera");
+$("fledBtn").onclick=()=>go(home);
 
 /* ---------- 1 拍照 ---------- */
 let stream=null,camWanted=false,liveTimer=0;
@@ -568,7 +619,7 @@ async function revealMon(mon){
   revealed=true;markSeen(mon);
   $("mon").classList.remove("silhouette");
   showMonInfo(mon,true);
-  const P=pts();stars(P.mon,10);sfx("appear");
+  const P=pts();stars(P.mon,10);sfx("reveal");
   bubble(`原來是${mon.name}！`);
   await wait(1100);
 }
@@ -625,7 +676,7 @@ async function throwBall(){
   const top={x:(P.hand.x+P.mon.x)/2,y:Math.min(P.hand.y,P.mon.y)-110};
   await anim(ball,[{transform:at(P.hand,"rotate(0) scale(1.25)")},{transform:at(top,"rotate(400deg) scale(1)"),offset:.55},{transform:at(P.mon,"rotate(760deg) scale(.95)")}],{duration:650,easing:"cubic-bezier(.3,.6,.6,1)"});if(stale())return;
   // 2. 打中：球彈開一點、閃光、畫面晃一下，寶可夢變成光被吸進球裡
-  flash(P.mon);shakeScene(7,320);
+  flash(P.mon);shakeScene(7,320);sfx("hit");
   const up={x:P.mon.x,y:P.mon.y-40};
   anim(ball,[{transform:at(P.mon,"rotate(0)")},{transform:at(up,"rotate(-25deg)")}],{duration:300,easing:"ease-out"});
   anim($("glow"),[{opacity:0},{opacity:1,offset:.35},{opacity:0}],{duration:520,fill:"none"});
@@ -684,7 +735,7 @@ $("runBtn").addEventListener("click",async()=>{
   bubble("安全地逃走了！");sfx("flee");
   await anim($("scene"),[{transform:"translateX(0)",opacity:1},{transform:"translateX(-12%)",opacity:.0}],{duration:600,easing:"ease-in",fill:"none"});
   current=null;fled=false;busy=false;
-  go("camera",true);
+  go(home,true);
 });
 
 /* 模擬模式：按一下＝丟出，0.7 秒後自動回報落地 */
@@ -995,20 +1046,205 @@ setSensitivity(AR.sensitivity);
 $("motionBtn").onclick=()=>{ if(!AR.on) askMotionPermission(); setBallMode(!AR.on); };
 try{AR.on=localStorage.getItem(BALL_MODE_KEY)==="1";}catch(e){}
 
-/* ---------- 音效（手機立在支架上感覺不到震動） ---------- */
-let audioCtx=null;
-addEventListener("pointerdown",()=>{try{audioCtx??=new (window.AudioContext||window.webkitAudioContext)();audioCtx.resume();}catch(e){}},{passive:true});
-function sfx(name){
-  if(!audioCtx)return;
-  const seq={appear:[[660,.09],[880,.09],[990,.16]],throw:[[700,.05],[500,.05],[350,.08]],shake:[[300,.05]],caught:[[523,.1],[659,.1],[784,.1],[1046,.25]],escape:[[440,.1],[300,.18]],flee:[[400,.12],[300,.12],[200,.25]]}[name];
-  if(!seq)return;
-  let t=audioCtx.currentTime;
-  for(const [f,d] of seq){
-    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
-    o.type="square";o.frequency.value=f;g.gain.setValueAtTime(.06,t);g.gain.exponentialRampToValueAtTime(.001,t+d);
-    o.connect(g).connect(audioCtx.destination);o.start(t);o.stop(t+d);t+=d;
-  }
+/* =========================================================
+   探索模式：相機一直開著，寶可夢藏在某個方向，
+   用陀螺儀算出鏡頭朝向，越接近提示越強（呼吸光、雷達聲、震動），對準就自動截圖
+   ========================================================= */
+const EX={started:false,stream:null,raf:0,yaw:null,rawYaw:null,manual:0,target:0,lock:0,nextBeat:0,flat:false,hasOrient:false,found:false};
+function exConfig(){return {foundDeg:14,holdMs:700,minTargetDeg:70,maxTargetDeg:170,slowBeatMs:1300,fastBeatMs:140,...(CFG?.explore||{})};}
+/* 鏡頭（手機背面）朝向的水平角度，任何握法都適用 */
+function cameraYaw(a,b,g){
+  const A=a*Math.PI/180,B=b*Math.PI/180,G=g*Math.PI/180;
+  const vx=-(Math.cos(A)*Math.sin(G)+Math.sin(A)*Math.sin(B)*Math.cos(G));
+  const vy=-(Math.sin(A)*Math.sin(G)-Math.cos(A)*Math.sin(B)*Math.cos(G));
+  return {yaw:Math.atan2(vx,vy)*180/Math.PI, flat:Math.abs(Math.cos(B)*Math.cos(G))>0.85};
 }
+const angDiff=(a,b)=>((a-b+540)%360)-180;
+addEventListener("deviceorientation",e=>{
+  if(e.alpha==null)return;
+  const r=cameraYaw(e.alpha,e.beta,e.gamma);
+  EX.hasOrient=true;EX.flat=r.flat;
+  EX.rawYaw=EX.rawYaw==null?r.yaw:EX.rawYaw+angDiff(r.yaw,EX.rawYaw)*0.35;   // 平滑
+});
+function currentYaw(){return (EX.rawYaw??0)+EX.manual;}
+/* 沒有陀螺儀（電腦、拒絕權限）：在畫面上左右滑動轉向 */
+(function(){
+  let dragX=null;const v=$("exView");
+  v.addEventListener("pointerdown",e=>{if(EX.started)dragX=e.clientX;});
+  addEventListener("pointermove",e=>{if(dragX==null)return;EX.manual-=(e.clientX-dragX)*0.35;dragX=e.clientX;});
+  addEventListener("pointerup",()=>dragX=null);
+  addEventListener("keydown",e=>{if(screen!=="explore"||!EX.started)return;if(e.key==="ArrowLeft")EX.manual+=8;if(e.key==="ArrowRight")EX.manual-=8;});
+})();
+async function askOrientation(){
+  try{
+    if(typeof DeviceOrientationEvent!=="undefined"&&DeviceOrientationEvent.requestPermission){
+      const r=await DeviceOrientationEvent.requestPermission();return r==="granted";
+    }
+  }catch(e){return false;}
+  return true;
+}
+$("exStartBtn").onclick=async()=>{
+  unlockAudio();askMotionPermission();
+  const ok=await askOrientation();
+  EX.started=true;$("exStart").hidden=true;
+  if(!ok) toast("沒有開啟動作權限，可以在畫面上左右滑動來轉向");
+  sfx("tap");
+  await startExploreCamera();
+  newTarget();
+};
+$("toExploreBtn").onclick=()=>{home="explore";go("explore");};
+async function startExploreCamera(){
+  if(EX.stream)return;
+  if(navigator.mediaDevices?.getUserMedia&&isSecureContext){
+    try{
+      EX.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment",width:{ideal:1280}},audio:false});
+      const v=$("exVideo");v.srcObject=EX.stream;v.hidden=false;try{await v.play();}catch(e){}
+    }catch(e){$("exNote").textContent="相機打不開，還是可以玩，找到後用範例顏色。";}
+  }
+  $("exReticle").hidden=false;$("exChip").hidden=false;
+  cancelAnimationFrame(EX.raf);EX.raf=requestAnimationFrame(exLoop);
+}
+function stopExploreCamera(){
+  cancelAnimationFrame(EX.raf);
+  if(EX.stream){EX.stream.getTracks().forEach(t=>t.stop());EX.stream=null;}
+  $("exVideo").hidden=true;
+}
+function resumeExplore(){
+  $("exStart").hidden=EX.started;
+  if(EX.started){startExploreCamera();newTarget();}
+}
+function pauseExplore(){stopExploreCamera();}
+function newTarget(){
+  const c=exConfig(),off=c.minTargetDeg+Math.random()*(c.maxTargetDeg-c.minTargetDeg);
+  EX.target=currentYaw()+(Math.random()<.5?-off:off);
+  EX.lock=0;EX.found=false;EX.nextBeat=0;
+  $("exText").textContent="附近有寶可夢的氣息…";
+}
+function exLoop(t){
+  EX.raf=requestAnimationFrame(exLoop);
+  if(screen!=="explore"||!EX.started||EX.found)return;
+  const c=exConfig();
+  if(EX.flat&&EX.hasOrient){$("exText").textContent="把手機立起來，鏡頭朝前";setWarm(0);return;}
+  const d=angDiff(EX.target,currentYaw()), ad=Math.abs(d);
+  const warm=Math.max(0,1-ad/180)**2;                       // 越近變化越明顯
+  setWarm(warm);
+  $("exLeft").hidden=!(ad>c.foundDeg&&d>0);$("exRight").hidden=!(ad>c.foundDeg&&d<0);
+  $("exText").textContent=ad<=c.foundDeg?"就在這裡！別動…":ad<35?"非常接近了！":ad<80?"越來越近了":"慢慢轉動手機找找看";
+  $("exReticle").classList.toggle("hot",ad<=c.foundDeg);
+  // 節拍：越近越快，每一拍同時閃光、雷達聲、震動
+  if(t>=EX.nextBeat){
+    const iv=c.slowBeatMs-(c.slowBeatMs-c.fastBeatMs)*warm;
+    EX.nextBeat=t+iv;
+    pulse(warm,iv);
+  }
+  // 對準一段時間就找到
+  if(ad<=c.foundDeg){EX.lock||=t;if(t-EX.lock>=c.holdMs)foundPokemon();}
+  else EX.lock=0;
+}
+function setWarm(w){
+  const v=$("exView");v.style.setProperty("--warm",w.toFixed(3));
+  const col=w<.5?mix([90,168,255],[255,213,74],w*2):mix([255,213,74],[255,90,60],(w-.5)*2);
+  v.style.setProperty("--glowc",`rgb(${col.join(",")})`);
+  $("heatBar").style.width=Math.round(w*100)+"%";$("exDot").style.background=`rgb(${col.join(",")})`;
+}
+const mix=(a,b,k)=>a.map((x,i)=>Math.round(x+(b[i]-x)*Math.max(0,Math.min(1,k))));
+function pulse(w,iv){
+  $("exGlow").animate([{opacity:.25+.75*w},{opacity:.08}],{duration:Math.min(700,iv*.9),easing:"ease-out"});
+  sfx("radar",w);
+  try{navigator.vibrate&&navigator.vibrate(Math.round(15+90*w));}catch(e){}   // Android 才有；iPhone 會自動略過
+}
+async function foundPokemon(){
+  EX.found=true;setWarm(1);
+  $("exText").textContent="找到了！";$("exLeft").hidden=$("exRight").hidden=true;
+  sfx("found");
+  try{navigator.vibrate&&navigator.vibrate([90,60,90,60,250]);}catch(e){}
+  $("exGlow").animate([{opacity:1},{opacity:.2}],{duration:700});
+  // 截下對準時的畫面，用它的顏色決定寶可夢
+  const v=$("exVideo");let src;
+  if(v.videoWidth){const c=document.createElement("canvas");c.width=v.videoWidth;c.height=v.videoHeight;c.getContext("2d").drawImage(v,0,0);src=c.toDataURL("image/jpeg",.85);}
+  else src=sample(["grass","sky","sunset","banana","night"][Math.floor(Math.random()*5)]);
+  await wait(900);
+  if(screen==="explore") startScan(src);
+}
+
+/* =========================================================
+   Game Boy 風格音效（全部原創，用程式即時合成，不用音效檔）
+   兩個方波通道（可調佔空比 12.5% / 25% / 50%）＋ 一個噪音通道，跟 Game Boy 的音源一樣
+   ========================================================= */
+let audioCtx=null;
+const MUTE_KEY="colormon-mute";
+let muted=false;try{muted=localStorage.getItem(MUTE_KEY)==="1";}catch(e){}
+function unlockAudio(){try{audioCtx??=new (window.AudioContext||window.webkitAudioContext)();if(audioCtx.state!=="running")audioCtx.resume();}catch(e){}}
+addEventListener("pointerdown",unlockAudio,{passive:true});
+const GB={
+  waves:{},noiseBuf:null,
+  wave(duty){                                   // 方波的佔空比用傅立葉係數做成 PeriodicWave
+    if(this.waves[duty])return this.waves[duty];
+    const n=48,re=new Float32Array(n),im=new Float32Array(n);
+    for(let k=1;k<n;k++){re[k]=0;im[k]=2/(k*Math.PI)*Math.sin(k*Math.PI*duty);}
+    return this.waves[duty]=audioCtx.createPeriodicWave(re,im);
+  },
+  out(){ if(!this.master){this.master=audioCtx.createGain();this.master.gain.value=.16;this.master.connect(audioCtx.destination);} return this.master; },
+  /* 一個音：頻率 f（或 [起,終] 做滑音），時長 d，佔空比 duty，音量 v */
+  tone(t,f,d,{duty=.5,v=.5,slide=null,decay=true}={}){
+    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+    o.setPeriodicWave(this.wave(duty));
+    o.frequency.setValueAtTime(f,t);
+    if(slide) o.frequency.exponentialRampToValueAtTime(slide,t+d);
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.004);
+    if(decay) g.gain.exponentialRampToValueAtTime(.001,t+d); else {g.gain.setValueAtTime(v,t+d-.01);g.gain.linearRampToValueAtTime(0,t+d);}
+    o.connect(g).connect(this.out());o.start(t);o.stop(t+d+.02);
+  },
+  noise(t,d,{v=.4,hp=800}={}){
+    if(!this.noiseBuf){const b=audioCtx.createBuffer(1,audioCtx.sampleRate*.5,audioCtx.sampleRate),c=b.getChannelData(0);
+      let lfsr=0x7fff;for(let i=0;i<c.length;i++){const bit=(lfsr^(lfsr>>1))&1;lfsr=(lfsr>>1)|(bit<<14);c[i]=(lfsr&1)?.8:-.8;} this.noiseBuf=b;}
+    const s=audioCtx.createBufferSource(),f=audioCtx.createBiquadFilter(),g=audioCtx.createGain();
+    s.buffer=this.noiseBuf;s.loop=true;f.type="highpass";f.frequency.value=hp;
+    g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);
+    s.connect(f).connect(g).connect(this.out());s.start(t);s.stop(t+d+.02);
+  },
+  /* 旋律："E5:1 G5:1 -:1 C6:2"（音名:拍數，- 是休止） */
+  seq(t,str,beat,opt){
+    for(const tok of str.trim().split(/\s+/)){
+      const [n,len]=tok.split(":"),d=beat*(+len||1);
+      if(n!=="-") this.tone(t,noteHz(n),d*.95,opt);
+      t+=d;
+    }
+    return t;
+  },
+};
+function noteHz(n){const m=/^([A-G])(#?)(\d)$/.exec(n);const idx={C:-9,D:-7,E:-5,F:-4,G:-2,A:0,B:2}[m[1]]+(m[2]?1:0)+(+m[3]-4)*12;return 440*Math.pow(2,idx/12);}
+
+const SFX={
+  appear:t=>{ GB.seq(t,"B4:1 D5:1 F#5:1 B5:1 D6:1 F#6:2",.05,{duty:.125,v:.45});            // 「！」快速上升琶音
+              GB.seq(t,"B3:3 F#4:3",.05,{duty:.5,v:.3}); },
+  reveal:t=>{ GB.seq(t,"E6:1 G6:1 B6:1 E7:3",.045,{duty:.125,v:.35}); GB.noise(t+.18,.15,{v:.15,hp:5000}); },   // 揭曉：閃亮聲
+  throw:t=>{ GB.tone(t,1400,.28,{duty:.25,v:.4,slide:260}); GB.noise(t,.22,{v:.18,hp:2500}); },              // 咻～
+  hit:t=>{ GB.noise(t,.08,{v:.35,hp:1200}); GB.tone(t,880,.12,{duty:.5,v:.3,slide:440}); },
+  shake:t=>{ GB.noise(t,.05,{v:.3,hp:600}); GB.tone(t,180,.06,{duty:.5,v:.35}); },                           // 喀噠
+  caught:t=>{ const b=.11;                                                                                    // 原創小勝利曲
+              const e=GB.seq(t,"C5:1 E5:1 G5:1 C6:2 G5:1 C6:4",b,{duty:.25,v:.42,decay:false});
+              GB.seq(t,"E4:1 G4:1 C5:1 E5:2 E5:1 E5:4",b,{duty:.5,v:.22,decay:false});
+              GB.noise(t,.06,{v:.25,hp:3000}); GB.noise(t+3*b,.06,{v:.25,hp:3000}); },
+  escape:t=>{ GB.noise(t,.12,{v:.4,hp:400}); GB.seq(t+.05,"G5:1 D5:1 G4:2",.06,{duty:.5,v:.35}); },            // 跳出來：啵
+  flee:t=>{ GB.seq(t,"A5:1 F5:1 D5:1 A4:1 F4:2",.05,{duty:.25,v:.35}); },                                      // 玩家逃跑：快速下降
+  tap:t=>{ GB.tone(t,1320,.03,{duty:.5,v:.2}); },
+  radar:(t,w=0)=>{ GB.tone(t,500+900*w,.05+.03*w,{duty:.125,v:.25+.2*w}); },                                  // 探索雷達：越近越高
+  found:t=>{ const e=GB.seq(t,"C6:1 -:1 C6:1 -:1 C6:1 -:1",.07,{duty:.25,v:.45});                              // 噔噔噔
+             GB.seq(e,"G5:1 C6:1 E6:1 G6:4",.06,{duty:.125,v:.4}); GB.seq(e,"C4:7",.06,{duty:.5,v:.25}); },
+};
+function sfx(name,arg){
+  if(muted||!audioCtx||audioCtx.state!=="running")return;
+  try{ SFX[name]?.(audioCtx.currentTime+.01,arg); }catch(e){}
+}
+function setMuted(m){
+  muted=m;try{localStorage.setItem(MUTE_KEY,m?"1":"0");}catch(e){}
+  $("muteBtn").setAttribute("aria-pressed",m);$("muteBtn").setAttribute("aria-label",m?"開啟音效":"關閉音效");
+  $("muteIcon").setAttribute("d",m?"M3 9v6h4l5 5V4L7 9H3zm13.6 3 2.7-2.7-1.4-1.4L15.2 10.6 12.5 7.9l-1.4 1.4 2.7 2.7-2.7 2.7 1.4 1.4 2.7-2.7 2.7 2.7 1.4-1.4z"
+                                  :"M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z");
+}
+$("muteBtn").onclick=()=>{unlockAudio();setMuted(!muted);if(!muted)setTimeout(()=>sfx("tap"),30);};
+setMuted(muted);
 
 /* ---------- 開始 ---------- */
 // LINE 等 App 內建瀏覽器常擋相機：LINE 支援 openExternalBrowser=1 直接改用手機預設瀏覽器
