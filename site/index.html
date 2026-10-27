@@ -135,7 +135,7 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 .info{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .info .name{font-family:var(--display);font-weight:900;font-size:1.5rem;line-height:1.1;margin:0}
 .type-pill{background:var(--type);color:#fff;padding:2px 10px;border-radius:999px;font-weight:700;font-size:.82rem}
-.stars{color:#E8A100;letter-spacing:1px}
+.stars{color:#E8A100;letter-spacing:0;font-size:.92rem;white-space:nowrap}
 .orbs{margin-left:auto;display:flex;gap:6px}
 .orbs b{width:14px;height:14px;border-radius:50%;background:var(--sun);border:2px solid var(--ink)}
 .orbs b.used{background:transparent;opacity:.3}
@@ -348,7 +348,7 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 <canvas id="cv" width="48" height="48" hidden></canvas>
 
 <script>
-const BUILD="2026.10.27-1843";
+const BUILD="2026.10.27-2006";
 /* =========================================================
    顏色寶可夢探險
    資料都在 data/：config.json 列出要載入的資料包（packs），
@@ -398,19 +398,14 @@ function fnv1a(str){let h=0x811c9dc5;for(const ch of str){h^=ch.codePointAt(0);h
 function rng(seed){let a=seed;return()=>{a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
 function today(){const d=new Date();return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;}
 
-/* ---------- 照片 → 主要色盤（中心加權 + Lab 空間 k-means） ---------- */
-function palette(src,w,h){
-  const N=48,cv=document.getElementById("cv"),ctx=cv.getContext("2d",{willReadFrequently:true});
-  const s=Math.min(w,h); ctx.drawImage(src,(w-s)/2,(h-s)/2,s,s,0,0,N,N);
-  const px=ctx.getImageData(0,0,N,N).data, P=[];
-  for(let i=0;i<N*N;i++){
-    const x=i%N,y=(i/N)|0,dist=Math.hypot(x-(N-1)/2,y-(N-1)/2)/(N*0.7);
-    const r=px[i*4],g=px[i*4+1],b=px[i*4+2];
-    P.push({lab:rgbLab(r,g,b),rgb:[r,g,b],w:1+2*Math.max(0,1-dist)});
-  }
-  const K=5,W=P.reduce((a,p)=>a+p.w,0);
+/* ---------- 照片 → 主要色盤 ----------
+   先用畫面四周估算背景色，和背景差很多的像素當「主體」（木頭地板上的紅色玩具），
+   主體的顏色排在前面、比重較高；畫面裡只有背景時照舊統計整張畫面 */
+function kmeansLab(P,K){
+  const W=P.reduce((a,p)=>a+p.w,0);
+  if(!P.length) return [];
   let C=[[0,1,2].map(k=>P.reduce((a,p)=>a+p.lab[k]*p.w,0)/W)];
-  while(C.length<K){let best=null,bd=-1;for(const p of P){const d=Math.min(...C.map(c=>dE(c,p.lab)))*p.w;if(d>bd){bd=d;best=p;}}C.push(best.lab.slice());}
+  while(C.length<K){let best=null,bd=-1;for(const p of P){const d=Math.min(...C.map(c=>dE(c,p.lab)))*p.w;if(d>bd){bd=d;best=p;}}if(!best||bd<=0)break;C.push(best.lab.slice());}
   let groups;
   for(let it=0;it<10;it++){
     groups=C.map(()=>({w:0,lab:[0,0,0],rgb:[0,0,0]}));
@@ -422,10 +417,37 @@ function palette(src,w,h){
   groups.sort((a,b)=>b.w-a.w);
   const out=[];
   for(const g of groups){const m=out.find(o=>dE(o.lab,g.lab)<10); if(m){m.w+=g.w;} else out.push(g);}
-  return out.map(g=>({lab:g.lab,rgb:g.rgb,share:g.w/W,word:colorWord(g.rgb)})).filter((g,i)=>i===0||g.share>=0.04);
+  return out.map(g=>({lab:g.lab,rgb:g.rgb,share:g.w/W,word:colorWord(g.rgb)}));
+}
+function palette(src,w,h){
+  const N=48,cv=document.getElementById("cv"),ctx=cv.getContext("2d",{willReadFrequently:true});
+  const s=Math.min(w,h); ctx.drawImage(src,(w-s)/2,(h-s)/2,s,s,0,0,N,N);
+  const px=ctx.getImageData(0,0,N,N).data, P=[], border=[];
+  const edge=Math.round(N*0.12);
+  for(let i=0;i<N*N;i++){
+    const x=i%N,y=(i/N)|0,dist=Math.hypot(x-(N-1)/2,y-(N-1)/2)/(N*0.7);
+    const r=px[i*4],g=px[i*4+1],b=px[i*4+2];
+    const p={lab:rgbLab(r,g,b),rgb:[r,g,b],w:1+2*Math.max(0,1-dist),x,y};   // 中間的東西比較重要
+    P.push(p);
+    if(x<edge||x>=N-edge||y<edge||y>=N-edge) border.push({...p,w:1});
+  }
+  const sc=CFG?.subject||{};
+  const full=kmeansLab(P,5).filter((g,i)=>i===0||g.share>=0.04);
+  if(sc.enabled===false) return full;
+  // 背景色：畫面四周最多的幾種顏色
+  const bg=kmeansLab(border,5).filter(g=>g.share>=(sc.bgMinShare??0.03));   // 邊緣出現一點點（電線、桌腳）也算背景
+  const thr=sc.threshold??22;
+  for(const p of P) p.s=Math.min(...bg.map(c=>dE(c.lab,p.lab)))>thr;
+  const subj=P.filter(p=>p.s);
+  const W=P.reduce((a,p)=>a+p.w,0),sw=subj.reduce((a,p)=>a+p.w,0),frac=sw/W;
+  if(frac<(sc.minFraction??0.015)||frac>(sc.maxFraction??0.7)) return full;   // 沒有明顯主體，或整個畫面都是主體
+  const weight=sc.weight??0.75;
+  const sp=kmeansLab(subj,3).filter((g,i)=>i===0||g.share>=0.08).map(g=>({...g,share:g.share*weight,subject:true}));
+  const rest=P.filter(p=>!p.s);
+  const bp=kmeansLab(rest,3).filter((g,i)=>i===0||g.share>=0.08).map(g=>({...g,share:g.share*(1-weight)}));
+  return [...sp,...bp];
 }
 
-/* ---------- 色盤 → 寶可夢 ---------- */
 /* 雙向比對：照片的顏色要在牠身上找得到，牠的顏色也要在照片裡找得到（主色最重要） */
 function scoreMon(pal,mon){
   const top=pal.slice(0,3),tot=top.reduce((a,c)=>a+c.share,0);
@@ -456,9 +478,11 @@ function pickFrom(scored,pal,r){
     cands=[...cands,...extra];
   }
   const p0=pal[0].lab, vivid=Math.min(1,Math.hypot(p0[1],p0[2])/70);
-  const rar={1:1,2:0.45,3:0.12+0.25*vivid};
+  // 出現機率依星數（config.rarityWeight）；鮮豔的照片稍微容易出現高星
+  const rw=CFG.rarityWeight||{1:1,2:0.6,3:0.35,4:0.14,5:0.02};
+  const rar=k=>(rw[k]??1)*(k>=3?1+vivid*0.8:1);
   const temp=CFG.randomness??6, caughtW=CFG.caughtWeight??0.3;
-  const ws=cands.map(c=>Math.exp(-(c.d-dmin)/temp)*(rar[c.m.rarity]??1)*(dex[c.m.id]?caughtW:1));
+  const ws=cands.map(c=>Math.exp(-(c.d-dmin)/temp)*rar(c.m.rarity)*(dex[c.m.id]?caughtW:1));
   let acc=0,tot=ws.reduce((a,b)=>a+b,0);
   for(let i=0;i<cands.length;i++){acc+=ws[i]/tot;if(r<acc)return cands[i];}
   return cands[0];
@@ -607,9 +631,11 @@ function startScan(src){
     go("scan");
     await wait(450);
     [...$("palette").children].forEach((el,i)=>el.style.flex=pal[i].share);
-    $("palLegend").innerHTML=pal.map(c=>`<span style="--c:${css(c.rgb)}">${c.word} ${Math.round(c.share*100)}%</span>`).join("");
+    $("palLegend").innerHTML=pal.map(c=>`<span style="--c:${css(c.rgb)}">${c.subject?"主體 ":""}${c.word} ${Math.round(c.share*100)}%</span>`).join("");
     const words=pal.slice(0,2).map(c=>c.word).filter((w,i,a)=>a.indexOf(w)===i);
-    await wait(600); $("scanText").textContent=picked.night?"好暗喔…什麼都看不清楚":`看到${words.join(" + ")}！`;
+    const subj=pal.filter(c=>c.subject),bgc=pal.find(c=>!c.subject);
+    const seen=subj.length?`看到${subj[0].word}的東西！${bgc?`（背景是${bgc.word}）`:""}`:`看到${words.join(" + ")}！`;
+    await wait(600); $("scanText").textContent=picked.night?"好暗喔…什麼都看不清楚":seen;
     await wait(900); $("scanText").textContent=picked.night?"黑暗中有東西在動！":"草叢裡有東西在動…";
     await Promise.race([preload,wait(800)]);
     scanning=false;
@@ -639,7 +665,7 @@ async function startEncounter(pal,picked){
   revealed=!silhouetteOn()||!!dex[mon.id];                 // 沒抓過的寶可夢先用剪影
   $("mon").classList.toggle("silhouette",!revealed);
   showMonInfo(mon,revealed);
-  $("monStars").textContent="★".repeat(mon.rarity)+"☆".repeat(3-mon.rarity);
+  $("monStars").textContent=starText(mon.rarity);
   $("whyPhoto").innerHTML=pal.slice(0,3).map(c=>`<i style="background:${css(c.rgb)}"></i>`).join("");
   $("sim").textContent=`相似 ${sim}%`;
   $("throwArea").hidden=false;$("fledBtn").hidden=true;$("throwBtn").disabled=true;$("runBtn").disabled=false;
@@ -652,9 +678,11 @@ async function startEncounter(pal,picked){
   await anim(m,[{transform:"translate(-50%,-10%) scale(.6)",opacity:0},{transform:"translate(-50%,-62%) scale(1.05)",opacity:1,offset:.6},{transform:"translate(-50%,-50%) scale(1)",opacity:1}],{duration:550,easing:"ease-out"});
   shakeScene(5,300);
   bubble(revealed?`野生的${mon.name}出現了！`:"野生的寶可夢出現了！是誰呢？");sfx("appear");
+  if(mon.rarity>=4){ stars(pts().mon,mon.rarity===5?18:12); setTimeout(()=>{if(current===mon&&!busy)bubble(mon.rarity===5?"閃閃發光…是傳說中的寶可夢！":"好稀有的寶可夢！");sfx("reveal");},1200); }
   Hardware.notifyEncounter(mon);
   $("throwBtn").disabled=false;
 }
+const starText=r=>"★".repeat(r)+"☆".repeat(5-r);
 /* ---------- 剪影：沒抓過的寶可夢先藏起來，抓到或跳出來時揭曉 ---------- */
 let revealed=true;
 const SIL_KEY="colormon-silhouette";
@@ -813,7 +841,7 @@ function showResult(mon){
   setMonVisual(mon,{imgEl:$("burst").querySelector("img"),fbEl:$("burst").querySelector(".fb"),glyphEl:$("burst").querySelector("path")});
   $("resName").textContent=mon.name;
   $("resType").textContent=T.name;
-  $("resStars").textContent="★".repeat(mon.rarity)+"☆".repeat(3-mon.rarity);
+  $("resStars").textContent=starText(mon.rarity);
   const n=dex[mon.id]?.n||1;
   $("resSub").textContent=`#${String(mon.id).padStart(3,"0")}　${n>1?`第 ${n} 次抓到`:"新登錄到圖鑑！"}`;
   go("result",true);

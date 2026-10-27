@@ -130,18 +130,28 @@ def colors_of(path):
     return [hexc(vivid(main[2])), hexc(vivid(accent[2]))]
 
 
-def rarity(sp, is_final):
-    """1 常見、2 少見、3 稀有：傳說／幻之、捕獲率很低的最終形態算稀有"""
+def rarity(sp, is_final, bst):
+    """1～5 星：
+       5 傳說／幻之
+       4 準傳說等級（種族值 570 以上的非傳說：快龍、班基拉斯、究極異獸、悖謬寶可夢…）
+       3 最終形態、或不會進化但很難抓的（卡比獸、拉普拉斯）
+       2 中間形態、御三家這類難抓的基礎形態、不會進化的一般寶可夢
+       1 常見的基礎形態、寶寶寶可夢"""
     cap = int(sp["capture_rate"])
+    evolved = bool(sp["evolves_from_species_id"])
     if sp["is_legendary"] == "1" or sp["is_mythical"] == "1":
-        return 3
+        return 5
+    if bst >= 570:
+        return 4
     if sp["is_baby"] == "1":
         return 1
-    if is_final and cap <= 45:                       # 噴火龍、暴鯉龍、快龍、卡比獸……
+    if is_final and evolved:
         return 3
-    if sp["evolves_from_species_id"] or cap <= 100:  # 進化過的、或本來就不好抓的（御三家）
+    if is_final and not evolved:                    # 不會進化的
+        return 3 if cap <= 60 else 2
+    if evolved:                                     # 中間形態
         return 2
-    return 1
+    return 2 if cap <= 45 else 1                    # 基礎形態（御三家、迷你龍捕獲率低）
 
 
 def main():
@@ -155,6 +165,10 @@ def main():
             types.setdefault(pid, {})[int(r["slot"])] = TYPE_IDS.get(int(r["type_id"]))
     ids = sorted(i for i, s in species.items() if int(s["generation_id"]) in gens)
     has_child = {int(s["evolves_from_species_id"]) for s in species.values() if s["evolves_from_species_id"]}
+    bst = {}
+    for r in table("pokemon_stats"):
+        pid = int(r["pokemon_id"])
+        if pid < 10000: bst[pid] = bst.get(pid, 0) + int(r["base_stat"])
     with ThreadPoolExecutor(8) as ex:
         list(ex.map(lambda i: fetch(ART_URL.format(i), os.path.join(CACHE, "art", f"{i}.png")), ids))
     with ThreadPoolExecutor(os.cpu_count() or 4) as ex:
@@ -168,14 +182,14 @@ def main():
                 continue
             t = types[i]
             typ = "flying" if t.get(1) == "normal" and t.get(2) == "flying" else t[1]   # 一般＋飛行的鳥歸到飛行
-            mons.append({"id": i, "name": names[i], "type": typ, "rarity": rarity(sp, i not in has_child), "colors": cols[i]})
+            mons.append({"id": i, "name": names[i], "type": typ, "rarity": rarity(sp, i not in has_child, bst.get(i, 0)), "colors": cols[i]})
         path = os.path.join(OUT, f"gen{gen}.json")
         with open(path, "w", encoding="utf-8") as f:
             f.write('{\n  "name": "%s",\n  "pokemon": [\n' % GEN_NAMES.get(gen, f"第{gen}代"))
             f.write(",\n".join("    " + json.dumps(m, ensure_ascii=False, separators=(",", ":")) for m in mons))
             f.write("\n  ]\n}\n")
         r = [m["rarity"] for m in mons]
-        print(f"{path}: {len(mons)} 隻（常見 {r.count(1)}、少見 {r.count(2)}、稀有 {r.count(3)}）")
+        print(f"{path}: {len(mons)} 隻（" + "、".join(f"{k}星 {r.count(k)}" for k in range(1, 6)) + "）")
 
 
 if __name__ == "__main__":

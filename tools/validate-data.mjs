@@ -27,7 +27,7 @@ for (const packPath of cfg.packs) {
     if (!Number.isInteger(m.id) || m.id < 1) errors.push(`${tag}：id 必須是正整數`);
     if (!m.name) errors.push(`${tag}：缺少 name`);
     if (!types[m.type]) errors.push(`${tag}：type「${m.type}」不在 types.json 裡`);
-    if (![1, 2, 3].includes(m.rarity)) errors.push(`${tag}：rarity 必須是 1、2 或 3`);
+    if (![1, 2, 3, 4, 5].includes(m.rarity)) errors.push(`${tag}：rarity 必須是 1～5`);
     if (!Array.isArray(m.colors) || !m.colors.length || !m.colors.every(c => HEX.test(c)))
       errors.push(`${tag}：colors 必須是 #RRGGBB 陣列（第一個是主色）`);
 
