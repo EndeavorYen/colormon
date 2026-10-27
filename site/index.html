@@ -91,7 +91,7 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 .ball.locked img{filter:brightness(.75)}
 .ball.locked .cap::after{background:var(--ink)}
 .ball-shadow{position:absolute;left:0;top:0;width:44px;height:12px;margin:-6px 0 0 -22px;border-radius:50%;background:rgba(0,0,0,.25);z-index:2;opacity:0}
-.hand{position:absolute;left:50%;bottom:10px;width:64px;height:64px;margin-left:-32px;z-index:3;animation:bob 1.6s ease-in-out infinite}
+.hand{position:absolute;left:50%;top:auto;bottom:10px;margin-top:0;width:64px;height:64px;margin-left:-32px;z-index:3;animation:bob 1.6s ease-in-out infinite}
 @keyframes bob{50%{transform:translateY(-6px)}}
 .flash{position:absolute;left:0;top:0;width:160px;height:160px;margin:-80px 0 0 -80px;border-radius:50%;background:radial-gradient(circle,#fff 0,#fff 30%,transparent 70%);opacity:0;pointer-events:none;z-index:4}
 .fx i{position:absolute;left:0;top:0;width:14px;height:14px;margin:-7px 0 0 -7px;background:var(--sun);clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);z-index:5}
@@ -122,6 +122,18 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 .hw .dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
 .hw.on .dot{background:var(--good)}
 .throw:disabled{opacity:.45;cursor:default}
+
+/* real-ball mode: live camera behind the scene */
+.ar-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
+.scene.ar .scene-bg,.scene.ar .ground{display:none}
+.scene.ar .mon{top:36%}
+.ar-chip{position:absolute;left:10px;bottom:10px;z-index:6;background:rgba(0,0,0,.6);color:#fff;border-radius:999px;padding:4px 12px;font-size:.8rem;font-weight:700;max-width:calc(100% - 70px)}
+.ball-mark{position:absolute;left:0;top:0;width:40px;height:40px;margin:-20px 0 0 -20px;border:3px solid #4CC27E;border-radius:50%;z-index:5;pointer-events:none;transition:transform .06s linear}
+.calib{position:absolute;inset:0;z-index:7;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(0,0,0,.35);color:#fff;text-align:center;padding:16px}
+.calib .ring{width:38%;aspect-ratio:1;border:4px dashed #fff;border-radius:50%}
+.calib p{margin:0;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,.6)}
+.mode-btn{font-size:.92rem;padding:10px}
+.mode-btn[aria-pressed="true"]{border-color:var(--good);color:var(--good)}
 
 /* result screen */
 .result{align-items:center;text-align:center;justify-content:center}
@@ -201,6 +213,7 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
   <!-- 3 遭遇 -->
   <section class="screen" id="s-encounter" hidden>
     <div class="scene" id="scene">
+      <video class="ar-video" id="arVideo" playsinline muted autoplay hidden></video>
       <div class="scene-bg" id="sceneBg"></div>
       <div class="ground"></div>
       <div class="mon" id="mon"><img id="art" alt="" hidden><div class="fb" id="monFb"><svg viewBox="0 0 24 24"><path id="glyph" d=""/></svg></div></div>
@@ -211,6 +224,13 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
       <div class="fx" id="fx"></div>
       <div class="bubble" id="bubble"></div>
       <div class="shake-dots" id="shakeDots" hidden><i></i><i></i><i></i></div>
+      <div class="ball-mark" id="ballMark" hidden></div>
+      <div class="ar-chip" id="arChip" hidden></div>
+      <div class="calib" id="calib" hidden>
+        <div class="ring"></div>
+        <p>把球放進圓圈裡，讓鏡頭記住它的顏色</p>
+        <button class="btn sun" id="calibBtn">記住這顆球</button>
+      </div>
     </div>
     <div class="info">
       <h2 class="name" id="monName"></h2>
@@ -220,7 +240,8 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
     <div class="why">照片 <span class="dots" id="whyPhoto"></span> 牠的顏色 <span class="dots" id="whyMon"></span> <span id="sim"></span></div>
     <div id="throwArea" style="display:flex;flex-direction:column;gap:10px">
       <button class="btn sun throw" id="throwBtn">丟出寶貝球！</button>
-      <div class="hw" id="hw"><span class="dot"></span><span id="hwText">模擬模式：按上面的按鈕代替真的丟球</span></div>
+      <button class="btn ghost mode-btn" id="motionBtn" aria-pressed="false">真球模式：把球丟進鏡頭畫面</button>
+      <div class="hw" id="hw"><span class="dot"></span><span id="hwText">按「丟出寶貝球！」，或打開真球模式</span><button class="chip" id="recalBtn" hidden>重新記住球</button></div>
     </div>
     <button class="btn primary" id="fledBtn" hidden>繼續拍照</button>
   </section>
@@ -386,6 +407,7 @@ function show(name){
   $("backBtn").hidden=name==="camera";
   $("dexBtn").hidden=name==="dex";
   if(name==="camera") resumeCamera(); else pauseCamera();
+  if(name==="encounter"&&AR.on) startAR(); else if(name!=="encounter") stopAR();
   if(name==="dex") renderDex();
   scrollTo(0,0);
 }
@@ -493,7 +515,7 @@ async function startEncounter(pal,picked){
   // 從草叢跳出來
   await anim(m,[{transform:"translate(-50%,-10%) scale(.6)",opacity:0},{transform:"translate(-50%,-62%) scale(1.05)",opacity:1,offset:.6},{transform:"translate(-50%,-50%) scale(1)",opacity:1}],{duration:550,easing:"ease-out"});
   shakeScene(5,300);
-  bubble(`野生的${mon.name}出現了！`);
+  bubble(`野生的${mon.name}出現了！`);sfx("appear");
   Hardware.notifyEncounter(mon);
   $("throwBtn").disabled=false;
 }
@@ -552,7 +574,7 @@ async function throwBall(){
   await anim(monEl,[{transform:"translate(-50%,-50%) scale(1)",filter:"brightness(1)",opacity:1},{transform:"translate(-50%,-50%) scale(1.05)",filter:"brightness(5)",opacity:1,offset:.35},{transform:`translate(-50%,calc(-50% - 40px)) scale(0)`,filter:"brightness(5)",opacity:0}],{duration:520,easing:"ease-in"});
   anim(ball,[{transform:at(up,"rotate(-25deg)")},{transform:at(up,"rotate(15deg)")},{transform:at(up,"rotate(0)")}],{duration:300});
   // 3. 等寶貝球回報落地（模擬模式會自動送出；最多等 4 秒）
-  await Promise.race([landed,wait(4000)]);landedResolve=null;
+  await Promise.race([landed,wait(CFG.ball?.landTimeoutMs||5000)]);landedResolve=null;
   await anim(ball,[{transform:at(up)},{transform:at(P.ground,"scale(1.1,.9)"),offset:.5,easing:"ease-out"},{transform:at({x:P.ground.x,y:P.ground.y-30},"scale(1)"),offset:.72,easing:"ease-in"},{transform:at(P.ground,"scale(1.08,.92)"),offset:.9},{transform:at(P.ground)}],{duration:700,easing:"ease-in"});
   anim(sh,[{transform:at({x:P.ground.x,y:P.ground.y+24}),opacity:0},{transform:at({x:P.ground.x,y:P.ground.y+24}),opacity:1}],{duration:200});
   shakeScene(5,260);
@@ -563,14 +585,14 @@ async function throwBall(){
   for(let i=0;i<shakes;i++){
     const deg=30-i*4;
     await anim(ball,[{transform:at(P.ground,"rotate(0)")},{transform:at({x:P.ground.x-5,y:P.ground.y},`rotate(${-deg}deg)`)},{transform:at({x:P.ground.x+4,y:P.ground.y},`rotate(${deg*0.75}deg)`)},{transform:at({x:P.ground.x-2,y:P.ground.y},`rotate(${-deg*0.3}deg)`)},{transform:at(P.ground,"rotate(0)")}],{duration:620,easing:"ease-in-out"});
-    shakeScene(2.5,200);
+    shakeScene(2.5,200);sfx("shake");
     dots[i].classList.add("on");
     await wait(i===shakes-1&&caught?700:450);
   }
   if(caught){
     // 5a. 喀擦！抓到了
     ball.classList.add("locked");
-    shakeScene(8,420);stars(P.ground,14);bubble(`喀擦！抓到${mon.name}了！`);
+    shakeScene(8,420);stars(P.ground,14);sfx("caught");bubble(`喀擦！抓到${mon.name}了！`);
     try{navigator.vibrate&&navigator.vibrate(200);}catch(e){}
     saveDex(mon);lastCaught=mon;current=null;
     await wait(1500);
@@ -581,7 +603,7 @@ async function throwBall(){
     await anim(ball,[{transform:at(P.ground,"rotate(0) scale(1)")},{transform:at(P.ground,"rotate(-8deg) scale(1.15,.85)"),offset:.4},{transform:at(P.ground,"rotate(0) scale(1.6)"),opacity:0}],{duration:320});
     ball.hidden=true;ball.getAnimations().forEach(a=>a.cancel());
     anim(sh,[{opacity:1},{opacity:0}],{duration:150});
-    flash(P.ground);shakeScene(9,380);
+    flash(P.ground);shakeScene(9,380);sfx("escape");
     const dy=P.ground.y-P.mon.y;
     await anim(monEl,[{transform:`translate(-50%,calc(-50% + ${dy}px)) scale(0)`,filter:"brightness(5)",opacity:0},{transform:"translate(-50%,-62%) scale(1.12)",filter:"brightness(2)",opacity:1,offset:.65},{transform:"translate(-50%,-50%) scale(1)",filter:"brightness(1)",opacity:1}],{duration:520,easing:"ease-out"});
     $("shakeDots").hidden=true;
@@ -594,7 +616,7 @@ async function throwBall(){
       bubble(`${mon.name}看起來想逃走…`);
       await wait(900);
       await anim(monEl,[{transform:"translate(-50%,-50%)",opacity:1},{transform:"translate(-50%,-65%)",opacity:1,offset:.25},{transform:"translate(-50%,-50%)",opacity:1,offset:.45},{transform:"translate(-50%,-160%) scale(.6)",opacity:0}],{duration:900,easing:"ease-in"});
-      bubble(`${mon.name}逃走了…`);
+      bubble(`${mon.name}逃走了…`);sfx("flee");
       current=null;fled=true;
       $("throwArea").hidden=true;$("fledBtn").hidden=false;
     }
@@ -605,7 +627,7 @@ async function throwBall(){
 /* 模擬模式：按一下＝丟出，0.7 秒後自動回報落地 */
 $("throwBtn").addEventListener("click",()=>{
   if($("throwBtn").disabled)return;
-  window.onBallThrown();
+  sfx("throw");window.onBallThrown();
   if(!Hardware.connected) setTimeout(()=>window.onBallLanded(),T_(700));
 });
 
@@ -663,6 +685,156 @@ function sample(kind){
 
 let toastT;function toast(t){const el=$("toast");el.textContent=t;el.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove("show"),2400);}
 
+/* =========================================================
+   真球模式：後鏡頭拍地板，追蹤「記住顏色的球」
+   球飛進畫面（消失一陣子後出現且在移動）→ onBallThrown
+   球停下來，或飛出畫面一陣子                → onBallLanded
+   ========================================================= */
+class BallTracker{
+  constructor(o={}){
+    this.o={tolerance:22,minPixels:6,absentMs:400,appearWindowMs:450,moveSpeed:0.5,stillSpeed:0.12,stillMs:450,lostMs:1500,maxFlightMs:5000,...o};
+    this.color=null;this.reset();
+  }
+  reset(){this.state="idle";this.last=null;this.lastSeenT=-1e9;this.appearT=null;this.stillSince=null;this.lostSince=null;this.flyStart=0;}
+  /* labs：W×H 個 [L,a,b]；回傳 {blob, event} ，blob 的 x,y 是 0~1 */
+  update(t,labs,W,H){
+    const o=this.o; let blob=null, event=null;
+    if(this.color){
+      const mask=new Uint8Array(W*H);
+      for(let i=0;i<W*H;i++) if(dE(labs[i],this.color)<o.tolerance) mask[i]=1;
+      blob=largestBlob(mask,W,H);
+      if(blob&&blob.n<o.minPixels) blob=null;
+    }
+    const speed=(blob&&this.last)?Math.hypot(blob.x-this.last.x,blob.y-this.last.y)/Math.max(0.016,(t-this.last.t)/1000):0;
+    if(this.state==="idle"){
+      if(blob){
+        if(t-this.lastSeenT>=o.absentMs) this.appearT=t;            // 消失一陣子後又出現
+        if(this.appearT!==null&&t-this.appearT<=o.appearWindowMs&&speed>o.moveSpeed){
+          this.state="flying";this.flyStart=t;this.stillSince=null;this.lostSince=null;this.appearT=null;event="thrown";
+        }
+      }
+    }else{
+      if(blob){
+        this.lostSince=null;
+        if(speed<o.stillSpeed){ this.stillSince??=t; if(t-this.stillSince>=o.stillMs) event="landed"; }
+        else this.stillSince=null;
+      }else{
+        this.lostSince??=t; if(t-this.lostSince>=o.lostMs) event="landed";
+      }
+      if(t-this.flyStart>o.maxFlightMs) event="landed";
+      if(event==="landed"){this.state="idle";this.appearT=null;}
+    }
+    if(blob){this.lastSeenT=t;this.last={x:blob.x,y:blob.y,t};} else this.last=null;
+    return {blob,event,speed};
+  }
+}
+function largestBlob(mask,W,H){
+  const seen=new Uint8Array(W*H),stack=[];let best=null;
+  for(let i=0;i<W*H;i++){
+    if(!mask[i]||seen[i])continue;
+    let n=0,sx=0,sy=0;stack.push(i);seen[i]=1;
+    while(stack.length){
+      const k=stack.pop(),x=k%W,y=(k/W)|0;n++;sx+=x;sy+=y;
+      for(const nb of [x>0?k-1:-1,x<W-1?k+1:-1,y>0?k-W:-1,y<H-1?k+W:-1]) if(nb>=0&&mask[nb]&&!seen[nb]){seen[nb]=1;stack.push(nb);}
+    }
+    if(!best||n>best.n) best={n,x:(sx/n+.5)/W,y:(sy/n+.5)/H,r:Math.sqrt(n/Math.PI)/W};
+  }
+  return best;
+}
+
+const AR={on:false,stream:null,raf:0,lastT:0,tracker:null,throwActive:false,W:96,H:72,cv:null};
+const BALL_COLOR_KEY="colormon-ball-color", BALL_MODE_KEY="colormon-ball-mode";
+function arConfig(){return CFG?.ball||{};}
+function arArmed(){return screen==="encounter"&&current&&!busy&&ballsLeft>0&&!$("throwBtn").disabled;}
+async function startAR(){
+  if(AR.stream) return;
+  if(!navigator.mediaDevices?.getUserMedia||!isSecureContext){toast("這裡不能開相機（需要 https）");setBallMode(false);return;}
+  try{
+    AR.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment",width:{ideal:640}},audio:false});
+  }catch(e){toast("相機打不開，請確認有給相機權限");setBallMode(false);return;}
+  const v=$("arVideo");v.srcObject=AR.stream;v.hidden=false;try{await v.play();}catch(e){}
+  $("scene").classList.add("ar");$("arChip").hidden=false;
+  AR.tracker??=new BallTracker(arConfig());
+  try{const c=JSON.parse(localStorage.getItem(BALL_COLOR_KEY));if(c)AR.tracker.color=c;}catch(e){}
+  $("calib").hidden=!!AR.tracker.color;
+  AR.cv??=Object.assign(document.createElement("canvas"),{width:AR.W,height:AR.H});
+  cancelAnimationFrame(AR.raf);AR.raf=requestAnimationFrame(arLoop);
+}
+function stopAR(){
+  cancelAnimationFrame(AR.raf);
+  if(AR.stream){AR.stream.getTracks().forEach(t=>t.stop());AR.stream=null;}
+  $("arVideo").hidden=true;$("scene").classList.remove("ar");$("arChip").hidden=true;$("ballMark").hidden=true;$("calib").hidden=true;
+  if(AR.tracker)AR.tracker.reset();AR.throwActive=false;
+}
+function arFrameLabs(){
+  const v=$("arVideo"),W=AR.W,H=AR.H,ctx=AR.cv.getContext("2d",{willReadFrequently:true});
+  ctx.drawImage(v,0,0,W,H);
+  const px=ctx.getImageData(0,0,W,H).data,labs=new Array(W*H);
+  for(let i=0;i<W*H;i++) labs[i]=rgbLab(px[i*4],px[i*4+1],px[i*4+2]);
+  return labs;
+}
+/* 影片座標(0~1) → 場景座標（影片是 object-fit:cover） */
+function videoToScene(nx,ny){
+  const v=$("arVideo"),s=$("scene").getBoundingClientRect(),vw=v.videoWidth,vh=v.videoHeight;
+  const k=Math.max(s.width/vw,s.height/vh),dw=vw*k,dh=vh*k;
+  return {x:nx*dw-(dw-s.width)/2,y:ny*dh-(dh-s.height)/2};
+}
+function arLoop(t){
+  AR.raf=requestAnimationFrame(arLoop);
+  const v=$("arVideo");
+  if(!v.videoWidth||t-AR.lastT<66)return;      // 約 15 FPS
+  AR.lastT=t;
+  const tr=AR.tracker,chip=$("arChip");
+  if(!tr.color){chip.textContent="先讓鏡頭記住球的顏色";return;}
+  const {blob,event}=tr.update(t,arFrameLabs(),AR.W,AR.H);
+  const mark=$("ballMark");
+  if(blob&&arConfig().showMarker!==false){
+    const p=videoToScene(blob.x,blob.y),d=Math.max(28,blob.r*2*$("scene").clientWidth*1.3);
+    mark.hidden=false;mark.style.width=mark.style.height=d+"px";mark.style.margin=`${-d/2}px 0 0 ${-d/2}px`;mark.style.transform=`translate(${p.x}px,${p.y}px)`;
+  }else mark.hidden=true;
+  if(event==="thrown"&&arArmed()){AR.throwActive=true;sfx("throw");window.onBallThrown();}
+  else if(event==="landed"&&AR.throwActive){AR.throwActive=false;window.onBallLanded();}
+  chip.textContent=tr.state==="flying"?"球飛進來了！":arArmed()?(blob?"先把球撿起來，再丟進畫面":"把球丟進畫面裡！"):"等一下…";
+}
+$("calibBtn").onclick=()=>{
+  const v=$("arVideo");if(!v.videoWidth)return;
+  const s=Math.min(v.videoWidth,v.videoHeight)*0.3,c=document.createElement("canvas");c.width=c.height=48;
+  c.getContext("2d").drawImage(v,(v.videoWidth-s)/2,(v.videoHeight-s)/2,s,s,0,0,48,48);
+  const pal=palette(c,48,48),lab=pal[0].lab;
+  AR.tracker.color=lab;AR.tracker.reset();
+  try{localStorage.setItem(BALL_COLOR_KEY,JSON.stringify(lab));}catch(e){}
+  $("calib").hidden=true;
+  const chroma=Math.hypot(lab[1],lab[2]);
+  toast(chroma<18?`記住了（${pal[0].word}）。這顆球顏色比較淡，換顆鮮豔的球會更準`:`記住了！這是一顆${pal[0].word}的球`);
+};
+$("recalBtn").onclick=()=>{ if(AR.tracker){AR.tracker.color=null;} $("calib").hidden=false; };
+function setBallMode(on){
+  AR.on=on;
+  try{localStorage.setItem(BALL_MODE_KEY,on?"1":"0");}catch(e){}
+  $("motionBtn").setAttribute("aria-pressed",on);
+  $("motionBtn").textContent=on?"關閉真球模式":"真球模式：把球丟進鏡頭畫面";
+  $("recalBtn").hidden=!on;
+  $("hwText").textContent=on?"手機立起來、後鏡頭對著地板，把球丟進畫面":"按「丟出寶貝球！」，或打開真球模式";
+  if(on&&screen==="encounter") startAR(); else stopAR();
+}
+$("motionBtn").onclick=()=>setBallMode(!AR.on);
+try{AR.on=localStorage.getItem(BALL_MODE_KEY)==="1";}catch(e){}
+
+/* ---------- 音效（手機立在支架上感覺不到震動） ---------- */
+let audioCtx=null;
+addEventListener("pointerdown",()=>{try{audioCtx??=new (window.AudioContext||window.webkitAudioContext)();audioCtx.resume();}catch(e){}},{passive:true});
+function sfx(name){
+  if(!audioCtx)return;
+  const seq={appear:[[660,.09],[880,.09],[990,.16]],throw:[[700,.05],[500,.05],[350,.08]],shake:[[300,.05]],caught:[[523,.1],[659,.1],[784,.1],[1046,.25]],escape:[[440,.1],[300,.18]],flee:[[400,.12],[300,.12],[200,.25]]}[name];
+  if(!seq)return;
+  let t=audioCtx.currentTime;
+  for(const [f,d] of seq){
+    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+    o.type="square";o.frequency.value=f;g.gain.setValueAtTime(.06,t);g.gain.exponentialRampToValueAtTime(.001,t+d);
+    o.connect(g).connect(audioCtx.destination);o.start(t);o.stop(t+d);t+=d;
+  }
+}
+
 /* ---------- 開始 ---------- */
 // LINE 等 App 內建瀏覽器常擋相機：LINE 支援 openExternalBrowser=1 直接改用手機預設瀏覽器
 (function(){
@@ -677,7 +849,7 @@ let toastT;function toast(t){const el=$("toast");el.textContent=t;el.classList.a
 })();
 history.replaceState(null,"","#camera");
 show("camera");
-loadData().then(()=>{updateCount();setupBallArt();}).catch(err=>{
+loadData().then(()=>{updateCount();setupBallArt();if(AR.tracker)Object.assign(AR.tracker.o,arConfig());setBallMode(AR.on);}).catch(err=>{
   console.error(err);
   $("camMsg").textContent="寶可夢資料載入失敗。請用網址（例如 GitHub Pages）開啟，而不是直接打開檔案。";
 });

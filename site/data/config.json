@@ -13,5 +13,16 @@
   "sameResultPerDay": false,
   "artUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/{id}.png",
   "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{id}.png",
-  "ballUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png"
+  "ballUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png",
+  "ball": {
+    "tolerance": 22,
+    "minPixels": 6,
+    "absentMs": 400,
+    "moveSpeed": 0.5,
+    "stillSpeed": 0.12,
+    "stillMs": 450,
+    "lostMs": 1500,
+    "landTimeoutMs": 5000,
+    "showMarker": true
+  }
 }
