@@ -339,26 +339,31 @@ function palette(src,w,h){
 }
 
 /* ---------- 色盤 → 寶可夢 ---------- */
+/* 雙向比對：照片的顏色要在牠身上找得到，牠的顏色也要在照片裡找得到（主色最重要） */
 function scoreMon(pal,mon){
   const top=pal.slice(0,3),tot=top.reduce((a,c)=>a+c.share,0);
-  let d=0;
-  for(const c of top){ d+=(c.share/tot)*Math.min(...mon.labs.map((l,j)=>dE(c.lab,l)+j*5)); }
-  return d+0.35*dE(pal[0].lab,mon.labs[0]);
+  let photoToMon=0;
+  for(const c of top) photoToMon+=(c.share/tot)*Math.min(...mon.labs.map(l=>dE(c.lab,l)));
+  const mw=mon.labs.map((_,j)=>j===0?0.7:0.3/(mon.labs.length-1||1));
+  let monToPhoto=0;
+  mon.labs.forEach((l,j)=>{ monToPhoto+=mw[j]*Math.min(...top.map(c=>dE(c.lab,l))); });
+  return 0.5*photoToMon+0.5*monToPhoto+0.25*dE(pal[0].lab,mon.labs[0]);
 }
 function pickMon(pal){
   const scored=MONS.map(m=>({m,d:scoreMon(pal,m)})).sort((a,b)=>a.d-b.d);
-  const cands=scored.slice(0,CFG.candidates||8), dmin=cands[0].d;
+  const dmin=scored[0].d, win=CFG.similarityWindow??10;
+  // 只在「夠像」的範圍內隨機：和最像的那隻差不到 win 的才有機會
+  const cands=scored.filter(c=>c.d<=dmin+win).slice(0,CFG.candidates||8);
   const p0=pal[0].lab, vivid=Math.min(1,Math.hypot(p0[1],p0[2])/70);
   const rar={1:1,2:0.45,3:0.12+0.25*vivid};
-  const temp=CFG.randomness??10;                       // 越大越隨機，顏色差一點的也有機會出現
+  const temp=CFG.randomness??6;
   const ws=cands.map(c=>Math.exp(-(c.d-dmin)/temp)*(rar[c.m.rarity]??1));
   const q=l=>l.map(v=>Math.round(v/12)).join(",");
-  // 預設每次都用時間當亂數種子：同一張照片也會遇到不同寶可夢；sameResultPerDay=true 則同色同天結果固定
   const seed=CFG.sameResultPerDay ? pal.slice(0,2).map(c=>q(c.lab)).join("|")+"|"+today() : `${Date.now()}|${Math.random()}`;
   const r=rng(fnv1a(seed))();
   let acc=0,tot=ws.reduce((a,b)=>a+b,0),pick=cands[0];
   for(let i=0;i<cands.length;i++){acc+=ws[i]/tot;if(r<acc){pick=cands[i];break;}}
-  return {mon:pick.m, sim:Math.max(5,Math.min(99,Math.round(100-pick.d*1.4)))};
+  return {mon:pick.m, sim:Math.max(5,Math.min(99,Math.round(100-pick.d*1.3)))};
 }
 
 /* ---------- 載入資料 ---------- */

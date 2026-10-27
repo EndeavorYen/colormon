@@ -14,7 +14,8 @@
 
 ## 運作方式
 - 照片縮成 48×48，中心加權，在 CIELAB 色彩空間用 k-means 抓出 3～4 個主色。
-- 每隻寶可夢有主色與配色，挑出色盤最像的幾隻，再依相似度、稀有度和隨機數選一隻；同一張照片每次可能遇到不同寶可夢（`randomness` 越大越隨機，`sameResultPerDay: true` 則同色同天結果固定）。
+- 每隻寶可夢有主色與配色，雙向比對：照片的顏色要在牠身上找得到，牠的顏色（尤其主色）也要在照片裡找得到。
+- 只在「和最像的那隻差不多像」的範圍內隨機挑選（`similarityWindow`），再依相似度、稀有度加權；同一張照片每次可能遇到不同寶可夢，但都是顏色相近的（`randomness` 越大越隨機，`sameResultPerDay: true` 則同色同天結果固定）。
 - 圖片即時讀取自 [PokeAPI sprites](https://github.com/PokeAPI/sprites)，本 repo 不存放任何寶可夢圖片。
 
 ## 真球模式
