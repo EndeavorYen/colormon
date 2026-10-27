@@ -664,6 +664,17 @@ function sample(kind){
 let toastT;function toast(t){const el=$("toast");el.textContent=t;el.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove("show"),2400);}
 
 /* ---------- 開始 ---------- */
+// LINE 等 App 內建瀏覽器常擋相機：LINE 支援 openExternalBrowser=1 直接改用手機預設瀏覽器
+(function(){
+  const ua=navigator.userAgent;
+  if(/\bLine\//i.test(ua)&&!/openExternalBrowser=1/.test(location.search)){
+    const u=new URL(location.href);u.searchParams.set("openExternalBrowser","1");u.hash="";
+    location.replace(u.toString());return;
+  }
+  if(/FBAN|FBAV|Instagram|Messenger|\bLine\//i.test(ua)){
+    $("camMsg").textContent="這個 App 內建的瀏覽器可能打不開相機，請用右上角選單「以瀏覽器開啟」。";
+  }
+})();
 history.replaceState(null,"","#camera");
 show("camera");
 loadData().then(()=>{updateCount();setupBallArt();}).catch(err=>{
