@@ -192,9 +192,30 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 .rare-dim{position:absolute;inset:0;background:#000;opacity:0;z-index:5;pointer-events:none}
 .rare-flash{position:absolute;inset:0;background:#fff;opacity:0;z-index:7;pointer-events:none}
 /* swipe ball */
+.hand.master{filter:drop-shadow(0 0 8px #c08aff) drop-shadow(0 0 4px #fff)}
 .hand.swipe{box-shadow:0 0 0 6px rgba(255,213,74,.35);border-radius:50%}
 .hand.touched{animation:none;transform:scale(1.2);box-shadow:0 0 0 10px rgba(76,194,126,.6);border-radius:50%}
 @media (prefers-reduced-motion:reduce){.shields i,.scene.gold::after,.scene.legend::after{animation:none}}
+
+/* info / changelog */
+.info-btn{position:relative}
+.info-btn .dot{position:absolute;top:6px;right:6px;width:9px;height:9px;border-radius:50%;background:#ff4d4d;box-shadow:0 0 0 2px var(--card)}
+.info-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.info-head h2{margin:0;font-family:var(--display);font-weight:900;font-size:1.3rem}
+.info-head span{color:var(--muted);font-size:.85rem;font-variant-numeric:tabular-nums}
+.changelog{display:flex;flex-direction:column;gap:10px}
+.changelog article{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.changelog article.new{border-color:var(--good);box-shadow:0 0 0 2px color-mix(in srgb,var(--good) 25%,transparent)}
+.changelog h3{margin:0;font-size:1rem;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.changelog h3 b{font-family:var(--display);color:var(--good)}
+.changelog h3 small{color:var(--muted);font-weight:400;font-size:.78rem;font-variant-numeric:tabular-nums}
+.changelog ul{margin:6px 0 0;padding-left:1.2em;font-size:.9rem}
+.changelog li{margin:2px 0}
+.ball-guide{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 14px}
+.ball-guide summary{font-weight:700;cursor:pointer}
+.ball-guide .row{display:grid;grid-template-columns:28px 5.5em 1fr;gap:8px;align-items:center;font-size:.86rem;padding:3px 0}
+.ball-guide .row img{width:28px;height:28px;image-rendering:pixelated}
+.ball-guide .row span{color:var(--muted)}
 
 /* result screen */
 .result{align-items:center;text-align:center;justify-content:center}
@@ -237,6 +258,7 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
   <div class="bar">
     <button class="icon-btn" id="backBtn" aria-label="回到拍照" hidden><svg viewBox="0 0 24 24"><path d="M15.4 4.6 14 3.2 5.2 12 14 20.8l1.4-1.4L8 12z"/></svg></button>
     <h1 id="barTitle">顏色寶可夢探險</h1>
+    <button class="icon-btn info-btn" id="infoBtn" aria-label="更新紀錄"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 15h-2v-6h2zm0-8h-2V7h2z"/></svg><i class="dot" id="infoDot" hidden></i></button>
     <button class="icon-btn" id="muteBtn" aria-label="關閉音效" aria-pressed="false"><svg viewBox="0 0 24 24"><path id="muteIcon" d=""/></svg></button>
     <button class="dex-btn" id="dexBtn">圖鑑 <b id="dexCount">0</b></button>
   </div>
@@ -352,6 +374,14 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
     </div>
   </section>
 
+  <!-- 更新紀錄 -->
+  <section class="screen" id="s-info" hidden>
+    <div class="info-head"><h2>顏色寶可夢探險</h2><span id="infoVer"></span></div>
+    <div id="changelog" class="changelog"></div>
+    <details class="ball-guide"><summary>寶可夢球的效果</summary><div id="ballGuide"></div></details>
+    <p class="note">寶可夢的名稱和圖片版權屬於 Nintendo／Creatures／GAME FREAK，圖片來自 PokeAPI。這是非商業的家庭自用遊戲。</p>
+  </section>
+
   <!-- 圖鑑 -->
   <section class="screen" id="s-dex" hidden>
     <div class="dex-head"><h2>我的圖鑑</h2><span id="dexTotal"></span></div>
@@ -364,7 +394,7 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 <canvas id="cv" width="48" height="48" hidden></canvas>
 
 <script>
-const BUILD="2026.10.27-2053";
+const BUILD="2026.10.28-0152";
 /* =========================================================
    顏色寶可夢探險
    資料都在 data/：config.json 列出要載入的資料包（packs），
@@ -542,6 +572,7 @@ function pickMon(pal){
 async function loadData(){
   const get=async p=>{const r=await fetch(DATA_BASE+p,{cache:"no-cache"});if(!r.ok)throw new Error(p+" "+r.status);return r.json();};
   CFG=await get("config.json");
+  try{BALLS=await get("balls.json");}catch(e){BALLS=null;}   // 寶可夢球種類（沒有也能玩）
   TYPES=await get("types.json");
   for(const t of Object.values(TYPES)) if(t.affinity) t.affLabs=t.affinity.map(hexLab);
   const packs=await Promise.all(CFG.packs.map(get));
@@ -558,8 +589,8 @@ const spriteUrl=id=>CFG.spriteUrl.replace("{id}",id);
 
 /* ---------- 畫面切換（用網址 # 記錄，手機返回鍵可用） ---------- */
 const $=id=>document.getElementById(id);
-const SCREENS=["camera","explore","scan","encounter","result","dex"];
-const TITLES={camera:"顏色寶可夢探險",explore:"探索模式",scan:"分析顏色",encounter:"野生寶可夢",result:"抓到了",dex:"我的圖鑑"};
+const SCREENS=["camera","explore","scan","encounter","result","dex","info"];
+const TITLES={info:"更新紀錄",camera:"顏色寶可夢探險",explore:"探索模式",scan:"分析顏色",encounter:"野生寶可夢",result:"抓到了",dex:"我的圖鑑"};
 let screen="camera";
 function go(name,replace){
   const h="#"+name;
@@ -579,16 +610,19 @@ function show(name){
   $("dexBtn").hidden=name==="dex";
   if(name==="camera") resumeCamera(); else pauseCamera();
   if(name==="explore") resumeExplore(); else pauseExplore(name);
+  if(name!=="encounter") stopBallCycle(); else if(current&&!busy) startBallCycle();
   if(name==="camera"||name==="explore") home=name;           // 抓完、逃跑後回到哪裡
   $("moreBtn").textContent=home==="explore"?"繼續探險":"繼續拍照";
   if(name==="encounter"&&AR.on) startAR(); else if(name!=="encounter") stopAR();
   if(name==="dex") renderDex();
+  if(name==="info") renderInfo();
   scrollTo(0,0);
 }
 addEventListener("popstate",()=>show(location.hash.slice(1)));
 let home="camera";
 $("backBtn").onclick=()=>go(screen==="explore"?"camera":home);
 $("dexBtn").onclick=()=>go("dex");
+$("infoBtn").onclick=()=>go("info");
 $("moreBtn").onclick=()=>go(home);
 $("toDexBtn").onclick=()=>go("dex");
 $("fledBtn").onclick=()=>go(home);
@@ -669,7 +703,7 @@ function startScan(src){
 }
 
 /* ---------- 3 遭遇 ---------- */
-let current=null,fled=false,misses=0,busy=false,lastCaught=null,encounterId=0;
+let current=null,fled=false,misses=0,busy=false,lastCaught=null,encounterId=0,lastBall=null;
 function setMonVisual(mon,{imgEl,fbEl,glyphEl}){
   const T=TYPES[mon.type], st=document.documentElement.style;
   st.setProperty("--type",T.color);st.setProperty("--main",mon.colors[0]);st.setProperty("--accent",mon.colors[1]||mon.colors[0]);
@@ -682,6 +716,7 @@ function setMonVisual(mon,{imgEl,fbEl,glyphEl}){
 }
 async function startEncounter(pal,picked){
   const {mon,sim}=picked, T=TYPES[mon.type];
+  encounterNight=!!picked.night;
   current=mon;fled=false;misses=0;busy=false;encounterId++;
   $("glow").getAnimations().forEach(a=>a.cancel());
   setMonVisual(mon,{imgEl:$("art"),fbEl:$("monFb"),glyphEl:$("glyph")});
@@ -708,6 +743,7 @@ async function startEncounter(pal,picked){
   setupShields(mon);
   Hardware.notifyEncounter(mon);
   $("throwBtn").disabled=false;
+  startBallCycle();
 }
 const starText=r=>"★".repeat(r)+"☆".repeat(5-r);
 /* ---------- 剪影：沒抓過的寶可夢先藏起來，抓到或跳出來時揭曉 ---------- */
@@ -774,12 +810,18 @@ async function throwBall(speed=1){
   const sh0=SHIELD.total, left=shieldLayersLeft();
   const shieldMul=sh0?(CFG.shieldCatchMul??0.3)+(1-(CFG.shieldCatchMul??0.3))*(sh0-left)/sh0:1;
   const guarantee=(CFG.guaranteeAfter??4)+left*2;
-  const p=misses>=guarantee?1:Math.min(0.95,((CFG.catchBase[mon.rarity]??0.5)+misses*(CFG.catchBonusPerMiss??0.15))*shieldMul);
+  const pb=curBall, eff=ballEffect(pb,mon);
+  if(eff.mult===Infinity){SHIELD.hp=0;drawShields();}                 // 大師球：護盾也沒用
+  let p=misses>=guarantee?1:Math.min(0.95,((CFG.catchBase[mon.rarity]??0.5)+misses*(CFG.catchBonusPerMiss??0.15))*shieldMul);
+  p=eff.mult===Infinity?1:Math.min(0.97,p*eff.mult);
   const q=Math.cbrt(p);                                       // 每晃一下撐住的機率，三下都撐住就抓到
   let shakes=0; while(shakes<3&&Math.random()<q) shakes++;
   const caught=shakes===3;
 
-  bubble("去吧，寶貝球！");
+  lastBall=pb;
+  if(pb?.guaranteed){bubble("大師球！一定抓得到！");sfx("master");try{navigator.vibrate&&navigator.vibrate([60,40,60,40,200]);}catch(e){}}
+  else bubble(pb?`去吧，${pb.name}！${eff.hint&&eff.mult>=1.3?`（${eff.hint}）`:""}`:"去吧，寶貝球！");
+  if(pb&&ballArtOk)$("ball").querySelector("img").src=ballSrc(pb);
   // 1. 拋物線飛向寶可夢
   $("hand").hidden=true;ball.hidden=false;ball.classList.remove("locked");
   const top={x:(P.hand.x+P.mon.x)/2,y:Math.min(P.hand.y,P.mon.y)-110};
@@ -856,13 +898,56 @@ $("throwBtn").addEventListener("click",()=>{
 });
 
 /* 寶貝球圖片（config.ballUrl），讀不到就用內建的球 */
+/* =========================================================
+   隨機寶可夢球：還沒丟之前一直變換（拉霸），丟出去的那一刻定下是哪一種
+   每種球有小加成（data/balls.json）；大師球很少見，出現就一定抓到
+   ========================================================= */
+let BALLS=null,curBall=null,ballCycleT=0,encounterNight=false;
+const ballSrc=b=>BALLS.spriteUrl.replace("{key}",b.key);
 function setupBallArt(){
-  if(!CFG.ballUrl)return;
+  const first=BALLS?.balls?.[0];
+  const url=first?ballSrc(first):CFG.ballUrl;if(!url)return;
   document.querySelectorAll(".ball").forEach(b=>{
     const im=b.querySelector("img");
     im.onload=()=>{im.hidden=false;b.classList.add("has-img");ballArtOk=true;};
-    im.src=CFG.ballUrl;
+    im.src=url;
   });
+  curBall=first||null;
+  if(BALLS) for(const b of BALLS.balls){const im=new Image();im.src=ballSrc(b);}   // 先載入，變換時不會閃
+}
+function pickBallWeighted(){
+  const list=BALLS.balls.filter(b=>b!==curBall),tot=list.reduce((a,b)=>a+b.weight,0);
+  let r=Math.random()*tot;for(const b of list){r-=b.weight;if(r<=0)return b;}
+  return list[0];
+}
+function setHandBall(b){
+  curBall=b;
+  const im=$("hand").querySelector("img");if(ballArtOk)im.src=ballSrc(b);
+  $("hand").classList.toggle("master",!!b.guaranteed);
+}
+function startBallCycle(){
+  clearInterval(ballCycleT);
+  if(!BALLS)return;
+  ballCycleT=setInterval(()=>{
+    if(document.hidden||screen!=="encounter"||busy||$("hand").hidden)return;
+    setHandBall(pickBallWeighted());
+  },BALLS.cycleMs||220);
+}
+function stopBallCycle(){clearInterval(ballCycleT);ballCycleT=0;}
+/* 這顆球對這隻寶可夢的加成 */
+function ballEffect(b,mon){
+  if(!b)return {mult:1,hint:null};
+  if(b.guaranteed)return {mult:Infinity,hint:b.hint};
+  let m=b.bonus||1,hint=null;
+  const up=(v,ok)=>{if(ok&&v>m){m=v;hint=b.hint;}};
+  up(b.typeBonus,b.types?.includes(mon.type));
+  up(b.night,!!b.night&&encounterNight);
+  up(b.firstThrow,!!b.firstThrow&&misses===0);
+  up(1+(b.perMiss||0)*misses,!!b.perMiss&&misses>0);
+  up(b.rarityBonus,!!b.maxRarity&&mon.rarity<=b.maxRarity);
+  up(b.rarityBonus,!!b.minRarity&&mon.rarity>=b.minRarity);
+  up(b.caught,!!b.caught&&!!dex[mon.id]);
+  return {mult:m,hint};
 }
 
 /* ---------- 4 抓到了 ---------- */
@@ -874,7 +959,7 @@ function showResult(mon){
   $("resType").textContent=T.name;
   $("resStars").textContent=starText(mon.rarity);
   const n=dex[mon.id]?.n||1;
-  $("resSub").textContent=`#${String(mon.id).padStart(3,"0")}　${n>1?`第 ${n} 次抓到`:"新登錄到圖鑑！"}`;
+  $("resSub").textContent=`#${String(mon.id).padStart(3,"0")}　${lastBall?`用${lastBall.name}　`:""}${n>1?`第 ${n} 次抓到`:"新登錄到圖鑑！"}`;
   go("result",true);
 }
 
@@ -884,7 +969,7 @@ let dex={};try{dex=JSON.parse(localStorage.getItem(DEX_KEY))||{};}catch(e){}
 const SEEN_KEY="colormon-seen";
 let seen={};try{seen=JSON.parse(localStorage.getItem(SEEN_KEY))||{};}catch(e){}
 function markSeen(m){if(seen[m.id])return;seen[m.id]=1;try{localStorage.setItem(SEEN_KEY,JSON.stringify(seen));}catch(e){}}
-function saveDex(m){markSeen(m);(dex[m.id]??={n:0}).n++;dex[m.id].last=Date.now();try{localStorage.setItem(DEX_KEY,JSON.stringify(dex));}catch(e){}updateCount();}
+function saveDex(m){markSeen(m);(dex[m.id]??={n:0}).n++;dex[m.id].last=Date.now();if(lastBall)dex[m.id].ball=lastBall.key;try{localStorage.setItem(DEX_KEY,JSON.stringify(dex));}catch(e){}updateCount();}
 function updateCount(){$("dexCount").textContent=Object.keys(dex).filter(id=>MONS.some(m=>m.id==id)).length;}
 function renderDex(){
   const got=MONS.filter(m=>dex[m.id]).length;
@@ -1522,6 +1607,7 @@ const SFX={
   escape:t=>{ GB.noise(t,.12,{v:.4,hp:400}); GB.seq(t+.05,"G5:1 D5:1 G4:2",.06,{duty:.5,v:.35}); },            // 跳出來：啵
   flee:t=>{ GB.seq(t,"A5:1 F5:1 D5:1 A4:1 F4:2",.05,{duty:.25,v:.35}); },                                      // 玩家逃跑：快速下降
   tap:t=>{ GB.tone(t,1320,.03,{duty:.5,v:.2}); },
+  master:t=>{ const b=.07; GB.seq(t,"C6:1 E6:1 G6:1 C7:1 G6:1 C7:4",b,{duty:.125,v:.4}); GB.seq(t,"C5:4 G5:5",b,{duty:.5,v:.25}); GB.noise(t,.4,{v:.12,hp:6000}); },
   appear3:t=>{ GB.seq(t+.36,"B6:3",.05,{duty:.125,v:.35}); },                                                    // 三星：多一個上揚音
   appear4:t=>{ const b=.09; GB.seq(t,"G4:2 C5:2 E5:2 G5:6",b,{duty:.25,v:.4,decay:false});                     // 四星：短號角
                GB.seq(t,"E4:2 G4:2 C5:2 E5:6",b,{duty:.5,v:.22,decay:false}); GB.noise(t+6*b,.25,{v:.15,hp:5000}); },
@@ -1562,6 +1648,29 @@ document.addEventListener("visibilitychange",()=>{
   }
 });
 
+/* ---------- 更新紀錄（data/changelog.json）：有新版本時 ⓘ 會出現小紅點 ---------- */
+let CHANGELOG=null;
+const SEEN_VER_KEY="colormon-seen-version";
+async function loadChangelog(){
+  try{CHANGELOG=await (await fetch(DATA_BASE+"changelog.json",{cache:"no-cache"})).json();}catch(e){return;}
+  const latest=CHANGELOG.versions?.[0]?.version;let seenV=null;try{seenV=localStorage.getItem(SEEN_VER_KEY);}catch(e){}
+  $("infoDot").hidden=!latest||seenV===latest;
+}
+function renderInfo(){
+  const vs=CHANGELOG?.versions||[];let seenV=null;try{seenV=localStorage.getItem(SEEN_VER_KEY);}catch(e){}
+  const seenIdx=vs.findIndex(v=>v.version===seenV);
+  $("infoVer").textContent=`v${vs[0]?.version??"?"}・${typeof BUILD!=="undefined"?BUILD:""}`;
+  $("changelog").innerHTML=vs.length?vs.map((v,i)=>`<article class="${seenIdx<0?(i===0?"new":""):(i<seenIdx?"new":"")}"><h3><b>v${v.version}</b>${v.title}<small>${v.date}</small></h3><ul>${v.items.map(x=>`<li>${x}</li>`).join("")}</ul></article>`).join("")
+    :`<p class="empty">更新紀錄載入不到</p>`;
+  $("ballGuide").innerHTML=BALLS?BALLS.balls.map(b=>`<div class="row"><img src="${ballSrc(b)}" alt="" loading="lazy"><b>${b.name}</b><span>${b.hint||(b.bonus>1?`比較好抓（×${b.bonus}）`:"一般的球")}</span></div>`).join(""):"";
+  if(vs[0]){try{localStorage.setItem(SEEN_VER_KEY,vs[0].version);}catch(e){}$("infoDot").hidden=true;}
+}
+
+/* ---------- 圖片存在手機裡（Service Worker），只在正式網址（https）啟用 ---------- */
+if("serviceWorker" in navigator&&(location.protocol==="https:"||location.hostname==="localhost")&&!/claude\.ai|claudeusercontent/.test(location.hostname)){
+  navigator.serviceWorker.register("sw.js").catch(()=>{});
+}
+
 /* ---------- 開始 ---------- */
 // LINE 等 App 內建瀏覽器常擋相機：LINE 支援 openExternalBrowser=1 直接改用手機預設瀏覽器
 (function(){
@@ -1576,7 +1685,7 @@ document.addEventListener("visibilitychange",()=>{
 })();
 history.replaceState(null,"","#camera");
 show("camera");
-loadData().then(()=>{updateCount();setupBallArt();setBallMode(AR.on);}).catch(err=>{
+loadData().then(()=>{updateCount();setupBallArt();setBallMode(AR.on);loadChangelog();}).catch(err=>{
   console.error(err);
   $("camMsg").textContent="寶可夢資料載入失敗。請用網址（例如 GitHub Pages）開啟，而不是直接打開檔案。";
 });

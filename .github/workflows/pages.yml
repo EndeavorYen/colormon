@@ -24,6 +24,10 @@ jobs:
           node-version: 22
       - name: Validate Pokémon data packs
         run: node tools/validate-data.mjs
+      - name: CHANGELOG.md matches changelog.json
+        run: |
+          python3 tools/build-changelog.py
+          git diff --exit-code CHANGELOG.md || (echo "請執行 python3 tools/build-changelog.py 再 commit" && exit 1)
       - name: Check page script syntax
         run: |
           node -e "const s=require('fs').readFileSync('site/index.html','utf8');

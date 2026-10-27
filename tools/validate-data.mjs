@@ -36,6 +36,22 @@ for (const packPath of cfg.packs) {
   }
 }
 
+// 寶可夢球
+try {
+  const balls = read("balls.json");
+  if (!balls.spriteUrl?.includes("{key}")) errors.push("balls.json：spriteUrl 要包含 {key}");
+  for (const b of balls.balls || []) {
+    if (!b.key || !b.name) errors.push(`balls.json：每顆球要有 key 和 name（${JSON.stringify(b)}）`);
+    if (!(b.weight > 0)) errors.push(`balls.json：${b.name} 的 weight 要大於 0`);
+  }
+} catch (e) { errors.push("balls.json 讀不到或格式錯誤：" + e.message); }
+
+// 更新紀錄
+try {
+  const cl = read("changelog.json");
+  for (const ver of cl.versions || []) if (!ver.version || !ver.date || !ver.title || !Array.isArray(ver.items)) errors.push(`changelog.json：版本 ${ver.version} 缺少欄位`);
+} catch (e) { errors.push("changelog.json 讀不到或格式錯誤：" + e.message); }
+
 if (errors.length) {
   console.error(errors.join("\n"));
   process.exit(1);

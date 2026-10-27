@@ -1,0 +1,32 @@
+{
+  "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/{key}.png",
+  "cycleMs": 220,
+  "balls": [
+    {"key":"poke-ball","name":"精靈球","weight":30},
+    {"key":"great-ball","name":"超級球","weight":18,"bonus":1.25},
+    {"key":"ultra-ball","name":"高級球","weight":10,"bonus":1.5},
+    {"key":"premier-ball","name":"紀念球","weight":6,"bonus":1.2},
+    {"key":"luxury-ball","name":"豪華球","weight":4,"bonus":1.2},
+    {"key":"heal-ball","name":"治癒球","weight":4,"bonus":1.2},
+    {"key":"net-ball","name":"捕網球","weight":4,"types":["water","bug"],"typeBonus":1.6,"hint":"水和蟲屬性很有效"},
+    {"key":"dive-ball","name":"潛水球","weight":4,"types":["water"],"typeBonus":1.6,"hint":"水屬性很有效"},
+    {"key":"lure-ball","name":"誘餌球","weight":3,"types":["water"],"typeBonus":1.5,"hint":"水屬性很有效"},
+    {"key":"dusk-ball","name":"黑暗球","weight":4,"types":["ghost","dark"],"typeBonus":1.6,"night":1.8,"hint":"暗處和幽靈、惡屬性很有效"},
+    {"key":"moon-ball","name":"月亮球","weight":3,"types":["fairy"],"typeBonus":1.6,"night":1.4,"hint":"妖精屬性和晚上很有效"},
+    {"key":"heavy-ball","name":"沉重球","weight":3,"types":["rock","steel","ground"],"typeBonus":1.5,"hint":"岩石、鋼、地面屬性很有效"},
+    {"key":"fast-ball","name":"速度球","weight":3,"types":["electric","flying"],"typeBonus":1.5,"hint":"電和飛行屬性很有效"},
+    {"key":"quick-ball","name":"先機球","weight":4,"firstThrow":2.0,"hint":"第一球特別好抓"},
+    {"key":"timer-ball","name":"計時球","weight":4,"perMiss":0.3,"hint":"丟越多次越好抓"},
+    {"key":"nest-ball","name":"巢穴球","weight":4,"maxRarity":2,"rarityBonus":1.5,"hint":"一、二星的寶可夢很有效"},
+    {"key":"level-ball","name":"等級球","weight":3,"maxRarity":3,"rarityBonus":1.3,"hint":"三星以下很有效"},
+    {"key":"repeat-ball","name":"重複球","weight":4,"caught":1.6,"hint":"抓過的寶可夢很有效"},
+    {"key":"friend-ball","name":"友友球","weight":3,"bonus":1.2},
+    {"key":"love-ball","name":"甜蜜球","weight":3,"bonus":1.2},
+    {"key":"safari-ball","name":"狩獵球","weight":3,"bonus":1.3},
+    {"key":"sport-ball","name":"競賽球","weight":3,"types":["bug"],"typeBonus":1.5,"hint":"蟲屬性很有效"},
+    {"key":"dream-ball","name":"夢境球","weight":2,"types":["psychic","fairy"],"typeBonus":1.5,"hint":"超能力和妖精屬性很有效"},
+    {"key":"beast-ball","name":"究極球","weight":1.5,"minRarity":4,"rarityBonus":2.0,"hint":"四星以上的寶可夢很有效"},
+    {"key":"cherish-ball","name":"貴重球","weight":1.5,"bonus":1.5},
+    {"key":"master-ball","name":"大師球","weight":1,"guaranteed":true,"hint":"一定抓得到！"}
+  ]
+}

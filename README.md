@@ -65,6 +65,18 @@ Game Boy 風格的原創音效，用程式即時合成（兩個方波通道加�
 
 > 以前的「丟真的球」（追蹤被丟進畫面的球、MediaPipe 球辨識）已經拿掉，程式還留在 `app.js` 裡（`ThrowWatcher`、`loadBallDetector`），之後要加回來比較快。
 
+## 寶可夢球
+待丟的寶可夢球會像拉霸一樣一直變換，丟出去的那一刻才定下是哪一種（`data/balls.json`，26 種）。
+- 出現機率是 `weight`：精靈球最常見（約 23%），大師球最少見（約 0.8%）。
+- 每種球有小加成：`bonus`（全部都有效）、`types`＋`typeBonus`（特定屬性）、`night`（暗處）、`firstThrow`（第一球）、`perMiss`（每失敗一次增加）、`maxRarity`／`minRarity`＋`rarityBonus`（星數）、`caught`（抓過的）。大師球 `guaranteed` 一定抓到，護盾也擋不住。
+- 結果畫面會顯示用哪一種球抓到；遊戲裡 ⓘ 也有每種球的效果說明。
+
+## 更新紀錄
+遊戲右上角的 ⓘ 可以看每個版本改了什麼，有新版本時會出現小紅點。內容在 `site/data/changelog.json`，改版時編輯它，再執行 `python3 tools/build-changelog.py` 產生 [`CHANGELOG.md`](CHANGELOG.md)（CI 會檢查兩者是否一致）。
+
+## 圖片快取
+寶可夢和寶可夢球的圖片來自 PokeAPI（放在 GitHub），PokeAPI 只允許瀏覽器快取 5 分鐘。`site/sw.js`（Service Worker）會把看過的圖片存在手機裡，之後直接使用、不再下載；網頁和資料檔則每次先拿最新版，沒網路時才用手機裡的版本。
+
 ## 省電
 - 相機只在需要時開：拍照畫面按「打開相機」、鏡頭模式、探索模式。探索模式去遭遇畫面時相機先開著，15 秒沒回來就關掉（`camera.exploreKeepMs`），回來會自動重開。
 - 手機切到背景或鎖螢幕：相機、運算、陀螺儀、聲音全部停，回來再依畫面恢復。
