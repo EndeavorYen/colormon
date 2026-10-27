@@ -79,14 +79,20 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
   background:linear-gradient(180deg,color-mix(in srgb,var(--main) 35%,var(--card)),var(--card) 75%)}
 .scene-bg{position:absolute;inset:-20px;background-size:cover;background-position:center;filter:blur(14px) saturate(1.2);opacity:.45}
 .ground{position:absolute;left:18%;right:18%;top:68%;height:16%;border-radius:50%;background:color-mix(in srgb,var(--ink) 14%,transparent)}
-.mon{position:absolute;left:50%;top:40%;width:58%;max-width:230px;aspect-ratio:1;transform:translate(-50%,-50%);display:grid;place-items:center}
+.mon{position:absolute;z-index:2;left:50%;top:40%;width:58%;max-width:230px;aspect-ratio:1;transform:translate(-50%,-50%);display:grid;place-items:center}
 .mon img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 6px 8px rgba(0,0,0,.25));transition:filter .6s}
-.mon.silhouette img,.mon.silhouette .fb{filter:brightness(0)}
 .mon .fb{width:72%;aspect-ratio:1;border-radius:50%;background:var(--main);box-shadow:0 0 0 10px var(--accent);display:grid;place-items:center;transition:filter .6s}
 .mon .fb svg{width:46%;height:46%;fill:var(--glyph)}
-.ball{position:absolute;left:0;top:0;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:var(--sun);border:4px solid var(--ink);will-change:transform;z-index:3}
-.ball::after{content:"";position:absolute;inset:11px;border-radius:50%;background:var(--card);border:3px solid var(--ink)}
-.ball.locked::after{background:var(--ink)}
+.ball{position:absolute;left:0;top:0;width:64px;height:64px;margin:-32px 0 0 -32px;will-change:transform;z-index:3}
+.ball img{width:100%;height:100%;image-rendering:pixelated;display:block}
+.ball .cap{position:absolute;inset:3px;border-radius:50%;background:var(--sun);border:4px solid var(--ink)}
+.ball .cap::after{content:"";position:absolute;inset:10px;border-radius:50%;background:var(--card);border:3px solid var(--ink)}
+.ball.has-img .cap{display:none}
+.ball.locked img{filter:brightness(.75)}
+.ball.locked .cap::after{background:var(--ink)}
+.ball-shadow{position:absolute;left:0;top:0;width:44px;height:12px;margin:-6px 0 0 -22px;border-radius:50%;background:rgba(0,0,0,.25);z-index:2;opacity:0}
+.hand{position:absolute;left:50%;bottom:10px;width:64px;height:64px;margin-left:-32px;z-index:3;animation:bob 1.6s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-6px)}}
 .flash{position:absolute;left:0;top:0;width:160px;height:160px;margin:-80px 0 0 -80px;border-radius:50%;background:radial-gradient(circle,#fff 0,#fff 30%,transparent 70%);opacity:0;pointer-events:none;z-index:4}
 .fx i{position:absolute;left:0;top:0;width:14px;height:14px;margin:-7px 0 0 -7px;background:var(--sun);clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);z-index:5}
 .bubble{position:absolute;left:50%;top:12px;transform:translateX(-50%);background:var(--card);color:var(--ink);border:2px solid var(--ink);border-radius:999px;padding:4px 16px;font-weight:900;white-space:nowrap;z-index:6;max-width:calc(100% - 24px);overflow:hidden;text-overflow:ellipsis}
@@ -102,6 +108,8 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 .orbs{margin-left:auto;display:flex;gap:6px}
 .orbs b{width:14px;height:14px;border-radius:50%;background:var(--sun);border:2px solid var(--ink)}
 .orbs b.used{background:transparent;opacity:.3}
+.orbs img{width:22px;height:22px;image-rendering:pixelated}
+.orbs img.used{opacity:.25;filter:grayscale(1)}
 .why{font-size:.82rem;color:var(--muted);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .dots{display:inline-flex;gap:3px}
 .dots i{width:14px;height:14px;border-radius:50%;border:1px solid var(--line)}
@@ -109,7 +117,10 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 .meter .zone{position:absolute;left:62%;width:26%;top:0;bottom:0;background:color-mix(in srgb,var(--good) 55%,transparent)}
 .meter .zone::after{content:"";position:absolute;left:46%;width:8%;top:0;bottom:0;background:var(--good)}
 .meter .needle{position:absolute;top:-2px;bottom:-2px;width:5px;border-radius:3px;background:var(--ink);left:0}
-.throw{touch-action:none;user-select:none;-webkit-user-select:none}
+.throw{touch-action:manipulation;user-select:none;-webkit-user-select:none;font-size:1.2rem;padding:18px}
+.hw{font-size:.82rem;color:var(--muted);display:flex;gap:8px;align-items:center;justify-content:center}
+.hw .dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.hw.on .dot{background:var(--good)}
 .throw:disabled{opacity:.45;cursor:default}
 
 /* result screen */
@@ -146,7 +157,7 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);
   padding:10px 16px;border-radius:12px;font-size:.9rem;opacity:0;transition:opacity .3s;pointer-events:none;max-width:calc(100% - 32px);z-index:20}
 .toast.show{opacity:1}
-@media (prefers-reduced-motion:reduce){.screen,.burst img,.burst .fb{animation:none}.burst::before,.scan-photo::after{animation:none}}
+@media (prefers-reduced-motion:reduce){.hand{animation:none}.screen,.burst img,.burst .fb{animation:none}.burst::before,.scan-photo::after{animation:none}}
 </style>
 
 <div class="app">
@@ -193,7 +204,9 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
       <div class="scene-bg" id="sceneBg"></div>
       <div class="ground"></div>
       <div class="mon" id="mon"><img id="art" alt="" hidden><div class="fb" id="monFb"><svg viewBox="0 0 24 24"><path id="glyph" d=""/></svg></div></div>
-      <div class="ball" id="ball" hidden></div>
+      <div class="ball-shadow" id="ballShadow"></div>
+      <div class="ball" id="ball" hidden><div class="cap"></div><img alt="" hidden></div>
+      <div class="ball hand" id="hand"><div class="cap"></div><img alt="" hidden></div>
       <div class="flash" id="flash"></div>
       <div class="fx" id="fx"></div>
       <div class="bubble" id="bubble"></div>
@@ -206,8 +219,8 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
     </div>
     <div class="why">照片 <span class="dots" id="whyPhoto"></span> 牠的顏色 <span class="dots" id="whyMon"></span> <span id="sim"></span></div>
     <div id="throwArea" style="display:flex;flex-direction:column;gap:10px">
-      <div class="meter" aria-hidden="true"><div class="zone"></div><div class="needle" id="needle"></div></div>
-      <button class="btn sun throw" id="throwBtn">按住蓄力，在綠色區放開丟球</button>
+      <button class="btn sun throw" id="throwBtn">丟出寶貝球！</button>
+      <div class="hw" id="hw"><span class="dot"></span><span id="hwText">模擬模式：按上面的按鈕代替真的丟球</span></div>
     </div>
     <button class="btn primary" id="fledBtn" hidden>繼續拍照</button>
   </section>
@@ -244,18 +257,20 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 const DATA_BASE = "data/";
 let CFG = null, TYPES = {}, MONS = [];
 
-/* ---------- 硬體介面（之後接 ESP32） ----------
-   Hardware.notifyEncounter(mon)：寶可夢出現時呼叫 → 在這裡送出震動指令
-   window.onBallThrow(score)    ：寶貝球偵測到投擲後，用 0~1 的分數呼叫     */
+/* ---------- 硬體介面（之後接寶貝球） ----------
+   寶貝球只需要回報兩件事，不判斷丟得好不好：
+     window.onBallThrown()  偵測到被丟出去（出手 / 自由落體）
+     window.onBallLanded()  偵測到落地（撞擊後靜止）
+   Hardware.notifyEncounter(mon)：寶可夢出現時呼叫，可在這裡送出提醒指令      */
 const Hardware = {
   connected: false,
   notifyEncounter(mon) {
-    // TODO: ws.send(JSON.stringify({cmd:"vibrate", id:mon.id, rarity:mon.rarity}))
+    // TODO: 送指令給寶貝球，例如 ws.send(JSON.stringify({cmd:"alert", id:mon.id}))
     try { navigator.vibrate && navigator.vibrate([120, 80, 120]); } catch (e) {}
-    toast(this.connected ? "已通知寶貝球震動" : "（模擬）寶貝球震動了！快丟出去");
   },
 };
-window.onBallThrow = score => throwBall(Math.max(0, Math.min(1, score)));
+window.onBallThrown = () => throwBall();
+window.onBallLanded = () => { landedResolve && landedResolve(); };
 
 /* ---------- 色彩工具：sRGB → CIELAB ---------- */
 function linTable(){return linTable.t||(linTable.t=Array.from({length:256},(_,i)=>{const c=i/255;return c<=0.04045?c/12.92:Math.pow((c+0.055)/1.055,2.4);}));}
@@ -319,12 +334,15 @@ function scoreMon(pal,mon){
 }
 function pickMon(pal){
   const scored=MONS.map(m=>({m,d:scoreMon(pal,m)})).sort((a,b)=>a.d-b.d);
-  const cands=scored.slice(0,CFG.candidates||6), dmin=cands[0].d;
+  const cands=scored.slice(0,CFG.candidates||8), dmin=cands[0].d;
   const p0=pal[0].lab, vivid=Math.min(1,Math.hypot(p0[1],p0[2])/70);
   const rar={1:1,2:0.45,3:0.12+0.25*vivid};
-  const ws=cands.map(c=>Math.exp(-(c.d-dmin)/6)*(rar[c.m.rarity]??1));
+  const temp=CFG.randomness??10;                       // 越大越隨機，顏色差一點的也有機會出現
+  const ws=cands.map(c=>Math.exp(-(c.d-dmin)/temp)*(rar[c.m.rarity]??1));
   const q=l=>l.map(v=>Math.round(v/12)).join(",");
-  const r=rng(fnv1a(pal.slice(0,2).map(c=>q(c.lab)).join("|")+"|"+today()))();
+  // 預設每次都用時間當亂數種子：同一張照片也會遇到不同寶可夢；sameResultPerDay=true 則同色同天結果固定
+  const seed=CFG.sameResultPerDay ? pal.slice(0,2).map(c=>q(c.lab)).join("|")+"|"+today() : `${Date.now()}|${Math.random()}`;
+  const r=rng(fnv1a(seed))();
   let acc=0,tot=ws.reduce((a,b)=>a+b,0),pick=cands[0];
   for(let i=0;i<cands.length;i++){acc+=ws[i]/tot;if(r<acc){pick=cands[i];break;}}
   return {mon:pick.m, sim:Math.max(5,Math.min(99,Math.round(100-pick.d*1.4)))};
@@ -423,6 +441,8 @@ function startScan(src){
   img.onload=async()=>{
     scanning=true;
     const pal=palette(img,img.naturalWidth,img.naturalHeight);
+    const picked=pickMon(pal);                                  // 先決定是誰，趁分析動畫時下載圖片
+    const preload=new Promise(res=>{const im=new Image();im.onload=im.onerror=res;im.src=artUrl(picked.mon.id);});
     $("scanImg").src=src;$("sceneBg").style.backgroundImage=`url("${src}")`;
     $("scanText").textContent="分析顏色中…";
     $("palette").innerHTML=pal.map(c=>`<i style="background:${css(c.rgb)}"></i>`).join("");
@@ -434,9 +454,9 @@ function startScan(src){
     const words=pal.slice(0,2).map(c=>c.word).filter((w,i,a)=>a.indexOf(w)===i);
     await wait(600); $("scanText").textContent=`看到${words.join(" + ")}！`;
     await wait(900); $("scanText").textContent="草叢裡有東西在動…";
-    await wait(800);
+    await Promise.race([preload,wait(800)]);
     scanning=false;
-    startEncounter(pal);
+    startEncounter(pal,picked);
   };
   img.onerror=()=>toast("這張照片打不開，換一張試試");
   img.src=src;
@@ -454,8 +474,8 @@ function setMonVisual(mon,{imgEl,fbEl,glyphEl}){
   imgEl.onerror=()=>{imgEl.hidden=true;fbEl.hidden=false;};
   imgEl.src=artUrl(mon.id);
 }
-async function startEncounter(pal){
-  const {mon,sim}=pickMon(pal), T=TYPES[mon.type];
+async function startEncounter(pal,picked){
+  const {mon,sim}=picked, T=TYPES[mon.type];
   current=mon;fled=false;ballsLeft=CFG.ballsPerEncounter||3;busy=false;
   setMonVisual(mon,{imgEl:$("art"),fbEl:$("monFb"),glyphEl:$("glyph")});
   $("monName").textContent=mon.name;
@@ -465,18 +485,20 @@ async function startEncounter(pal){
   $("whyMon").innerHTML=mon.colors.map(c=>`<i style="background:${c}"></i>`).join("");
   $("sim").textContent=`相似 ${sim}%`;
   $("throwArea").hidden=false;$("fledBtn").hidden=true;$("throwBtn").disabled=true;
-  $("ball").getAnimations().forEach(a=>a.cancel());$("ball").hidden=true;$("shakeDots").hidden=true;$("ball").classList.remove("locked");
-  const m=$("mon");m.getAnimations().forEach(a=>a.cancel());m.style.opacity="";m.classList.add("silhouette");
+  const ball=$("ball");ball.getAnimations().forEach(a=>a.cancel());ball.hidden=true;ball.classList.remove("locked");
+  $("hand").hidden=false;$("shakeDots").hidden=true;
+  const m=$("mon");m.getAnimations().forEach(a=>a.cancel());m.style.opacity="";
   drawOrbs();bubble("！");
   go("encounter",true);
-  await anim(m,[{transform:"translate(-50%,-50%) scale(.4)",opacity:0},{transform:"translate(-50%,-50%) scale(1.08)",opacity:1},{transform:"translate(-50%,-50%) scale(1)"}],{duration:500,easing:"ease-out"});
-  await wait(500);
-  m.classList.remove("silhouette");
+  // 從草叢跳出來
+  await anim(m,[{transform:"translate(-50%,-10%) scale(.6)",opacity:0},{transform:"translate(-50%,-62%) scale(1.05)",opacity:1,offset:.6},{transform:"translate(-50%,-50%) scale(1)",opacity:1}],{duration:550,easing:"ease-out"});
+  shakeScene(5,300);
   bubble(`野生的${mon.name}出現了！`);
   Hardware.notifyEncounter(mon);
   $("throwBtn").disabled=false;
 }
-function drawOrbs(){const n=CFG.ballsPerEncounter||3;$("orbs").innerHTML=Array.from({length:n},(_,i)=>`<b class="${i<n-ballsLeft?"used":""}"></b>`).join("");}
+let ballArtOk=false;
+function drawOrbs(){const n=CFG.ballsPerEncounter||3;$("orbs").innerHTML=Array.from({length:n},(_,i)=>{const u=i<n-ballsLeft?"used":"";return ballArtOk?`<img class="${u}" src="${CFG.ballUrl}" alt="">`:`<b class="${u}"></b>`;}).join("");}
 function bubble(t){$("bubble").textContent=t;}
 
 /* ---------- 動畫小工具 ---------- */
@@ -487,7 +509,7 @@ function anim(el,frames,opt){const a=el.animate(frames,{fill:"forwards",...opt,d
 function pts(){
   const s=$("scene").getBoundingClientRect(), m=$("mon").getBoundingClientRect();
   const mon={x:m.left-s.left+m.width/2,y:m.top-s.top+m.height/2};
-  return {hand:{x:s.width/2,y:s.height+30},mon,ground:{x:mon.x,y:s.height*0.76}};
+  return {hand:{x:s.width/2,y:s.height-42},mon,ground:{x:mon.x,y:s.height*0.76}};
 }
 const at=(p,extra="")=>`translate(${p.x}px,${p.y}px) ${extra}`;
 function stars(p,n=10){
@@ -498,55 +520,74 @@ function stars(p,n=10){
     anim(s,[{transform:at(p,"scale(.3)"),opacity:1},{transform:at({x:p.x+Math.cos(a)*r,y:p.y+Math.sin(a)*r},"scale(1) rotate(90deg)"),opacity:0}],{duration:800,easing:"ease-out"}).then(()=>s.remove());
   }
 }
+function shakeScene(px=6,ms=350){
+  const k=[0,-1,1,-.7,.7,-.3,0].map(f=>({transform:`translate(${f*px}px,${Math.abs(f)*px*.4}px)`}));
+  return anim($("scene"),k,{duration:ms,easing:"linear",fill:"none"});
+}
 function flash(p){const f=$("flash");return anim(f,[{transform:at(p,"scale(.2)"),opacity:1},{transform:at(p,"scale(1.4)"),opacity:0}],{duration:450,easing:"ease-out"});}
 
-/* ---------- 投擲與捕捉 ---------- */
-async function throwBall(score){
+/* ---------- 投擲與捕捉 ----------
+   onBallThrown → 球飛出、寶可夢被吸進去 → 等 onBallLanded → 落地、晃動、結果
+   抓到的機率只看稀有度（config.catchBase），不看丟得好不好                          */
+let landedResolve=null;
+async function throwBall(){
   if(!current||busy||ballsLeft<=0||screen!=="encounter")return;
   busy=true;ballsLeft--;drawOrbs();$("throwBtn").disabled=true;
-  const mon=current, ball=$("ball"), monEl=$("mon"), P=pts();
-  const p=Math.min(0.95,(CFG.catchBase[mon.rarity]??0.5)*(0.5+score));
+  const landed=new Promise(r=>landedResolve=r);
+  const mon=current, ball=$("ball"), monEl=$("mon"), sh=$("ballShadow"), P=pts();
+  const p=Math.min(0.95,CFG.catchBase[mon.rarity]??0.5);
   const q=Math.cbrt(p);                                       // 每晃一下撐住的機率，三下都撐住就抓到
   let shakes=0; while(shakes<3&&Math.random()<q) shakes++;
   const caught=shakes===3;
 
-  bubble(score>=0.85?"超棒的投擲！":score>=0.6?"不錯的投擲！":"投出去了！");
+  bubble("去吧，寶貝球！");
   // 1. 拋物線飛向寶可夢
-  ball.hidden=false;ball.classList.remove("locked");
+  $("hand").hidden=true;ball.hidden=false;ball.classList.remove("locked");
   const top={x:(P.hand.x+P.mon.x)/2,y:Math.min(P.hand.y,P.mon.y)-110};
-  await anim(ball,[{transform:at(P.hand,"rotate(0) scale(1.2)")},{transform:at(top,"rotate(360deg) scale(1)"),offset:.55},{transform:at(P.mon,"rotate(720deg) scale(.9)")}],{duration:650,easing:"cubic-bezier(.3,.6,.6,1)"});
-  // 2. 打中：閃光，寶可夢變成光被吸進球裡
-  flash(P.mon);
-  await anim(monEl,[{transform:"translate(-50%,-50%) scale(1)",filter:"brightness(1)",opacity:1},{transform:"translate(-50%,-50%) scale(1)",filter:"brightness(4)",opacity:1,offset:.3},{transform:"translate(-50%,-50%) scale(0)",filter:"brightness(4)",opacity:0}],{duration:450,easing:"ease-in"});
-  // 3. 球掉到地上彈兩下
-  await anim(ball,[{transform:at(P.mon,"rotate(0)")},{transform:at(P.ground,"rotate(0)"),offset:.55,easing:"ease-out"},{transform:at({x:P.ground.x,y:P.ground.y-28}),offset:.75,easing:"ease-in"},{transform:at(P.ground)}],{duration:600,easing:"ease-in"});
-  // 4. 搖晃（最多三下）
+  await anim(ball,[{transform:at(P.hand,"rotate(0) scale(1.25)")},{transform:at(top,"rotate(400deg) scale(1)"),offset:.55},{transform:at(P.mon,"rotate(760deg) scale(.95)")}],{duration:650,easing:"cubic-bezier(.3,.6,.6,1)"});
+  // 2. 打中：球彈開一點、閃光、畫面晃一下，寶可夢變成光被吸進球裡
+  flash(P.mon);shakeScene(7,320);
+  const up={x:P.mon.x,y:P.mon.y-40};
+  anim(ball,[{transform:at(P.mon,"rotate(0)")},{transform:at(up,"rotate(-25deg)")}],{duration:300,easing:"ease-out"});
+  await anim(monEl,[{transform:"translate(-50%,-50%) scale(1)",filter:"brightness(1)",opacity:1},{transform:"translate(-50%,-50%) scale(1.05)",filter:"brightness(5)",opacity:1,offset:.35},{transform:`translate(-50%,calc(-50% - 40px)) scale(0)`,filter:"brightness(5)",opacity:0}],{duration:520,easing:"ease-in"});
+  anim(ball,[{transform:at(up,"rotate(-25deg)")},{transform:at(up,"rotate(15deg)")},{transform:at(up,"rotate(0)")}],{duration:300});
+  // 3. 等寶貝球回報落地（模擬模式會自動送出；最多等 4 秒）
+  await Promise.race([landed,wait(4000)]);landedResolve=null;
+  await anim(ball,[{transform:at(up)},{transform:at(P.ground,"scale(1.1,.9)"),offset:.5,easing:"ease-out"},{transform:at({x:P.ground.x,y:P.ground.y-30},"scale(1)"),offset:.72,easing:"ease-in"},{transform:at(P.ground,"scale(1.08,.92)"),offset:.9},{transform:at(P.ground)}],{duration:700,easing:"ease-in"});
+  anim(sh,[{transform:at({x:P.ground.x,y:P.ground.y+24}),opacity:0},{transform:at({x:P.ground.x,y:P.ground.y+24}),opacity:1}],{duration:200});
+  shakeScene(5,260);
+  // 4. 搖晃
   bubble("……");
   const dots=[...$("shakeDots").children];dots.forEach(d=>d.classList.remove("on"));$("shakeDots").hidden=false;
-  await wait(500);
-  for(let i=0;i<Math.max(shakes,caught?3:shakes);i++){
-    await anim(ball,[{transform:at(P.ground,"rotate(0)")},{transform:at(P.ground,"rotate(-28deg)")},{transform:at(P.ground,"rotate(20deg)")},{transform:at(P.ground,"rotate(0)")}],{duration:520,easing:"ease-in-out"});
+  await wait(600);
+  for(let i=0;i<shakes;i++){
+    const deg=30-i*4;
+    await anim(ball,[{transform:at(P.ground,"rotate(0)")},{transform:at({x:P.ground.x-5,y:P.ground.y},`rotate(${-deg}deg)`)},{transform:at({x:P.ground.x+4,y:P.ground.y},`rotate(${deg*0.75}deg)`)},{transform:at({x:P.ground.x-2,y:P.ground.y},`rotate(${-deg*0.3}deg)`)},{transform:at(P.ground,"rotate(0)")}],{duration:620,easing:"ease-in-out"});
+    shakeScene(2.5,200);
     dots[i].classList.add("on");
-    await wait(450);
+    await wait(i===shakes-1&&caught?700:450);
   }
   if(caught){
     // 5a. 喀擦！抓到了
     ball.classList.add("locked");
-    stars(P.ground,12);bubble(`喀擦！抓到${mon.name}了！`);
+    shakeScene(8,420);stars(P.ground,14);bubble(`喀擦！抓到${mon.name}了！`);
     try{navigator.vibrate&&navigator.vibrate(200);}catch(e){}
     saveDex(mon);lastCaught=mon;current=null;
-    await wait(1400);
+    await wait(1500);
+    anim(sh,[{opacity:1},{opacity:0}],{duration:200});
     showResult(mon);
   }else{
     // 5b. 球彈開，寶可夢跳出來
-    await anim(ball,[{transform:at(P.ground,"rotate(0) scale(1)"),opacity:1},{transform:at(P.ground,"rotate(0) scale(1.5)"),opacity:0}],{duration:250});
+    await anim(ball,[{transform:at(P.ground,"rotate(0) scale(1)")},{transform:at(P.ground,"rotate(-8deg) scale(1.15,.85)"),offset:.4},{transform:at(P.ground,"rotate(0) scale(1.6)"),opacity:0}],{duration:320});
     ball.hidden=true;ball.getAnimations().forEach(a=>a.cancel());
-    flash(P.ground);
+    anim(sh,[{opacity:1},{opacity:0}],{duration:150});
+    flash(P.ground);shakeScene(9,380);
     const dy=P.ground.y-P.mon.y;
-    await anim(monEl,[{transform:`translate(-50%,calc(-50% + ${dy}px)) scale(0)`,filter:"brightness(4)",opacity:0},{transform:"translate(-50%,-50%) scale(1.1)",filter:"brightness(2)",opacity:1,offset:.7},{transform:"translate(-50%,-50%) scale(1)",filter:"brightness(1)",opacity:1}],{duration:500,easing:"ease-out"});
+    await anim(monEl,[{transform:`translate(-50%,calc(-50% + ${dy}px)) scale(0)`,filter:"brightness(5)",opacity:0},{transform:"translate(-50%,-62%) scale(1.12)",filter:"brightness(2)",opacity:1,offset:.65},{transform:"translate(-50%,-50%) scale(1)",filter:"brightness(1)",opacity:1}],{duration:520,easing:"ease-out"});
     $("shakeDots").hidden=true;
     if(ballsLeft>0){
       bubble(shakes===0?`${mon.name}一下就跳出來了！`:shakes===1?"啊！差一點點…":"可惜！只差一點！");
+      $("hand").hidden=false;
       $("throwBtn").disabled=false;
     }else{
       // 6. 球用完：寶可夢逃走
@@ -561,15 +602,22 @@ async function throwBall(score){
   busy=false;
 }
 
-/* 模擬投擲：按住讓指針來回跑，在綠色區放開分數最高 */
-let charging=false,t0=0,power=0,raf=0;
-function tick(t){const ph=((t-t0)/900)%2;power=ph<1?ph:2-ph;$("needle").style.left=`calc(${power*100}% - ${power*5}px)`;if(charging)raf=requestAnimationFrame(tick);}
-function startCharge(e){if($("throwBtn").disabled)return;e.preventDefault();charging=true;t0=performance.now();raf=requestAnimationFrame(tick);}
-function release(){if(!charging)return;charging=false;cancelAnimationFrame(raf);throwBall(Math.max(0,1-Math.abs(power-0.75)/0.75));}
-$("throwBtn").addEventListener("pointerdown",startCharge);
-addEventListener("pointerup",release);addEventListener("pointercancel",release);
-$("throwBtn").addEventListener("keydown",e=>{if((e.key===" "||e.key==="Enter")&&!charging&&!e.repeat)startCharge(e);});
-$("throwBtn").addEventListener("keyup",e=>{if(e.key===" "||e.key==="Enter")release();});
+/* 模擬模式：按一下＝丟出，0.7 秒後自動回報落地 */
+$("throwBtn").addEventListener("click",()=>{
+  if($("throwBtn").disabled)return;
+  window.onBallThrown();
+  if(!Hardware.connected) setTimeout(()=>window.onBallLanded(),T_(700));
+});
+
+/* 寶貝球圖片（config.ballUrl），讀不到就用內建的球 */
+function setupBallArt(){
+  if(!CFG.ballUrl)return;
+  document.querySelectorAll(".ball").forEach(b=>{
+    const im=b.querySelector("img");
+    im.onload=()=>{im.hidden=false;b.classList.add("has-img");ballArtOk=true;};
+    im.src=CFG.ballUrl;
+  });
+}
 
 /* ---------- 4 抓到了 ---------- */
 function showResult(mon){
@@ -618,7 +666,7 @@ let toastT;function toast(t){const el=$("toast");el.textContent=t;el.classList.a
 /* ---------- 開始 ---------- */
 history.replaceState(null,"","#camera");
 show("camera");
-loadData().then(updateCount).catch(err=>{
+loadData().then(()=>{updateCount();setupBallArt();}).catch(err=>{
   console.error(err);
   $("camMsg").textContent="寶可夢資料載入失敗。請用網址（例如 GitHub Pages）開啟，而不是直接打開檔案。";
 });

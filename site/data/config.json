@@ -1,8 +1,17 @@
 {
-  "packs": ["packs/gen1-starter.json"],
-  "catchBase": { "1": 0.75, "2": 0.45, "3": 0.2 },
+  "packs": [
+    "packs/gen1-starter.json"
+  ],
+  "catchBase": {
+    "1": 0.75,
+    "2": 0.45,
+    "3": 0.2
+  },
   "ballsPerEncounter": 3,
-  "candidates": 6,
+  "candidates": 8,
+  "randomness": 16,
+  "sameResultPerDay": false,
   "artUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/{id}.png",
-  "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{id}.png"
+  "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{id}.png",
+  "ballUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png"
 }
