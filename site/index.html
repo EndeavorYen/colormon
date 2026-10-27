@@ -122,7 +122,7 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 .ball.locked img{filter:brightness(.75)}
 .ball.locked .cap::after{background:var(--ink)}
 .ball-shadow{position:absolute;left:0;top:0;width:44px;height:12px;margin:-6px 0 0 -22px;border-radius:50%;background:rgba(0,0,0,.25);z-index:2;opacity:0}
-.hand{position:absolute;left:50%;top:auto;bottom:10px;margin-top:0;width:64px;height:64px;margin-left:-32px;z-index:3;animation:bob 1.6s ease-in-out infinite}
+.hand{position:absolute;left:50%;top:auto;bottom:10px;margin-top:0;width:64px;height:64px;margin-left:-32px;z-index:3;animation:bob 1.6s ease-in-out 6}
 @keyframes bob{50%{transform:translateY(-6px)}}
 .flash{position:absolute;left:0;top:0;width:160px;height:160px;margin:-80px 0 0 -80px;border-radius:50%;background:radial-gradient(circle,#fff 0,#fff 30%,transparent 70%);opacity:0;pointer-events:none;z-index:4}
 .fx i{position:absolute;left:0;top:0;width:14px;height:14px;margin:-7px 0 0 -7px;background:var(--sun);clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);z-index:5}
@@ -180,14 +180,14 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 
 /* shields */
 .shields{position:absolute;inset:0;pointer-events:none;z-index:3}
-.shields i{position:absolute;border-radius:50%;border:3px solid rgba(120,205,255,.85);box-shadow:0 0 12px rgba(120,205,255,.7),inset 0 0 14px rgba(120,205,255,.45);background:radial-gradient(circle,transparent 55%,rgba(120,205,255,.12));animation:shieldspin 2.4s ease-in-out infinite}
+.shields i{position:absolute;border-radius:50%;border:3px solid rgba(120,205,255,.85);box-shadow:0 0 12px rgba(120,205,255,.7),inset 0 0 14px rgba(120,205,255,.45);background:radial-gradient(circle,transparent 55%,rgba(120,205,255,.12));animation:shieldspin 2.4s ease-in-out 4}
 @keyframes shieldspin{50%{opacity:.6;transform:scale(1.03)}}
 .shield-hud{position:absolute;left:50%;transform:translateX(-50%);top:52px;z-index:6;background:rgba(10,30,60,.65);color:#9fdcff;font-weight:900;font-size:.85rem;border-radius:999px;padding:3px 10px;letter-spacing:1px}
 /* rarity entrance */
 .scene.gold::after,.scene.legend::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:4}
-.scene.gold::after{box-shadow:inset 0 0 40px 8px rgba(255,200,60,.75);animation:goldpulse 1.6s ease-in-out infinite}
+.scene.gold::after{box-shadow:inset 0 0 40px 8px rgba(255,200,60,.75);animation:goldpulse 1.6s ease-in-out 4}
 @keyframes goldpulse{50%{box-shadow:inset 0 0 70px 16px rgba(255,210,80,.95)}}
-.scene.legend::after{box-shadow:inset 0 0 60px 14px rgba(255,230,140,.9);animation:legendpulse 2.2s linear infinite}
+.scene.legend::after{box-shadow:inset 0 0 60px 14px rgba(255,230,140,.9);animation:legendpulse 2.2s linear 4}
 @keyframes legendpulse{0%{box-shadow:inset 0 0 60px 14px rgba(255,120,200,.85)}33%{box-shadow:inset 0 0 70px 16px rgba(120,200,255,.9)}66%{box-shadow:inset 0 0 70px 16px rgba(255,230,120,.95)}100%{box-shadow:inset 0 0 60px 14px rgba(255,120,200,.85)}}
 .rare-dim{position:absolute;inset:0;background:#000;opacity:0;z-index:5;pointer-events:none}
 .rare-flash{position:absolute;inset:0;background:#fff;opacity:0;z-index:7;pointer-events:none}
@@ -200,7 +200,7 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 .result{align-items:center;text-align:center;justify-content:center}
 .burst{position:relative;width:min(78vw,300px);aspect-ratio:1;display:grid;place-items:center}
 .burst::before{content:"";position:absolute;inset:0;border-radius:50%;
-  background:repeating-conic-gradient(color-mix(in srgb,var(--main) 45%,transparent) 0 10deg,transparent 10deg 20deg);animation:spin 12s linear infinite;
+  background:repeating-conic-gradient(color-mix(in srgb,var(--main) 45%,transparent) 0 10deg,transparent 10deg 20deg);animation:spin 12s linear 1;
   -webkit-mask:radial-gradient(circle,#000 30%,transparent 70%);mask:radial-gradient(circle,#000 30%,transparent 70%)}
 @keyframes spin{to{transform:rotate(360deg)}}
 .burst img,.burst .fb{position:relative;width:80%;height:80%;object-fit:contain;animation:popin .6s cubic-bezier(.3,1.6,.5,1)}
@@ -333,17 +333,8 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
         <button class="btn sun throw" id="throwBtn">丟出寶貝球！</button>
         <button class="btn ghost run-btn" id="runBtn">逃跑</button>
       </div>
-      <button class="btn ghost mode-btn" id="motionBtn" aria-pressed="false">真球模式：把球丟進鏡頭畫面</button>
-      <div class="sens method" id="method" hidden role="group" aria-label="丟球方式">
-        <button data-m="ball" aria-pressed="true">丟真的球<small>把球丟進畫面</small></button>
-        <button data-m="swipe" aria-pressed="false">揮手甩球<small>碰到球往上甩</small></button>
-      </div>
-      <div class="sens" id="sens" hidden role="group" aria-label="偵測靈敏度">
-        <button data-v="strict" aria-pressed="false">嚴格<small>要認出是球</small></button>
-        <button data-v="standard" aria-pressed="true">標準<small>認出球或飛得夠遠</small></button>
-        <button data-v="loose" aria-pressed="false">寬鬆<small>有東西動就算</small></button>
-      </div>
-      <div class="hw" id="hw"><span class="dot"></span><span id="hwText">按「丟出寶貝球！」，或打開真球模式</span></div>
+      <button class="btn ghost mode-btn" id="motionBtn" aria-pressed="false">鏡頭模式：揮手甩球、打護盾</button>
+      <div class="hw" id="hw"><span class="dot"></span><span id="hwText">按「丟出寶貝球！」，或打開鏡頭模式揮手甩球</span></div>
     </div>
     <button class="btn primary" id="fledBtn" hidden>繼續拍照</button>
   </section>
@@ -373,7 +364,7 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 <canvas id="cv" width="48" height="48" hidden></canvas>
 
 <script>
-const BUILD="2026.10.27-2024";
+const BUILD="2026.10.27-2053";
 /* =========================================================
    顏色寶可夢探險
    資料都在 data/：config.json 列出要載入的資料包（packs），
@@ -613,7 +604,7 @@ async function startCamera(){
     const v=$("video");v.srcObject=stream;v.hidden=false;await v.play();
     camWanted=true;
     $("camOff").hidden=true;$("reticle").hidden=false;$("liveChip").hidden=false;$("shutter").hidden=false;
-    clearInterval(liveTimer);liveTimer=setInterval(liveScan,450);
+    clearInterval(liveTimer);liveTimer=setInterval(liveScan,700);
   }catch(err){
     $("camMsg").textContent="相機打不開（可能沒有給權限）。請用下面的按鈕拍照。";
   }
@@ -624,11 +615,18 @@ function pauseCamera(){
   $("video").hidden=true;$("reticle").hidden=true;$("liveChip").hidden=true;$("shutter").hidden=true;$("camOff").hidden=false;
 }
 function resumeCamera(){ if(camWanted&&!stream) startCamera(); }
+/* 拍照畫面的即時提示：只取中間一小塊的平均顏色（拍照後才做完整分析），省電 */
+let liveCv=null;
 function liveScan(){
-  const v=$("video");if(!v.videoWidth)return;
-  const pal=palette(v,v.videoWidth,v.videoHeight);
-  $("liveDot").style.background=css(pal[0].rgb);
-  $("liveText").textContent=`看到${pal[0].word}${pal[1]?"、"+pal[1].word:""}`;
+  const v=$("video");if(!v.videoWidth||document.hidden)return;
+  liveCv??=Object.assign(document.createElement("canvas"),{width:16,height:16});
+  const g=liveCv.getContext("2d",{willReadFrequently:true}),s=Math.min(v.videoWidth,v.videoHeight)*0.4;
+  g.drawImage(v,(v.videoWidth-s)/2,(v.videoHeight-s)/2,s,s,0,0,16,16);
+  const d=g.getImageData(0,0,16,16).data;let r=0,gg=0,b=0;
+  for(let i=0;i<d.length;i+=4){r+=d[i];gg+=d[i+1];b+=d[i+2];}
+  const n=d.length/4,rgb=[r/n,gg/n,b/n];
+  $("liveDot").style.background=css(rgb);
+  $("liveText").textContent=`看到${colorWord(rgb)}`;
 }
 $("liveBtn").onclick=startCamera;
 $("shutter").onclick=()=>{
@@ -1013,11 +1011,11 @@ function largestBlob(mask,W,H){
 
 /* 手機本身在動（手持、被碰到）時暫停偵測 */
 let phoneMovingUntil=0;
-addEventListener("devicemotion",e=>{
+function onPhoneMotion(e){
   const r=e.rotationRate;if(!r)return;
   const rot=Math.hypot(r.alpha||0,r.beta||0,r.gamma||0);
   if(rot>(CFG?.ball?.phoneMotionDeg??60)) phoneMovingUntil=performance.now()+700;
-});
+}
 function askMotionPermission(){
   try{ if(typeof DeviceMotionEvent!=="undefined"&&DeviceMotionEvent.requestPermission) DeviceMotionEvent.requestPermission().catch(()=>{}); }catch(e){}
 }
@@ -1062,13 +1060,13 @@ async function startAR(){
   }catch(e){toast("相機打不開，請確認有給相機權限");setBallMode(false);return;}
   const v=$("arVideo");v.srcObject=AR.stream;v.hidden=false;try{await v.play();}catch(e){}
   $("scene").classList.add("ar");$("arChip").hidden=false;
-  AR.watcher=new ThrowWatcher(arConfig());AR.longWatcher=new ThrowWatcher({...arConfig(),minTravel:arConfig().longTravel??0.3});AR.balls=[];AR.ballTrack=[];AR.pendingUntil=0;
-  loadBallDetector();
-  AR.cv??=Object.assign(document.createElement("canvas"),{width:AR.W,height:AR.H});
-  cancelAnimationFrame(AR.raf);AR.raf=requestAnimationFrame(arLoop);
+  AR.motion=new LiteMotion(AR.W,AR.H);AR.lastActive=performance.now();
+  addEventListener("devicemotion",onPhoneMotion);
+  clearTimeout(AR.raf);AR.raf=setTimeout(arLoop,100);
 }
 function stopAR(){
-  cancelAnimationFrame(AR.raf);
+  clearTimeout(AR.raf);AR.raf=0;
+  removeEventListener("devicemotion",onPhoneMotion);
   if(AR.stream){if(!AR.shared)AR.stream.getTracks().forEach(t=>t.stop());AR.stream=null;}
   $("arVideo").hidden=true;$("scene").classList.remove("ar");$("arChip").hidden=true;$("ballMark").hidden=true;
   AR.watcher=null;AR.longWatcher=null;AR.throwActive=false;
@@ -1089,87 +1087,31 @@ function videoToScene(nx,ny){
   const k=Math.max(s.width/vw,s.height/vh),dw=vw*k,dh=vh*k;
   return {x:nx*dw-(dw-s.width)/2,y:ny*dh-(dh-s.height)/2};
 }
-function arLoop(t){
-  AR.raf=requestAnimationFrame(arLoop);
-  const v=$("arVideo");
-  if(!v.videoWidth||!AR.watcher||t-AR.lastT<66)return;      // 約 15 FPS
-  AR.lastT=t;
-  const w=AR.watcher;
-  if(performance.now()<phoneMovingUntil){
-    w.pause();AR.longWatcher.pause();AR.motion?.reset();$("ballMark").hidden=true;$("arChip").textContent="手機晃動太大，稍微拿穩一點";return;
-  }
-  const fr=arFrameYUV();
-  AR.motion??=new MotionMap();
-  motionActions(t,AR.motion.update(fr,AR.W,AR.H));
-  if(AR.method==="swipe"){$("ballMark").hidden=true;if(!$("hand").classList.contains("touched"))$("arChip").textContent=arArmed()?"把手伸到寶貝球那裡，往上甩！":"等一下…";return;}
-  const {blob,event}=w.update(t,fr.y,AR.W,AR.H,arConfig().useColor===false?null:fr.uv);
-  const oc=odConfig();
-
-  // 球辨識（每 100ms 一次）
-  if(AR.detector&&t-AR.lastDetT>=oc.detectEveryMs){
-    AR.lastDetT=t;AR.balls=detectBalls(t);
-    const b=AR.balls[0];
-    if(b){AR.ballTrack.push({x:b.x,y:b.y,t});AR.ballTrack=AR.ballTrack.filter(p=>t-p.t<600);} else AR.ballTrack=[];
-  }
-  const ball=AR.balls[0];
-
-  // 標記：辨識到的球用綠框，只有移動用黃圈
-  const mark=$("ballMark");
-  const target=ball?{x:ball.x,y:ball.y,r:Math.max(ball.w,ball.h)/2}:blob;
-  if(target&&arConfig().showMarker!==false){
-    const p=videoToScene(target.x,target.y),d=Math.max(28,target.r*2*$("scene").clientWidth*1.3);
-    mark.hidden=false;mark.style.borderColor=ball?"#4CC27E":"#FFC53D";
-    mark.style.width=mark.style.height=d+"px";mark.style.margin=`${-d/2}px 0 0 ${-d/2}px`;mark.style.transform=`translate(${p.x}px,${p.y}px)`;
-  }else mark.hidden=true;
-
-  const fire=()=>{AR.throwActive=true;AR.pendingUntil=0;sfx("throw");window.onBallThrown();if(w.state!=="flying"){w.state="flying";w.flyStart=t;w.lastMotionT=t;}};
-  // 偵測模式：strict 要認出是球；standard 認出是球、或長距離平滑移動；loose 只看移動
-  const mode=AR.sensitivity, hasDet=!!AR.detector;
-  const longMove=AR.longWatcher.update(t,fr.y,AR.W,AR.H,arConfig().useColor===false?null:fr.uv).event==="thrown";
-  if(arArmed()&&!AR.throwActive){
-    const tr=AR.ballTrack,ballMoving=tr.length>=2&&Math.hypot(tr[tr.length-1].x-tr[0].x,tr[tr.length-1].y-tr[0].y)>=oc.minTravel;
-    if(event==="thrown") AR.pendingUntil=t+oc.confirmWindowMs;
-    const confirmed=hasDet&&((AR.pendingUntil&&t<=AR.pendingUntil&&ball)||ballMoving);
-    if(mode==="loose"?(event==="thrown"||ballMoving)
-      :mode==="strict"&&hasDet?confirmed
-      :(confirmed||longMove)) fire();
-    else if(AR.pendingUntil&&t>AR.pendingUntil){
-      AR.pendingUntil=0; if(w.state==="flying") w.reset();
-    }
-  }
-  if(event==="landed"&&AR.throwActive){AR.throwActive=false;window.onBallLanded();}
-
-  const how=AR.detector?"球辨識":AR.detLoading?"載入球辨識中…":"移動偵測";
-  $("arChip").textContent=(w.state==="flying"&&AR.throwActive)?"丟進來了！":AR.pendingUntil&&mode==="strict"?"有東西在動…是球嗎？":arArmed()?`把球丟進畫面裡！（${how}）`:"等一下…";
+/* 鏡頭模式的迴圈：每秒 10 次（一陣子沒動靜就降到每秒 4 次），只看寶貝球和寶可夢附近 */
+function arLoop(){
+  AR.raf=0;
+  if(!AR.stream||document.hidden)return;
+  const v=$("arVideo"),again=ms=>{AR.raf=setTimeout(arLoop,ms);};
+  if(!v.videoWidth){again(250);return;}
+  const t=performance.now();
+  if(t<phoneMovingUntil){AR.motion.reset();$("arChip").textContent="手機晃動太大，稍微拿穩一點";again(150);return;}
+  AR.motion.grab(v);
+  if(motionActions(t,AR.motion)) AR.lastActive=t;
+  if(!$("hand").classList.contains("touched")) $("arChip").textContent=arArmed()?"把手伸到寶貝球那裡，往上甩！":SHIELD.hp?"對著寶可夢揮手打護盾！":"等一下…";
+  const c=CFG?.camera||{};
+  again(t-AR.lastActive<(c.idleAfterMs??3000)?(c.activeMs??100):(c.idleMs??250));
 }
-const METHOD_KEY="colormon-ball-method";
-try{AR.method=localStorage.getItem(METHOD_KEY)||"ball";}catch(e){AR.method="ball";}
-function setMethod(m){
-  AR.method=m;try{localStorage.setItem(METHOD_KEY,m);}catch(e){}
-  document.querySelectorAll("#method button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.m===m));
-  $("sens").hidden=!AR.on||m!=="ball";
-  $("hand").classList.toggle("swipe",AR.on&&m==="swipe");
-  if(AR.on)$("hwText").textContent=m==="swipe"?"手伸到畫面下方的寶貝球，往上甩就丟出去":"後鏡頭對著地板，把東西丟進畫面";
-}
-document.querySelectorAll("#method button").forEach(b=>b.onclick=()=>setMethod(b.dataset.m));
+
+AR.method="swipe";
 function setBallMode(on){
   AR.on=on;
   try{localStorage.setItem(BALL_MODE_KEY,on?"1":"0");}catch(e){}
   $("motionBtn").setAttribute("aria-pressed",on);
-  $("motionBtn").textContent=on?"關閉真球模式":"真球模式：把球丟進鏡頭畫面";
-  $("hwText").textContent=on?"後鏡頭對著地板，把東西丟進畫面":"按「丟出寶貝球！」，或打開真球模式";
-  $("method").hidden=!on;
-  setMethod(AR.method);
+  $("motionBtn").textContent=on?"關閉鏡頭模式":"鏡頭模式：揮手甩球、打護盾";
+  $("hwText").textContent=on?"手伸到畫面下方的寶貝球，往上甩就丟出去；對著寶可夢揮手可以打護盾":"按「丟出寶貝球！」，或打開鏡頭模式揮手甩球";
+  $("hand").classList.toggle("swipe",on);
   if(on&&screen==="encounter") startAR(); else stopAR();
 }
-const SENS_KEY="colormon-ball-sensitivity";
-try{AR.sensitivity=localStorage.getItem(SENS_KEY)||"standard";}catch(e){AR.sensitivity="standard";}
-function setSensitivity(v){
-  AR.sensitivity=v;try{localStorage.setItem(SENS_KEY,v);}catch(e){}
-  document.querySelectorAll("#sens button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.v===v));
-}
-document.querySelectorAll("#sens button").forEach(b=>b.onclick=()=>setSensitivity(b.dataset.v));
-setSensitivity(AR.sensitivity);
 $("motionBtn").onclick=()=>{ if(!AR.on) askMotionPermission(); setBallMode(!AR.on); };
 try{AR.on=localStorage.getItem(BALL_MODE_KEY)==="1";}catch(e){}
 
@@ -1259,28 +1201,27 @@ $("mon").addEventListener("pointerdown",e=>{if(SHIELD.hp){e.preventDefault();hit
 /* =========================================================
    鏡頭動作偵測：揮手甩球、打護盾（比較前後兩張畫面的變化）
    ========================================================= */
-class MotionMap{
-  constructor(){this.prev=null;this.prevUV=null;this.shifter=new ThrowWatcher({});}
-  reset(){this.prev=null;this.prevUV=null;}
-  update(fr,W,H){
-    const g=fr.y,uv=fr.uv,p=this.prev,pu=this.prevUV;this.prev=g;this.prevUV=uv;
-    if(!p)return null;
-    const [dx,dy]=this.shifter.globalShift(g,p,W,H),m=3,mask=new Uint8Array(W*H);
-    for(let y=m+1;y<H-m-1;y++)for(let x=m+1;x<W-m-1;x++){
-      const k=y*W+x,pk=(y-dy)*W+(x-dx);
-      const grad=Math.abs(p[pk+1]-p[pk-1])+Math.abs(p[pk+W]-p[pk-W]);
-      const diff=Math.abs(g[k]-p[pk])+0.8*(Math.abs(uv[0][k]-pu[0][pk])+Math.abs(uv[1][k]-pu[1][pk]));
-      if(diff>30+0.6*grad)mask[k]=1;
+/* 輕量的動作偵測：只抓一張 96×72 的小畫面，而且只在需要的區域（寶貝球、寶可夢附近）比較前後差異，
+   不處理整張畫面、不算整體位移，運算量很小 */
+class LiteMotion{
+  constructor(W,H){this.W=W;this.H=H;this.cv=Object.assign(document.createElement("canvas"),{width:W,height:H});this.ctx=this.cv.getContext("2d",{willReadFrequently:true});this.cur=null;this.prev=null;}
+  reset(){this.cur=null;this.prev=null;}
+  grab(v){this.ctx.drawImage(v,0,0,this.W,this.H);this.prev=this.cur;this.cur=this.ctx.getImageData(0,0,this.W,this.H).data;}
+  /* (cx,cy) 為中心、半寬 rx、半高 ry（0~1）的方框裡有多少變化、變化的中心在哪 */
+  region(cx,cy,rx,ry=rx){
+    const W=this.W,H=this.H,a=this.cur,b=this.prev;
+    if(!a||!b)return {n:0,x:cx,y:cy};
+    const x0=Math.max(1,Math.floor((cx-rx)*W)),x1=Math.min(W-2,Math.ceil((cx+rx)*W)),y0=Math.max(1,Math.floor((cy-ry)*H)),y1=Math.min(H-2,Math.ceil((cy+ry)*H));
+    let n=0,sx=0,sy=0;
+    for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){
+      const i=(y*W+x)*4;
+      const d=Math.abs(a[i]-b[i])+Math.abs(a[i+1]-b[i+1])+Math.abs(a[i+2]-b[i+2]);
+      if(d<70)continue;
+      const g=Math.abs(b[i+4]-b[i-4])+Math.abs(b[i+W*4]-b[i-W*4]);            // 有紋理的地方門檻提高（手持微晃）
+      if(d>70+g*1.2){n++;sx+=x;sy+=y;}
     }
-    return mask;
+    return {n,x:n?(sx/n+.5)/W:cx,y:n?(sy/n+.5)/H:cy};
   }
-}
-/* 在影片座標 (cx,cy) 半徑 r（以寬度為單位）裡有多少變化、變化的中心在哪 */
-function regionMotion(mask,W,H,cx,cy,rx,ry=rx){
-  let n=0,sx=0,sy=0;
-  const x0=Math.max(0,Math.floor((cx-rx)*W)),x1=Math.min(W-1,Math.ceil((cx+rx)*W)),y0=Math.max(0,Math.floor((cy-ry)*H)),y1=Math.min(H-1,Math.ceil((cy+ry)*H));
-  for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++) if(mask[y*W+x]){n++;sx+=x;sy+=y;}
-  return {n,x:n?(sx/n+.5)/W:cx,y:n?(sy/n+.5)/H:cy};
 }
 /* 場景座標 → 影片座標（0~1） */
 function sceneToVideo(px,py){
@@ -1291,22 +1232,25 @@ function sceneToVideo(px,py){
 const SWIPE={hist:[],touchT:0,cool:0};
 function swipeConfig(){return {touchRadius:.13,minTouch:6,riseMin:.09,windowMs:600,minHit:10,hitRadius:.2,...(CFG?.swipe||{})};}
 /* 每一格畫面：揮手甩球（碰到畫面下方的寶貝球、往上甩）和打護盾 */
-function motionActions(t,mask){
-  if(!mask||screen!=="encounter")return;
-  const c=swipeConfig(),W=AR.W,H=AR.H,sRect=$("scene").getBoundingClientRect();
+function motionActions(t,M){
+  if(screen!=="encounter")return false;
+  const c=swipeConfig(),sRect=$("scene").getBoundingClientRect();let active=false;
   // 打護盾：寶可夢的位置有夠多變化
   if(SHIELD.hp&&!busy&&current){
     const m=$("mon").getBoundingClientRect(),mc=sceneToVideo(m.left-sRect.left+m.width/2,m.top-sRect.top+m.height/2);
-    if(regionMotion(mask,W,H,mc.x,mc.y,c.hitRadius,c.hitRadius*1.2).n>=c.minHit) hitShield();
+    const r=M.region(mc.x,mc.y,c.hitRadius,c.hitRadius*1.2);
+    if(r.n>=3)active=true;
+    if(r.n>=c.minHit) hitShield();
   }
-  if(AR.method!=="swipe"||!arArmed()){SWIPE.hist=[];$("hand").classList.remove("touched");return;}
+  if(!arArmed()){SWIPE.hist=[];$("hand").classList.remove("touched");return active;}
   // 甩球：手碰到寶貝球，接著往上移動
   const h=$("hand").getBoundingClientRect(),hc=sceneToVideo(h.left-sRect.left+h.width/2,h.top-sRect.top+h.height/2);
-  const touch=regionMotion(mask,W,H,hc.x,hc.y,c.touchRadius,c.touchRadius*1.3);
+  const touch=M.region(hc.x,hc.y,c.touchRadius,c.touchRadius*1.3);
+  if(touch.n>=2)active=true;
   if(touch.n>=c.minTouch){SWIPE.touchT=t;$("hand").classList.add("touched");$("arChip").textContent="碰到了！往上甩！";}
   else if(t-SWIPE.touchT>c.windowMs)$("hand").classList.remove("touched");
   if(t-SWIPE.touchT<=c.windowMs){
-    const area=regionMotion(mask,W,H,hc.x,hc.y-c.touchRadius*2,c.touchRadius*2,c.touchRadius*3.2);   // 球上方一大塊
+    const area=M.region(hc.x,hc.y-c.touchRadius*2,c.touchRadius*2,c.touchRadius*3.2);   // 球上方一大塊
     if(area.n>=c.minTouch) SWIPE.hist.push({y:area.y,t});
     SWIPE.hist=SWIPE.hist.filter(p=>t-p.t<=c.windowMs);
     if(SWIPE.hist.length>=2&&t>=SWIPE.cool){
@@ -1319,6 +1263,7 @@ function motionActions(t,mask){
       }
     }
   }
+  return active;
 }
 
 /* =========================================================
@@ -1341,25 +1286,15 @@ function cameraYaw(a,b,g){
 const dirVec=(y,p)=>{const Y=y*Math.PI/180,P=p*Math.PI/180;return [Math.cos(P)*Math.sin(Y),Math.cos(P)*Math.cos(Y),Math.sin(P)];};
 const angBetween=(a,b)=>{const u=dirVec(a.yaw,a.pitch),v=dirVec(b.yaw,b.pitch);return Math.acos(Math.max(-1,Math.min(1,u[0]*v[0]+u[1]*v[1]+u[2]*v[2])))*180/Math.PI;};
 const angDiff=(a,b)=>((a-b+540)%360)-180;
-addEventListener("deviceorientation",e=>{
+function onOrient(e){
   if(e.alpha==null)return;
   const r=cameraYaw(e.alpha,e.beta,e.gamma);
   EX.hasOrient=true;EX.flat=r.flat;
   EX.rawYaw=EX.rawYaw==null?r.yaw:EX.rawYaw+angDiff(r.yaw,EX.rawYaw)*0.35;   // 平滑
   EX.rawPitch=EX.rawPitch==null?r.pitch:EX.rawPitch+(r.pitch-EX.rawPitch)*0.35;
-});
+}
 function currentYaw(){return (EX.rawYaw??0)+EX.manual;}
 function currentPitch(){return Math.max(-80,Math.min(80,(EX.rawPitch??0)+EX.manualPitch));}
-/* 走路：加速度計的步伐偵測（每一步會有一個重力以外的加速度尖峰） */
-addEventListener("devicemotion",e=>{
-  const a=e.accelerationIncludingGravity;if(!a||a.x==null)return;
-  EX.hasMotion=true;
-  const mag=Math.hypot(a.x,a.y,a.z);
-  EX.gBase+= (mag-EX.gBase)*0.05;                                 // 慢慢追蹤重力基準
-  const dev=mag-EX.gBase,c=exConfig(),now=performance.now();
-  if(dev>c.stepThreshold&&EX.stepArmed&&now-EX.lastStepT>330){EX.stepArmed=false;EX.lastStepT=now;exStep();}
-  if(dev<c.stepThreshold*0.4) EX.stepArmed=true;
-});
 function exStep(){
   if(screen!=="explore"||!EX.started||EX.found||EX.stepsLeft<=0)return;
   const c=exConfig(),dy=Math.abs(angDiff(EX.target.yaw,currentYaw()));
@@ -1415,10 +1350,13 @@ async function startExploreCamera(){
     }catch(e){$("exNote").textContent="相機打不開，還是可以玩，找到後用範例顏色。";}
   }
   $("exReticle").hidden=false;$("exChip").hidden=false;
-  cancelAnimationFrame(EX.raf);EX.raf=requestAnimationFrame(exLoop);
+  addEventListener("deviceorientation",onOrient);
+  clearTimeout(EX.raf);EX.raf=setTimeout(exLoop,50);
 }
 function stopExploreCamera(){
-  cancelAnimationFrame(EX.raf);
+  clearTimeout(EX.raf);clearTimeout(EX.closeTimer);
+  removeEventListener("deviceorientation",onOrient);
+  if(AR.stream&&AR.stream===EX.stream){EX.stream=null;return;}   // 鏡頭模式正在共用，交給它關
   if(EX.stream){EX.stream.getTracks().forEach(t=>t.stop());EX.stream=null;}
   $("exVideo").hidden=true;
 }
@@ -1428,8 +1366,11 @@ function resumeExplore(){
 }
 /* 離開探索畫面：如果是去遭遇／結果（還會回來），相機保持開著，只停提示；回到拍照畫面才關相機 */
 function pauseExplore(next){
-  cancelAnimationFrame(EX.raf);
-  if(next==="camera"||!EX.started) stopExploreCamera();
+  clearTimeout(EX.raf);removeEventListener("deviceorientation",onOrient);
+  clearTimeout(EX.closeTimer);
+  if(next==="camera"||!EX.started){stopExploreCamera();return;}
+  // 去遭遇／結果畫面：相機先開著，15 秒沒回來就關掉省電（回來會自動重開）
+  EX.closeTimer=setTimeout(()=>{if(screen!=="explore")stopExploreCamera();},CFG?.camera?.exploreKeepMs??15000);
 }
 function newTarget(){
   const c=exConfig(),off=c.minTargetDeg+Math.random()*(c.maxTargetDeg-c.minTargetDeg);
@@ -1440,9 +1381,12 @@ function newTarget(){
   $("exSteps").textContent=EX.stepsLeft>0?`寶可夢在 ${EX.stepsLeft} 步遠的地方`:"";
   $("exStepBtn").hidden=EX.hasMotion||EX.stepsLeft<=0;          // 沒有加速度計：用按鈕代替走路
 }
-function exLoop(t){
-  EX.raf=requestAnimationFrame(exLoop);
-  if(screen!=="explore"||!EX.started||EX.found)return;
+function exLoop(){
+  EX.raf=0;
+  if(screen!=="explore"||!EX.started||document.hidden)return;
+  EX.raf=setTimeout(exLoop,50);                                // 每秒 20 次就夠順
+  const t=performance.now();
+  if(EX.found)return;
   const c=exConfig();
   if(EX.flat&&EX.hasOrient){$("exText").textContent="把手機立起來，鏡頭朝前";setWarm(0);return;}
   const cur={yaw:currentYaw(),pitch:currentPitch()};
@@ -1605,6 +1549,18 @@ function setMuted(m){
 }
 $("muteBtn").onclick=()=>{unlockAudio();setMuted(!muted);if(!muted)setTimeout(()=>sfx("tap"),30);};
 setMuted(muted);
+
+/* ---------- 切到背景或鎖螢幕：相機、運算、感測器、聲音全部停；回來再依畫面恢復 ---------- */
+document.addEventListener("visibilitychange",()=>{
+  if(document.hidden){
+    pauseCamera();stopAR();clearTimeout(EX.raf);EX.raf=0;removeEventListener("deviceorientation",onOrient);
+    if(EX.stream&&!AR.stream){EX.stream.getTracks().forEach(t=>t.stop());EX.stream=null;}
+    try{audioCtx&&audioCtx.suspend();}catch(e){}
+  }else{
+    try{audioCtx&&audioCtx.resume();}catch(e){}
+    show(screen);
+  }
+});
 
 /* ---------- 開始 ---------- */
 // LINE 等 App 內建瀏覽器常擋相機：LINE 支援 openExternalBrowser=1 直接改用手機預設瀏覽器
