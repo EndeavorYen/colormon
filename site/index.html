@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head><body>
+<title>顏色寶可夢探險</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Noto+Sans+TC:wght@400;700;900&display=swap">
+<style>
+/* Layout: one narrow column like a field notebook — camera → color reading → encounter → collection */
+:root{
+  --bg:#EAF1F8; --card:#FFFFFF; --ink:#18202E; --muted:#5B6678; --line:#D3DDE9;
+  --sun:#FFC53D; --sunInk:#3A2A00; --good:#2E9E5B; --bad:#D9534F;
+  --display:"Baloo 2","Noto Sans TC",system-ui,sans-serif;
+  --body:"Noto Sans TC",system-ui,-apple-system,"PingFang TC",sans-serif;
+  --type:#9AA0A6; --main:#9AA0A6; --accent:#ccc; --glyph:#fff;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#111723; --card:#1A2232; --ink:#EEF2F8; --muted:#9AA6BA; --line:#2C374B;
+  --sun:#FFC53D; --sunInk:#2A1E00; --good:#4CC27E; --bad:#F07A75; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111723; --card:#1A2232; --ink:#EEF2F8; --muted:#9AA6BA; --line:#2C374B;
+  --sun:#FFC53D; --sunInk:#2A1E00; --good:#4CC27E; --bad:#F07A75; color-scheme:dark}
+
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55}
+.wrap{max-width:480px;margin:0 auto;padding-block:20px 48px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:16px}
+header h1{font-family:var(--display);font-weight:900;font-size:1.9rem;line-height:1.15;margin:0;text-wrap:balance}
+header p{margin:4px 0 0;color:var(--muted);font-size:.92rem}
+.step{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.label{font-size:.75rem;letter-spacing:.08em;color:var(--muted);font-weight:700}
+button{font:inherit;cursor:pointer}
+button:focus-visible,label.cam:focus-within{outline:3px solid var(--sun);outline-offset:2px}
+
+.cam{display:flex;align-items:center;justify-content:center;gap:10px;background:var(--ink);color:var(--bg);border:0;
+  border-radius:14px;padding:14px;font-weight:900;font-size:1.05rem;cursor:pointer;position:relative}
+.cam.alt{background:transparent;color:var(--ink);border:2px solid var(--ink)}
+.cam input{position:absolute;opacity:0;width:1px;height:1px}
+.viewer{position:relative;width:100%;max-width:100%;aspect-ratio:1;border-radius:14px;overflow:hidden;background:#000}
+.viewer video{width:100%;height:100%;object-fit:cover;display:block}
+.reticle{position:absolute;inset:22%;border:3px dashed rgba(255,255,255,.85);border-radius:50%;pointer-events:none}
+.live-chip{position:absolute;left:10px;bottom:10px;right:10px;display:flex;gap:8px;align-items:center;background:rgba(0,0,0,.55);
+  color:#fff;border-radius:999px;padding:6px 12px 6px 6px;font-size:.88rem;font-weight:700}
+.live-chip i{width:24px;height:24px;border-radius:50%;flex:none;border:2px solid #fff}
+.shutter{width:72px;height:72px;border-radius:50%;border:5px solid var(--ink);background:var(--sun);align-self:center}
+.note{font-size:.82rem;color:var(--muted);margin:0}
+.samples{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.samples span{font-size:.85rem;color:var(--muted)}
+.chip{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;padding:6px 12px;font-size:.88rem}
+.chip:hover{border-color:var(--ink)}
+
+.reading{display:grid;grid-template-columns:96px 1fr;gap:14px;align-items:center}
+.reading img{width:96px;height:96px;object-fit:cover;border-radius:12px;border:1px solid var(--line)}
+.reading .txt{min-width:0}
+.big{font-weight:900;font-size:1.1rem}
+.palette{display:flex;height:26px;border-radius:7px;overflow:hidden;margin-top:8px;border:1px solid var(--line)}
+.palette i{display:block;height:100%}
+.pal-legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.8rem;color:var(--muted);margin-top:6px;font-variant-numeric:tabular-nums}
+.pal-legend span::before{content:"";display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--c);margin-right:4px;border:1px solid var(--line)}
+.badge-tag{font-size:.7rem;background:var(--sun);color:var(--sunInk);padding:1px 8px;border-radius:999px;font-weight:700;margin-left:6px;vertical-align:2px}
+
+.encounter{align-items:center;text-align:center;position:relative;overflow:hidden}
+.encounter::before{content:"";position:absolute;inset:0 0 auto;height:120px;background:var(--main);opacity:.18}
+.mon{position:relative;width:150px;height:150px;border-radius:50%;background:var(--main);display:grid;place-items:center;
+  box-shadow:0 0 0 10px var(--accent);transition:transform .4s,opacity .4s}
+.mon svg{width:60px;height:60px;fill:var(--glyph)}
+.mon img{position:absolute;inset:6%;width:88%;height:88%;object-fit:contain;filter:drop-shadow(0 4px 6px rgba(0,0,0,.25))}
+.mon.has-art{background:var(--card)}
+.mon.has-art svg,.mon.has-art .no{display:none}
+.dex div img{width:56px;height:56px;image-rendering:pixelated;align-self:center}
+.mon .no{position:absolute;bottom:20px;font-family:var(--display);font-weight:800;color:var(--glyph);font-size:1rem;letter-spacing:.04em}
+.mon.gone{transform:scale(.2);opacity:0}
+.mon.appear{animation:pop .5s cubic-bezier(.3,1.6,.5,1)}
+@keyframes pop{from{transform:scale(.3)}to{transform:scale(1)}}
+.name{font-family:var(--display);font-weight:900;font-size:1.8rem;margin:6px 0 0;line-height:1.2}
+.meta{display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap;font-size:.9rem}
+.type-pill{background:var(--type);color:#fff;padding:2px 12px;border-radius:999px;font-weight:700}
+.stars{color:#E8A100;letter-spacing:2px;font-size:1.05rem}
+.why{width:100%;display:flex;flex-direction:column;gap:6px;font-size:.85rem;border-top:1px dashed var(--line);border-bottom:1px dashed var(--line);padding:10px 0}
+.why .row{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.dots{display:inline-flex;gap:3px}
+.dots i{width:18px;height:18px;border-radius:50%;border:1px solid var(--line)}
+.sim{font-family:var(--display);font-weight:800;font-size:1.05rem;font-variant-numeric:tabular-nums}
+.near{color:var(--muted)}
+
+.orbs{display:flex;gap:8px;justify-content:center}
+.orbs b{width:16px;height:16px;border-radius:50%;background:var(--sun);border:2px solid var(--ink)}
+.orbs b.used{background:transparent;opacity:.35}
+.meter{width:100%;height:26px;border-radius:13px;background:var(--line);position:relative;overflow:hidden}
+.meter .zone{position:absolute;left:62%;width:26%;top:0;bottom:0;background:color-mix(in srgb,var(--good) 55%,transparent)}
+.meter .zone::after{content:"";position:absolute;left:46%;width:8%;top:0;bottom:0;background:var(--good)}
+.meter .needle{position:absolute;top:-2px;bottom:-2px;width:5px;border-radius:3px;background:var(--ink);left:0}
+.throw{width:100%;background:var(--sun);color:var(--sunInk);border:0;border-radius:14px;padding:16px;font-weight:900;font-size:1.15rem;
+  touch-action:none;user-select:none;-webkit-user-select:none}
+.throw:disabled{opacity:.45;cursor:default}
+.again{background:var(--ink);color:var(--bg);border:0;border-radius:14px;padding:12px 18px;font-weight:700}
+.msg{min-height:1.6em;font-weight:700}
+.msg.ok{color:var(--good)} .msg.no{color:var(--bad)}
+.capsule{position:relative;width:56px;height:56px;border-radius:50%;background:var(--sun);border:4px solid var(--ink)}
+.capsule::after{content:"";position:absolute;inset:16px;border-radius:50%;background:var(--card);border:3px solid var(--ink)}
+.capsule.shake{animation:shake 2.4s ease-in-out}
+@keyframes shake{0%,100%{transform:rotate(0)}8%{transform:rotate(-24deg)}16%{transform:rotate(18deg)}24%{transform:rotate(0)}
+  41%{transform:rotate(-24deg)}49%{transform:rotate(18deg)}57%{transform:rotate(0)}74%{transform:rotate(-24deg)}82%{transform:rotate(18deg)}90%{transform:rotate(0)}}
+.hw{font-size:.82rem;color:var(--muted);display:flex;gap:8px;align-items:center}
+.hw .dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
+
+.dex-head{display:flex;justify-content:space-between;align-items:baseline}
+.dex-head .count{font-family:var(--display);font-weight:800;font-variant-numeric:tabular-nums}
+.dex{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.dex div{border:1px solid var(--line);border-radius:12px;padding:8px;font-size:.85rem;display:flex;flex-direction:column;gap:2px;min-width:0}
+.dex div b{font-family:var(--display);font-variant-numeric:tabular-nums;font-size:.78rem;color:var(--muted);font-weight:600}
+.dex div span{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dex div i{display:block;height:4px;border-radius:2px}
+.empty{color:var(--muted);font-size:.9rem}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);
+  padding:10px 16px;border-radius:12px;font-size:.9rem;opacity:0;transition:opacity .3s;pointer-events:none;max-width:calc(100% - 32px)}
+.toast.show{opacity:1}
+@media (prefers-reduced-motion:reduce){.capsule.shake,.mon.appear{animation:none}.mon{transition:none}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>顏色寶可夢探險</h1>
+    <p>對準身邊的東西拍一張，照片的顏色最像哪隻寶可夢，牠就會出現。</p>
+  </header>
+
+  <section class="step">
+    <div class="label">1．拍照</div>
+    <div class="viewer" id="viewer" hidden>
+      <video id="video" playsinline muted autoplay></video>
+      <div class="reticle"></div>
+      <div class="live-chip"><i id="liveDot"></i><span id="liveText">對準中…</span></div>
+    </div>
+    <button class="shutter" id="shutter" hidden aria-label="拍照"></button>
+    <button class="cam" id="liveBtn">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9 4h6l1.5 2H20a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3.5L9 4zm3 4.5a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9z"/></svg>
+      打開相機取景
+    </button>
+    <label class="cam alt" for="photo">用手機相機拍一張 / 選照片
+      <input id="photo" type="file" accept="image/*" capture="environment">
+    </label>
+    <p class="note" id="camNote" hidden></p>
+    <div class="samples"><span>範例照片：</span>
+      <button class="chip" data-s="grass">草地</button><button class="chip" data-s="sky">天空</button>
+      <button class="chip" data-s="sunset">夕陽</button><button class="chip" data-s="banana">香蕉</button>
+      <button class="chip" data-s="night">夜晚</button>
+    </div>
+  </section>
+
+  <section class="step">
+    <div class="label">2．顏色分析</div>
+    <div class="reading">
+      <img id="thumb" alt="拍到的照片">
+      <div class="txt">
+        <div class="big" id="colorLine">…</div>
+        <div class="palette" id="palette"></div>
+        <div class="pal-legend" id="palLegend"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="step encounter" id="enc">
+    <div class="label" style="position:relative">3．野生的寶可夢出現了！</div>
+    <div class="mon" id="mon"><svg viewBox="0 0 24 24" id="glyph"><path d=""/></svg><span class="no" id="monNo"></span><img id="art" alt="" hidden></div>
+    <div class="capsule" id="capsule" hidden></div>
+    <h2 class="name" id="monName"></h2>
+    <div class="meta"><span class="type-pill" id="monType"></span><span class="stars" id="monStars"></span></div>
+    <div class="why">
+      <div class="row">照片 <span class="dots" id="whyPhoto"></span> 牠的顏色 <span class="dots" id="whyMon"></span> <span class="sim" id="sim"></span></div>
+      <div class="near" id="near"></div>
+    </div>
+    <div class="orbs" id="orbs"></div>
+    <div class="meter" aria-hidden="true"><div class="zone"></div><div class="needle" id="needle"></div></div>
+    <button class="throw" id="throwBtn">按住蓄力，放開丟球</button>
+    <div class="msg" id="msg"></div>
+    <button class="again" id="againBtn" hidden>再拍一張</button>
+    <div class="hw"><span class="dot"></span><span>寶貝球未連線，先用上面的按鈕模擬投擲</span></div>
+  </section>
+
+  <section class="step">
+    <div class="dex-head"><div class="label">我的圖鑑</div><div class="count" id="dexCount">0</div></div>
+    <div class="dex" id="dex"></div>
+  </section>
+</div>
+<div class="toast" id="toast"></div>
+<canvas id="cv" width="48" height="48" hidden></canvas>
+
+<script>
+/* ---------- 屬性 ---------- */
+const TYPES = {
+  fire:{n:"火",c:"#E85A22",g:"M12 2c1 4 6 6 6 12a6 6 0 0 1-12 0c0-3 2-5 3-6 0 2 1 3 2 3 0-3-1-6 1-9z"},
+  water:{n:"水",c:"#2D7FD6",g:"M12 2c4 6 7 9.5 7 13a7 7 0 0 1-14 0c0-3.5 3-7 7-13z"},
+  grass:{n:"草",c:"#2F9E47",g:"M5 20C5 10 11 4 20 4c0 9-5 16-15 16z"},
+  electric:{n:"電",c:"#D9A600",g:"M13 2L4 14h7l-1 8 9-12h-7l1-8z"},
+  bug:{n:"蟲",c:"#8AA516",g:"M12 5c3.3 0 5.5 3.4 5.5 7.5S15.3 20 12 20s-5.5-3.4-5.5-7.5S8.7 5 12 5z"},
+  poison:{n:"毒",c:"#9A4FB8",g:"M12 3a6 6 0 0 1 6 6c0 2.5-1.5 4-3 5v3H9v-3c-1.5-1-3-2.5-3-5a6 6 0 0 1 6-6zM9 19h6v2H9z"},
+  psychic:{n:"超能力",c:"#DE4F87",g:"M12 2l2.9 6.3 6.9.7-5.2 4.6 1.5 6.8L12 17l-6.1 3.4 1.5-6.8L2.2 9l6.9-.7z"},
+  fairy:{n:"妖精",c:"#E070A8",g:"M12 21s-8-5-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 6-8 11-8 11z"},
+  ice:{n:"冰",c:"#33AFC4",g:"M12 2l8.7 5v10L12 22l-8.7-5V7z"},
+  flying:{n:"飛行",c:"#6E8FE0",g:"M3 14c4-1 7-4 9-9 1 6 4 9 9 9-4 3-9 4-13 3-2 0-4-1-5-3z"},
+  normal:{n:"一般",c:"#8A9099",g:"M12 4a8 8 0 1 1 0 16 8 8 0 0 1 0-16z"},
+  ground:{n:"地面",c:"#B07A3C",g:"M2 20l7-12 4 6 3-4 6 10z"},
+  rock:{n:"岩石",c:"#8E8672",g:"M7 6l6-2 6 5-1 9-8 2-6-6z"},
+  ghost:{n:"幽靈",c:"#5A4E8C",g:"M12 3a7 7 0 0 1 7 7v11l-2.3-2-2.4 2-2.3-2-2.3 2-2.4-2L5 21V10a7 7 0 0 1 7-7z"},
+  dark:{n:"惡",c:"#3E3A48",g:"M15 3a9 9 0 1 0 6 15A8 8 0 0 1 15 3z"},
+  dragon:{n:"龍",c:"#5A55D6",g:"M12 2l7 10-7 10-7-10z"},
+};
+
+/* ---------- 寶可夢：[編號, 名稱, 屬性, 稀有度1-3, [主色, 配色]] ---------- */
+const MONS = [
+  [4,"小火龍","fire",1,["#F08030","#F8D878"]],[37,"六尾","fire",1,["#C8582E","#F0A050"]],[58,"卡蒂狗","fire",1,["#F08A38","#F4E0B0"]],
+  [77,"小火馬","fire",1,["#F4E4B8","#F07028"]],[5,"火恐龍","fire",2,["#D0482E","#F0D0A0"]],[38,"九尾","fire",2,["#F0DCA0","#E8B860"]],
+  [78,"烈焰馬","fire",2,["#F2E2BC","#F06024"]],[126,"鴨嘴火獸","fire",2,["#F0A030","#E04030"]],[136,"火伊布","fire",2,["#E8682C","#F8E4A8"]],
+  [6,"噴火龍","fire",3,["#F08838","#3A8A92"]],[59,"風速狗","fire",3,["#F0882C","#F0E2B4"]],[146,"火焰鳥","fire",3,["#F8C030","#F05A20"]],
+  [7,"傑尼龜","water",1,["#80C8E8","#C88E48"]],[54,"可達鴨","water",1,["#F8D860","#F4E8B0"]],[60,"蚊香蝌蚪","water",1,["#5878C8","#F4F4F4"]],
+  [79,"呆呆獸","water",1,["#F0A0B8","#F4E4C8"]],[118,"角金魚","water",1,["#F2F0EE","#F07830"]],[129,"鯉魚王","water",1,["#E85A30","#F4E0A0"]],
+  [86,"小海獅","water",1,["#E8E8F0","#A8C8E0"]],[8,"卡咪龜","water",2,["#8CA6E0","#B07848"]],[72,"瑪瑙水母","water",2,["#78B8E8","#E83838"]],
+  [116,"墨海馬","water",2,["#70C0E8","#F0E0A0"]],[134,"水伊布","water",2,["#78C6E8","#F4ECC0"]],[9,"水箭龜","water",3,["#5888D0","#B08048"]],
+  [130,"暴鯉龍","water",3,["#3870C8","#F0E0A8"]],[131,"拉普拉斯","water",3,["#4890D8","#E8E0C8"]],
+  [1,"妙蛙種子","grass",1,["#78C8A8","#4FA048"]],[43,"走路草","grass",1,["#4868B8","#58A848"]],[69,"喇叭芽","grass",1,["#E8E048","#70B850"]],
+  [102,"蛋蛋","grass",1,["#F2E0D0","#E8B0A0"]],[152,"菊草葉","grass",1,["#B8D878","#78B040"]],[2,"妙蛙草","grass",2,["#68B0A0","#E07890"]],
+  [114,"蔓藤怪","grass",2,["#3058A8","#E05050"]],[3,"妙蛙花","grass",3,["#58A898","#E86888"]],[251,"時拉比","grass",3,["#A8D860","#F0F8E8"]],
+  [25,"皮卡丘","electric",1,["#F8D030","#E85030"]],[81,"小磁怪","electric",1,["#B8C0C8","#E8E8E8"]],[100,"霹靂電球","electric",1,["#E83838","#F4F4F4"]],
+  [172,"皮丘","electric",1,["#F8E080","#282828"]],[26,"雷丘","electric",2,["#E89838","#F8E8C0"]],[125,"電擊獸","electric",2,["#F8D840","#282828"]],
+  [135,"雷伊布","electric",2,["#F8D838","#F4F4F4"]],[145,"閃電鳥","electric",3,["#F8D030","#303030"]],
+  [10,"綠毛蟲","bug",1,["#88C848","#F0D040"]],[13,"獨角蟲","bug",1,["#D8A050","#E85848"]],[46,"派拉斯","bug",1,["#F08840","#E84830"]],
+  [12,"巴大蝶","bug",2,["#8890C8","#F4F4F4"]],[127,"凱羅斯","bug",2,["#A89080","#F4F0E8"]],[123,"飛天螳螂","bug",3,["#78C850","#F0F0D8"]],
+  [23,"阿柏蛇","poison",1,["#A060B8","#F0D050"]],[109,"瓦斯彈","poison",1,["#8868A8","#F0E0B0"]],[41,"超音蝠","poison",1,["#5878C8","#9868B8"]],
+  [24,"阿柏怪","poison",2,["#8858A8","#E8C040"]],
+  [63,"凱西","psychic",1,["#F0C848","#A07040"]],[96,"催眠貘","psychic",1,["#F0D048","#9A6838"]],[64,"勇基拉","psychic",2,["#E8B840","#A06838"]],
+  [65,"胡地","psychic",3,["#E8B040","#9A6838"]],[150,"超夢","psychic",3,["#D8D0E0","#9860B8"]],[151,"夢幻","psychic",3,["#F8B8D0","#88A8D8"]],
+  [35,"皮皮","fairy",1,["#F8B8C8","#D88898"]],[39,"胖丁","fairy",1,["#F8C8D8","#58B8D8"]],[173,"皮寶寶","fairy",1,["#F8C0C8","#E8A0B0"]],
+  [174,"寶寶丁","fairy",1,["#F8D0E0","#F0A8C0"]],[36,"皮可西","fairy",2,["#F0B0C0","#9A6848"]],[40,"胖可丁","fairy",2,["#F8D0E0","#F4F4F4"]],
+  [225,"信使鳥","ice",1,["#E04848","#F4F4F4"]],[87,"白海獅","ice",2,["#F0F0F8","#C8D8E8"]],[124,"迷唇姐","ice",2,["#D84868","#F8E048"]],
+  [215,"狃拉","ice",2,["#384060","#E04848"]],[144,"急凍鳥","ice",3,["#78B8E8","#C8E8F8"]],
+  [16,"波波","flying",1,["#C8A070","#F4E8D0"]],[21,"烈雀","flying",1,["#B07848","#E86858"]],[333,"青綿鳥","flying",1,["#78C8F0","#F4F6F8"]],
+  [17,"比比鳥","flying",2,["#C8A070","#E8C060"]],[334,"七夕青鳥","flying",3,["#70B8E8","#F4F6F8"]],
+  [19,"小拉達","normal",1,["#9868B8","#F0E0C0"]],[52,"喵喵","normal",1,["#F0E0B0","#D8B060"]],[132,"百變怪","normal",2,["#C898D8","#B080C8"]],
+  [133,"伊布","normal",2,["#C88848","#F0E0B8"]],[137,"多邊獸","normal",2,["#F07890","#58A8D8"]],[113,"吉利蛋","normal",3,["#F8C8D8","#F4F4F4"]],
+  [143,"卡比獸","normal",3,["#305868","#F0E0C0"]],
+  [27,"穿山鼠","ground",1,["#E8C860","#F4E8C0"]],[50,"地鼠","ground",1,["#A06838","#E8A0A8"]],[104,"卡拉卡拉","ground",1,["#C8A060","#F0F0E8"]],
+  [111,"鐵甲犀牛","ground",2,["#A8A0A8","#E8E0E0"]],
+  [74,"小拳石","rock",1,["#A09888","#787068"]],[95,"大岩蛇","rock",2,["#A8A8A0","#787878"]],[138,"菊石獸","rock",2,["#70B8D8","#E8D8A0"]],
+  [142,"化石翼龍","rock",3,["#B8A0C8","#8C7A9C"]],
+  [92,"鬼斯","ghost",1,["#383050","#8858A8"]],[93,"鬼斯通","ghost",2,["#7060A0","#3A3050"]],[94,"耿鬼","ghost",3,["#6058A0","#E84848"]],
+  [198,"黑暗鴉","dark",1,["#282838","#F0D050"]],[228,"戴魯比","dark",2,["#282828","#E87838"]],[197,"月伊布","dark",2,["#202028","#F8D850"]],
+  [147,"迷你龍","dragon",2,["#8CA8E8","#F4F4F4"]],[148,"哈克龍","dragon",3,["#5888E0","#F4F4F4"]],[149,"快龍","dragon",3,["#F0A848","#58A8A8"]],
+].map(([id,name,type,rarity,cols])=>({id,name,type,rarity,cols,labs:cols.map(hexLab)}));
+
+const CATCH_BASE={1:0.75,2:0.45,3:0.2};
+const BALLS_PER_ENCOUNTER=3;
+
+/* ---------- 硬體介面（之後接 ESP32） ----------
+   Hardware.notifyEncounter(mon)：出現寶可夢時呼叫 → 在這裡送出震動指令
+   window.onBallThrow(score)    ：寶貝球偵測到投擲後，用 0~1 的分數呼叫     */
+const Hardware={
+  connected:false,
+  notifyEncounter(mon){
+    // TODO: ws.send(JSON.stringify({cmd:"vibrate", id:mon.id, rarity:mon.rarity}))
+    try{navigator.vibrate&&navigator.vibrate([120,80,120]);}catch(e){}
+    toast(this.connected?"已通知寶貝球震動":"（模擬）寶貝球震動了！快丟出去");
+  },
+};
+window.onBallThrow=score=>throwBall(Math.max(0,Math.min(1,score)));
+
+/* ---------- 寶可夢圖片：PokeAPI 公開的 sprite（抓不到就顯示屬性圖示） ---------- */
+const ART=id=>`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
+const PIXEL=id=>`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
+
+/* ---------- 色彩工具：sRGB → CIELAB（比 RGB 更接近人眼的感覺） ---------- */
+function linTable(){return linTable.t||(linTable.t=Array.from({length:256},(_,i)=>{const c=i/255;return c<=0.04045?c/12.92:Math.pow((c+0.055)/1.055,2.4);}));}
+function rgbLab(r,g,b){
+  const L=linTable(),R=L[r],G=L[g],B=L[b];
+  const x=(R*0.4124+G*0.3576+B*0.1805)/0.95047,y=R*0.2126+G*0.7152+B*0.0722,z=(R*0.0193+G*0.1192+B*0.9505)/1.08883;
+  const f=t=>t>0.008856?Math.cbrt(t):7.787*t+16/116, fy=f(y);
+  return [116*fy-16,500*(f(x)-fy),200*(fy-f(z))];
+}
+function hexLab(h){const n=parseInt(h.slice(1),16);return rgbLab(n>>16,(n>>8)&255,n&255);}
+const dE=(p,q)=>Math.hypot(p[0]-q[0],p[1]-q[1],p[2]-q[2]);
+function rgb2hsv(r,g,b){r/=255;g/=255;b/=255;const mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn;let h=0;
+  if(d){if(mx===r)h=((g-b)/d)%6;else if(mx===g)h=(b-r)/d+2;else h=(r-g)/d+4;h*=60;if(h<0)h+=360}return[h,mx?d/mx:0,mx];}
+const HUE=[[15,"紅"],[40,"橘"],[68,"黃"],[95,"黃綠"],[160,"綠"],[195,"水藍"],[250,"藍"],[290,"紫"],[345,"粉紅"],[361,"紅"]];
+function colorWord([r,g,b]){
+  const [h,s,v]=rgb2hsv(r,g,b);
+  if(v<0.2) return "黑色";
+  if(s<0.15) return v>0.82?"白色":v<0.4?"深灰色":"灰色";
+  if(h>=15&&h<50&&v<0.62) return "咖啡色";
+  const name=HUE.find(([l])=>h<l)[1];
+  const pre = v<0.42?"深":(s<0.42&&v>0.72?"淺":"");
+  return pre+name+"色";
+}
+const css=([r,g,b])=>`rgb(${r|0},${g|0},${b|0})`;
+function fnv1a(str){let h=0x811c9dc5;for(const ch of str){h^=ch.codePointAt(0);h=Math.imul(h,0x01000193)>>>0}return h>>>0;}
+function rng(seed){let a=seed;return()=>{a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function today(){const d=new Date();return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;}
+
+/* ---------- 照片 → 主要色盤（中心加權 + k-means，在 Lab 空間分群） ---------- */
+function palette(src,w,h){
+  const N=48,cv=document.getElementById("cv"),ctx=cv.getContext("2d",{willReadFrequently:true});
+  const s=Math.min(w,h); ctx.drawImage(src,(w-s)/2,(h-s)/2,s,s,0,0,N,N);
+  const px=ctx.getImageData(0,0,N,N).data, P=[];
+  for(let i=0;i<N*N;i++){
+    const x=i%N,y=(i/N)|0,dist=Math.hypot(x-(N-1)/2,y-(N-1)/2)/(N*0.7);
+    const r=px[i*4],g=px[i*4+1],b=px[i*4+2];
+    P.push({lab:rgbLab(r,g,b),rgb:[r,g,b],w:1+2*Math.max(0,1-dist)});   // 中間的東西比較重要
+  }
+  const K=5,W=P.reduce((a,p)=>a+p.w,0);
+  // 初始中心：加權平均 + 最遠點法（結果固定、不靠亂數）
+  let C=[[0,1,2].map(k=>P.reduce((a,p)=>a+p.lab[k]*p.w,0)/W)];
+  while(C.length<K){let best=null,bd=-1;for(const p of P){const d=Math.min(...C.map(c=>dE(c,p.lab)))*p.w;if(d>bd){bd=d;best=p;}}C.push(best.lab.slice());}
+  let groups;
+  for(let it=0;it<10;it++){
+    groups=C.map(()=>({w:0,lab:[0,0,0],rgb:[0,0,0]}));
+    for(const p of P){let bi=0,bd=1e9;C.forEach((c,i)=>{const d=dE(c,p.lab);if(d<bd){bd=d;bi=i;}});
+      const g=groups[bi];g.w+=p.w;for(let k=0;k<3;k++){g.lab[k]+=p.lab[k]*p.w;g.rgb[k]+=p.rgb[k]*p.w;}}
+    groups=groups.filter(g=>g.w>0);groups.forEach(g=>{for(let k=0;k<3;k++){g.lab[k]/=g.w;g.rgb[k]/=g.w;}});
+    C=groups.map(g=>g.lab);
+  }
+  // 合併很像的群、去掉太小的群
+  groups.sort((a,b)=>b.w-a.w);
+  const out=[];
+  for(const g of groups){const m=out.find(o=>dE(o.lab,g.lab)<10); if(m){m.w+=g.w;} else out.push(g);}
+  return out.map(g=>({lab:g.lab,rgb:g.rgb,share:g.w/W,word:colorWord(g.rgb)})).filter((g,i)=>i===0||g.share>=0.04);
+}
+
+/* ---------- 色盤 → 寶可夢：找代表色最像的幾隻，再用 hash 挑一隻 ---------- */
+function scoreMon(pal,mon){
+  const top=pal.slice(0,3),tot=top.reduce((a,c)=>a+c.share,0);
+  let d=0;
+  for(const c of top){ d+=(c.share/tot)*Math.min(...mon.labs.map((l,j)=>dE(c.lab,l)+j*5)); }
+  return d+0.35*dE(pal[0].lab,mon.labs[0]);          // 照片最多的顏色，要像牠的主色
+}
+function pickMon(pal){
+  const scored=MONS.map(m=>({m,d:scoreMon(pal,m)})).sort((a,b)=>a.d-b.d);
+  const cands=scored.slice(0,6), dmin=cands[0].d;
+  const p0=pal[0].lab, vivid=Math.min(1,Math.hypot(p0[1],p0[2])/70);
+  const rar={1:1,2:0.45,3:0.12+0.25*vivid};          // 越鮮豔，越容易出稀有
+  const ws=cands.map(c=>Math.exp(-(c.d-dmin)/6)*rar[c.m.rarity]);
+  const q=l=>l.map(v=>Math.round(v/12)).join(",");
+  const r=rng(fnv1a(pal.slice(0,2).map(c=>q(c.lab)).join("|")+"|"+today()))();   // 同一個東西同一天結果固定
+  let acc=0,tot=ws.reduce((a,b)=>a+b,0),pick=cands[0];
+  for(let i=0;i<cands.length;i++){acc+=ws[i]/tot;if(r<acc){pick=cands[i];break;}}
+  return {mon:pick.m, sim:Math.max(5,Math.min(99,Math.round(100-pick.d*1.4))), near:cands.filter(c=>c!==pick).slice(0,3).map(c=>c.m.name)};
+}
+
+/* ---------- 畫面 ---------- */
+const $=id=>document.getElementById(id);
+let current=null,ballsLeft=0,busy=false;
+
+function showEncounter(img,pal,isSample){
+  const {mon,sim,near}=pickMon(pal), T=TYPES[mon.type];
+  current=mon;ballsLeft=BALLS_PER_ENCOUNTER;busy=false;
+  $("thumb").src=img.src;
+  const words=pal.slice(0,2).map(c=>c.word).filter((w,i,a)=>a.indexOf(w)===i);
+  $("colorLine").innerHTML=`照片主要是${words.join(" + ")}${isSample?'<span class="badge-tag">範例</span>':""}`;
+  $("palette").innerHTML=pal.map(c=>`<i style="background:${css(c.rgb)};flex:${c.share}"></i>`).join("");
+  $("palLegend").innerHTML=pal.map(c=>`<span style="--c:${css(c.rgb)}">${c.word} ${Math.round(c.share*100)}%</span>`).join("");
+  const root=document.documentElement.style;
+  root.setProperty("--type",T.c);root.setProperty("--main",mon.cols[0]);root.setProperty("--accent",mon.cols[1]);
+  root.setProperty("--glyph",mon.labs[0][0]>68?"#1d2330":"#ffffff");
+  $("glyph").firstElementChild.setAttribute("d",T.g);
+  const art=$("art"),monEl=$("mon");
+  monEl.classList.remove("has-art");art.hidden=true;art.alt=mon.name;
+  art.onload=()=>{if(current===mon){art.hidden=false;monEl.classList.add("has-art");}};
+  art.onerror=()=>{art.hidden=true;monEl.classList.remove("has-art");};
+  art.src=ART(mon.id);
+  $("monNo").textContent="#"+String(mon.id).padStart(3,"0");
+  $("monName").textContent=mon.name;
+  $("monType").textContent=T.n+"屬性";
+  $("monStars").textContent="★".repeat(mon.rarity)+"☆".repeat(3-mon.rarity);
+  $("whyPhoto").innerHTML=pal.slice(0,3).map(c=>`<i style="background:${css(c.rgb)}"></i>`).join("");
+  $("whyMon").innerHTML=mon.cols.map(c=>`<i style="background:${c}"></i>`).join("");
+  $("sim").textContent=`相似 ${sim}%`;
+  $("near").textContent="差一點出現："+near.join("、");
+  const m=$("mon");m.classList.remove("gone","appear");void m.offsetWidth;m.classList.add("appear");
+  $("capsule").hidden=true;$("againBtn").hidden=true;$("throwBtn").disabled=false;
+  $("msg").className="msg";$("msg").textContent=mon.rarity===3?"好稀有！小心地丟":"";
+  drawOrbs();
+  if(!isSample)Hardware.notifyEncounter(mon);
+}
+function drawOrbs(){$("orbs").innerHTML=Array.from({length:BALLS_PER_ENCOUNTER},(_,i)=>`<b class="${i<BALLS_PER_ENCOUNTER-ballsLeft?"used":""}"></b>`).join("");}
+
+/* ---------- 投擲與捕捉 ---------- */
+function throwBall(score){
+  if(!current||busy||ballsLeft<=0)return;
+  busy=true;ballsLeft--;drawOrbs();$("throwBtn").disabled=true;
+  const word=score>=0.85?"超棒的投擲！":score>=0.6?"不錯的投擲！":"普通的投擲";
+  const caught=Math.random()<Math.min(0.95,CATCH_BASE[current.rarity]*(0.5+score));
+  $("msg").className="msg";$("msg").textContent=word+" 球在搖晃中…";
+  $("mon").classList.add("gone");
+  const cap=$("capsule");cap.hidden=false;cap.classList.remove("shake");void cap.offsetWidth;cap.classList.add("shake");
+  const wait=matchMedia("(prefers-reduced-motion: reduce)").matches?900:2500;
+  setTimeout(()=>{
+    cap.classList.remove("shake");
+    if(caught){$("msg").className="msg ok";$("msg").textContent=`抓到 ${current.name} 了！`;saveDex(current);$("againBtn").hidden=false;current=null;}
+    else if(ballsLeft>0){cap.hidden=true;$("mon").classList.remove("gone");$("msg").className="msg no";$("msg").textContent=`${current.name} 跳出來了！再試一次`;$("throwBtn").disabled=false;}
+    else{cap.hidden=true;$("msg").className="msg no";$("msg").textContent=`${current.name} 逃走了…`;$("againBtn").hidden=false;current=null;}
+    busy=false;
+  },wait);
+}
+let charging=false,t0=0,power=0,raf=0;
+function tick(t){const ph=((t-t0)/900)%2;power=ph<1?ph:2-ph;$("needle").style.left=`calc(${power*100}% - ${power*5}px)`;if(charging)raf=requestAnimationFrame(tick);}
+function startCharge(e){if($("throwBtn").disabled)return;e.preventDefault();charging=true;t0=performance.now();raf=requestAnimationFrame(tick);}
+function release(){if(!charging)return;charging=false;cancelAnimationFrame(raf);throwBall(Math.max(0,1-Math.abs(power-0.75)/0.75));}
+$("throwBtn").addEventListener("pointerdown",startCharge);
+addEventListener("pointerup",release);addEventListener("pointercancel",release);
+$("throwBtn").addEventListener("keydown",e=>{if((e.key===" "||e.key==="Enter")&&!charging&&!e.repeat)startCharge(e);});
+$("throwBtn").addEventListener("keyup",e=>{if(e.key===" "||e.key==="Enter")release();});
+$("againBtn").addEventListener("click",()=>{ if(stream){$("viewer").scrollIntoView({behavior:"smooth"});} else $("photo").click(); });
+
+/* ---------- 圖鑑 ---------- */
+const DEX_KEY="colormon-dex";
+let dex={};try{dex=JSON.parse(localStorage.getItem(DEX_KEY))||{};}catch(e){}
+function saveDex(m){(dex[m.id]??={name:m.name,col:m.cols[0],n:0}).n++;dex[m.id].col=m.cols[0];try{localStorage.setItem(DEX_KEY,JSON.stringify(dex));}catch(e){}renderDex();}
+function renderDex(){
+  const ids=Object.keys(dex).map(Number).sort((a,b)=>a-b);
+  $("dexCount").textContent=`${ids.length} / ${MONS.length}`;
+  $("dex").innerHTML=ids.length?ids.map(id=>{const d=dex[id];
+    return `<div><img src="${PIXEL(id)}" alt="" loading="lazy" onerror="this.remove()"><i style="background:${d.col||"#999"}"></i><b>#${String(id).padStart(3,"0")}${d.n>1?" ×"+d.n:""}</b><span>${d.name}</span></div>`}).join("")
+    :`<p class="empty">還沒有抓到寶可夢。拍張照片開始吧！</p>`;
+}
+
+/* ---------- 照片輸入 ---------- */
+function runImage(src,isSample){
+  const img=new Image();
+  img.onload=()=>showEncounter(img,palette(img,img.naturalWidth,img.naturalHeight),isSample);
+  img.onerror=()=>toast("這張照片打不開，換一張試試");
+  img.src=src;
+}
+$("photo").addEventListener("change",e=>{
+  const f=e.target.files[0];if(!f)return;
+  runImage(URL.createObjectURL(f),false);e.target.value="";
+  $("enc").scrollIntoView({behavior:"smooth",block:"start"});
+});
+
+/* 即時取景：需要 https（例如 GitHub Pages）才能開相機 */
+let stream=null,liveTimer=0;
+$("liveBtn").addEventListener("click",async()=>{
+  const note=$("camNote");
+  if(!navigator.mediaDevices?.getUserMedia||!isSecureContext){
+    note.hidden=false;note.textContent="這個頁面不能直接開相機（要用 https 開啟）。請改按下面的「用手機相機拍一張」。";return;
+  }
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment",width:{ideal:1280}},audio:false});
+    const v=$("video");v.srcObject=stream;await v.play();
+    $("viewer").hidden=false;$("shutter").hidden=false;$("liveBtn").hidden=true;note.hidden=true;
+    liveTimer=setInterval(liveScan,450);
+  }catch(err){
+    note.hidden=false;note.textContent="相機打不開（可能沒有給權限，或這個環境不允許）。請改按下面的「用手機相機拍一張」。";
+  }
+});
+function liveScan(){
+  const v=$("video");if(!v.videoWidth)return;
+  const pal=palette(v,v.videoWidth,v.videoHeight);
+  $("liveDot").style.background=css(pal[0].rgb);
+  $("liveText").textContent=`看到${pal[0].word}${pal[1]?"、"+pal[1].word:""}`;
+}
+$("shutter").addEventListener("click",()=>{
+  const v=$("video");if(!v.videoWidth)return;
+  const c=document.createElement("canvas");c.width=v.videoWidth;c.height=v.videoHeight;c.getContext("2d").drawImage(v,0,0);
+  runImage(c.toDataURL("image/jpeg",0.85),false);
+  $("enc").scrollIntoView({behavior:"smooth",block:"start"});
+});
+
+/* 範例照片 */
+function sample(kind){
+  const c=document.createElement("canvas");c.width=c.height=240;const g=c.getContext("2d");
+  let seed=7;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+  const grad=st=>{const l=g.createLinearGradient(0,0,0,240);st.forEach((s,i)=>l.addColorStop(i/(st.length-1),s));g.fillStyle=l;g.fillRect(0,0,240,240);};
+  const blobs=(n,col,r)=>{for(let i=0;i<n;i++){g.fillStyle=col;g.beginPath();g.arc(rnd()*240,rnd()*240,r*(0.5+rnd()),0,7);g.fill();}};
+  if(kind==="grass"){grad(["#7DC95E","#3E9A37","#2C7A2A"]);blobs(18,"#F5E14A",4);}
+  if(kind==="sky"){grad(["#3D8BE8","#6FB0F2","#A9D3FA"]);blobs(7,"rgba(255,255,255,.95)",24);}
+  if(kind==="sunset"){grad(["#7A3E9D","#E2534A","#F79B3A"]);g.fillStyle="#FFD45A";g.beginPath();g.arc(120,170,38,0,7);g.fill();}
+  if(kind==="banana"){grad(["#FBE7A1","#F2D36B"]);g.fillStyle="#F7C81E";g.beginPath();g.ellipse(120,120,95,45,-0.5,0,7);g.fill();}
+  if(kind==="night"){grad(["#05070F","#121a33","#1d2440"]);blobs(30,"#F4F4F4",1.2);}
+  return c.toDataURL();
+}
+document.querySelectorAll("[data-s]").forEach(b=>b.addEventListener("click",()=>runImage(sample(b.dataset.s),false)));
+
+let toastT;function toast(t){const el=$("toast");el.textContent=t;el.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove("show"),2400);}
+
+renderDex();
+runImage(sample("grass"),true);
+</script>
+
+</body></html>
