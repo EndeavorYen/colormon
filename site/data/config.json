@@ -9,9 +9,9 @@
   },
   "ballsPerEncounter": 3,
   "fleeChance": {
-    "1": 0.1,
-    "2": 0.2,
-    "3": 0.35
+    "1": 0,
+    "2": 0,
+    "3": 0
   },
   "silhouetteUnseen": true,
   "candidates": 8,
