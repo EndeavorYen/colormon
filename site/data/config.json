@@ -1,6 +1,9 @@
 {
   "packs": [
-    "packs/gen1-starter.json"
+    "packs/gen1.json",
+    "packs/gen2.json",
+    "packs/gen3.json",
+    "packs/color-tweaks.json"
   ],
   "catchBase": {
     "1": 0.75,
@@ -11,7 +14,9 @@
   "guaranteeAfter": 4,
   "silhouetteUnseen": true,
   "caughtWeight": 0.3,
-  "candidates": 8,
+  "candidates": 30,
+  "minCandidates": 6,
+  "widenFactor": 2.5,
   "randomness": 6,
   "similarityWindow": 10,
   "sameResultPerDay": false,

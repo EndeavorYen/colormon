@@ -288,7 +288,7 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 <canvas id="cv" width="48" height="48" hidden></canvas>
 
 <script>
-const BUILD="2026.10.27-1523";
+const BUILD="2026.10.27-1655";
 /* =========================================================
    顏色寶可夢探險
    資料都在 data/：config.json 列出要載入的資料包（packs），
@@ -380,7 +380,14 @@ function pickMon(pal){
   const scored=MONS.map(m=>({m,d:scoreMon(pal,m)})).sort((a,b)=>a.d-b.d);
   const dmin=scored[0].d, win=CFG.similarityWindow??10;
   // 只在「夠像」的範圍內隨機：和最像的那隻差不到 win 的才有機會
-  const cands=scored.filter(c=>c.d<=dmin+win).slice(0,CFG.candidates||8);
+  // 候選：和最像的差不到 win 的；太少就補到 minCandidates 隻
+  let cands=scored.filter(c=>c.d<=dmin+win).slice(0,CFG.candidates||30);
+  if(cands.length<(CFG.minCandidates??6)) cands=scored.slice(0,CFG.minCandidates??6);
+  // 候選全都抓過了 → 放寬顏色範圍，找稍微不那麼像、但還沒抓過的
+  if(cands.every(c=>dex[c.m.id])){
+    const extra=scored.filter(c=>!dex[c.m.id]&&c.d<=dmin+win*(CFG.widenFactor??2.5)).slice(0,4);
+    cands=[...cands,...extra];
+  }
   const p0=pal[0].lab, vivid=Math.min(1,Math.hypot(p0[1],p0[2])/70);
   const rar={1:1,2:0.45,3:0.12+0.25*vivid};
   const temp=CFG.randomness??6;
@@ -401,9 +408,10 @@ async function loadData(){
   TYPES=await get("types.json");
   const packs=await Promise.all(CFG.packs.map(get));
   const seen=new Map();
-  for(const pack of packs) for(const m of pack.pokemon){
-    if(!TYPES[m.type]||!m.colors?.length){console.warn("略過格式不正確的寶可夢",m);continue;}
-    seen.set(m.id,{...m,labs:m.colors.map(hexLab)});   // 後面的資料包可以覆蓋前面同編號的寶可夢
+  for(const pack of packs) for(const raw of pack.pokemon){
+    const m={...(seen.get(raw.id)||{}),...raw};          // 後面的資料包可以只覆蓋部分欄位（例如只改顏色）
+    if(!m.name||!TYPES[m.type]||!m.colors?.length){console.warn("略過格式不正確的寶可夢",raw);continue;}
+    seen.set(m.id,{...m,labs:m.colors.map(hexLab)});
   }
   MONS=[...seen.values()];
 }

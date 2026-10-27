@@ -45,35 +45,45 @@
 設定在 `config.json` 的 `ball`：`longTravel`（標準模式的長距離門檻）、`edgeMargin`（多靠近邊緣算「從邊緣進來」）、`minDirCos`（方向連貫程度）、`diffThreshold`、`chromaWeight`、`phoneMotionDeg`、`objectDetection.scoreThreshold` 等。
 
 ## 資料與擴充
-寶可夢不寫死在網頁裡，全部放在 `site/data/`：
+寶可夢不寫死在網頁裡，全部放在 `site/data/`，目前收錄第一到三代共 386 隻：
 
 ```
 site/data/
-├── config.json        要載入哪些資料包、捕捉率、每次遭遇幾顆球、圖片網址
-├── types.json         屬性（名稱、顏色、圖示的 SVG path）
+├── config.json            要載入哪些資料包、捕捉率、候選與機率設定、圖片網址
+├── types.json             18 種屬性（名稱、顏色、圖示的 SVG path）
 └── packs/
-    └── gen1-starter.json
+    ├── gen1.json          第一代（151）
+    ├── gen2.json          第二代（100）
+    ├── gen3.json          第三代（135）
+    └── color-tweaks.json  手動調整過的代表色，覆蓋自動算出的顏色
 ```
 
 資料包格式：
 
 ```json
-{
-  "name": "第一代精選",
-  "pokemon": [
-    { "id": 25, "name": "皮卡丘", "type": "electric", "rarity": 1, "colors": ["#F8D030", "#E85030"] }
-  ]
-}
+{ "id": 25, "name": "皮卡丘", "type": "electric", "rarity": 2, "colors": ["#F8D030", "#E85030"] }
 ```
 
-- `id`：全國圖鑑編號，也用來抓 PokeAPI 圖片。
-- `type`：`types.json` 裡的 key。
-- `rarity`：1～3，越高越難遇到也越難抓。
-- `colors`：牠的代表色，第一個是主色，比對照片時主色最重要。
+- `id`：全國圖鑑編號，也用來抓 PokeAPI 圖片。`name` 是官方繁體中文名稱。
+- `type`：主要屬性（一般＋飛行的鳥歸到飛行）。
+- `rarity`：1～3。傳說／幻之寶可夢、捕獲率很低的最終形態是 3；進化過的或御三家是 2；其他是 1。
+- `colors`：代表色，第一個是主色。
 
-**新增寶可夢**：在 `packs/` 加一個新檔，再把路徑加進 `config.json` 的 `packs`。後面的資料包可以覆蓋前面同編號的寶可夢（例如調整顏色）。要新增屬性就在 `types.json` 加一筆。
+### 自動產生資料包
+```
+pip install pillow
+python3 tools/build-packs.py          # 第 1～3 代
+python3 tools/build-packs.py 1 2 3 4  # 加上第四代（再把 packs/gen4.json 加進 config.json）
+```
+程式從 PokeAPI 在 GitHub 上的資料取得編號、名稱、屬性和稀有度依據，再從官方插圖自動抓出主色和配色（Lab 空間 k-means、排除描邊、提高彩度讓顏色接近大家印象中的寶可夢）。下載的檔案快取在 `tools/.cache/`。
 
-push 之前可以先跑 `node tools/validate-data.mjs` 檢查格式，CI 部署前也會自動檢查。
+### 手動修正
+覺得某隻寶可夢的顏色不對，在 `packs/color-tweaks.json` 加一筆 `{"id": 編號, "colors": [...]}` 就好。後面的資料包可以只覆蓋部分欄位，也可以新增整筆資料。push 之前可以先跑 `node tools/validate-data.mjs` 檢查格式，CI 部署前也會自動檢查。
+
+### 選寶可夢的機率
+- 候選：和最像的那隻差不到 `similarityWindow` 的寶可夢（最多 `candidates` 隻，至少 `minCandidates` 隻）。
+- 抓過的寶可夢出現機率乘上 `caughtWeight`；候選全都抓過時，顏色範圍放寬到 `widenFactor` 倍，找還沒抓過的。
+- 模擬：灰色照片連拍 20 次可遇到約 16 種不同寶可夢（擴充前約 8 種）。
 
 ## 接硬體（規劃中）
 `site/index.html` 預留兩個介面：

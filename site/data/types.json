@@ -78,5 +78,15 @@
     "name": "龍",
     "color": "#5A55D6",
     "glyph": "M12 2l7 10-7 10-7-10z"
+  },
+  "fighting": {
+    "name": "格鬥",
+    "color": "#C24A2C",
+    "glyph": "M6 9a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v6a5 5 0 0 1-5 5h-2a5 5 0 0 1-5-5zM8 4h8v2H8z"
+  },
+  "steel": {
+    "name": "鋼",
+    "color": "#7E93A8",
+    "glyph": "M9 3h6v6h6v6h-6v6H9v-6H3V9h6z"
   }
 }

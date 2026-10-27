@@ -15,12 +15,14 @@ for (const [key, t] of Object.entries(types)) {
   if (!t.glyph) errors.push(`types.json：${key} 缺少 glyph（SVG path）`);
 }
 
-const owner = new Map();
+const owner = new Map(), merged = new Map();
 let total = 0;
 for (const packPath of cfg.packs) {
   const pack = read(packPath);
   if (!Array.isArray(pack.pokemon)) { errors.push(`${packPath}：缺少 pokemon 陣列`); continue; }
-  for (const m of pack.pokemon) {
+  for (const raw of pack.pokemon) {
+    const m = { ...(merged.get(raw.id) || {}), ...raw };   // 後面的資料包可以只覆蓋部分欄位
+    merged.set(raw.id, m);
     const tag = `${packPath} #${m.id} ${m.name ?? ""}`;
     if (!Number.isInteger(m.id) || m.id < 1) errors.push(`${tag}：id 必須是正整數`);
     if (!m.name) errors.push(`${tag}：缺少 name`);
@@ -28,7 +30,7 @@ for (const packPath of cfg.packs) {
     if (![1, 2, 3].includes(m.rarity)) errors.push(`${tag}：rarity 必須是 1、2 或 3`);
     if (!Array.isArray(m.colors) || !m.colors.length || !m.colors.every(c => HEX.test(c)))
       errors.push(`${tag}：colors 必須是 #RRGGBB 陣列（第一個是主色）`);
-    if (owner.has(m.id)) console.log(`提示：#${m.id} 在 ${owner.get(m.id)} 和 ${packPath} 都有，後者會覆蓋前者`);
+
     owner.set(m.id, packPath);
     total++;
   }
