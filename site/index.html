@@ -288,7 +288,7 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 <canvas id="cv" width="48" height="48" hidden></canvas>
 
 <script>
-const BUILD="2026.10.27-1520";
+const BUILD="2026.10.27-1523";
 /* =========================================================
    顏色寶可夢探險
    資料都在 data/：config.json 列出要載入的資料包（packs），
@@ -384,7 +384,8 @@ function pickMon(pal){
   const p0=pal[0].lab, vivid=Math.min(1,Math.hypot(p0[1],p0[2])/70);
   const rar={1:1,2:0.45,3:0.12+0.25*vivid};
   const temp=CFG.randomness??6;
-  const ws=cands.map(c=>Math.exp(-(c.d-dmin)/temp)*(rar[c.m.rarity]??1));
+  const caughtW=CFG.caughtWeight??0.3;                  // 抓過的寶可夢比較少出現，幫忙收集完整圖鑑
+  const ws=cands.map(c=>Math.exp(-(c.d-dmin)/temp)*(rar[c.m.rarity]??1)*(dex[c.m.id]?caughtW:1));
   const q=l=>l.map(v=>Math.round(v/12)).join(",");
   const seed=CFG.sameResultPerDay ? pal.slice(0,2).map(c=>q(c.lab)).join("|")+"|"+today() : `${Date.now()}|${Math.random()}`;
   const r=rng(fnv1a(seed))();
@@ -509,7 +510,7 @@ function startScan(src){
 }
 
 /* ---------- 3 遭遇 ---------- */
-let current=null,fled=false,ballsLeft=0,busy=false,lastCaught=null,encounterId=0;
+let current=null,fled=false,misses=0,busy=false,lastCaught=null,encounterId=0;
 function setMonVisual(mon,{imgEl,fbEl,glyphEl}){
   const T=TYPES[mon.type], st=document.documentElement.style;
   st.setProperty("--type",T.color);st.setProperty("--main",mon.colors[0]);st.setProperty("--accent",mon.colors[1]||mon.colors[0]);
@@ -522,7 +523,7 @@ function setMonVisual(mon,{imgEl,fbEl,glyphEl}){
 }
 async function startEncounter(pal,picked){
   const {mon,sim}=picked, T=TYPES[mon.type];
-  current=mon;fled=false;ballsLeft=CFG.ballsPerEncounter||3;busy=false;encounterId++;
+  current=mon;fled=false;misses=0;busy=false;encounterId++;
   $("glow").getAnimations().forEach(a=>a.cancel());
   setMonVisual(mon,{imgEl:$("art"),fbEl:$("monFb"),glyphEl:$("glyph")});
   revealed=!silhouetteOn()||!!dex[mon.id];                 // 沒抓過的寶可夢先用剪影
@@ -564,7 +565,8 @@ async function revealMon(mon){
   await wait(1100);
 }
 let ballArtOk=false;
-function drawOrbs(){const n=CFG.ballsPerEncounter||3;$("orbs").innerHTML=Array.from({length:n},(_,i)=>{const u=i<n-ballsLeft?"used":"";return ballArtOk?`<img class="${u}" src="${CFG.ballUrl}" alt="">`:`<b class="${u}"></b>`;}).join("");}
+/* 不限丟球次數：只顯示一顆球的圖示 */
+function drawOrbs(){$("orbs").innerHTML=ballArtOk?`<img src="${CFG.ballUrl}" alt="">`:"";}
 function bubble(t){$("bubble").textContent=t;}
 
 /* ---------- 動畫小工具 ---------- */
@@ -597,12 +599,14 @@ function flash(p){const f=$("flash");return anim(f,[{transform:at(p,"scale(.2)")
    抓到的機率只看稀有度（config.catchBase），不看丟得好不好                          */
 let landedResolve=null;
 async function throwBall(){
-  if(!current||busy||ballsLeft<=0||screen!=="encounter")return;
-  busy=true;ballsLeft--;drawOrbs();$("throwBtn").disabled=true;$("runBtn").disabled=true;
+  if(!current||busy||screen!=="encounter")return;
+  busy=true;$("throwBtn").disabled=true;$("runBtn").disabled=true;
   const myId=encounterId, stale=()=>myId!==encounterId;      // 換了新的寶可夢，舊動畫就停
   const landed=new Promise(r=>landedResolve=r);
   const mon=current, ball=$("ball"), monEl=$("mon"), sh=$("ballShadow"), P=pts();
-  const p=Math.min(0.95,CFG.catchBase[mon.rarity]??0.5);
+  // 不限次數；每失敗一次捕捉率提高，失敗 guaranteeAfter 次後一定抓到
+  const guarantee=CFG.guaranteeAfter??4;
+  const p=misses>=guarantee?1:Math.min(0.95,(CFG.catchBase[mon.rarity]??0.5)+misses*(CFG.catchBonusPerMiss??0.15));
   const q=Math.cbrt(p);                                       // 每晃一下撐住的機率，三下都撐住就抓到
   let shakes=0; while(shakes<3&&Math.random()<q) shakes++;
   const caught=shakes===3;
@@ -656,20 +660,10 @@ async function throwBall(){
     $("shakeDots").hidden=true;
     if(!revealed){await revealMon(mon);if(stale())return;}
     markSeen(mon);
-    const fleeNow=ballsLeft>0&&Math.random()<(CFG.fleeChance?.[mon.rarity]??0);   // 跳出來後有機率直接逃走
-    if(ballsLeft>0&&!fleeNow){
-      bubble(shakes===0?`${mon.name}一下就跳出來了！`:shakes===1?"啊！差一點點…":"可惜！只差一點！");
-      $("hand").hidden=false;
-      $("throwBtn").disabled=false;$("runBtn").disabled=false;
-    }else{
-      // 6. 寶可夢逃走（球用完，或被嚇跑）
-      bubble(fleeNow?`${mon.name}嚇了一跳…`:`${mon.name}看起來想逃走…`);
-      await wait(900);if(stale())return;
-      await anim(monEl,[{transform:"translate(-50%,-50%)",opacity:1},{transform:"translate(-50%,-65%)",opacity:1,offset:.25},{transform:"translate(-50%,-50%)",opacity:1,offset:.45},{transform:"translate(-50%,-160%) scale(.6)",opacity:0}],{duration:900,easing:"ease-in"});if(stale())return;
-      bubble(`${mon.name}逃走了…`);sfx("flee");
-      current=null;fled=true;
-      $("throwArea").hidden=true;$("fledBtn").hidden=false;
-    }
+    misses++;
+    bubble(shakes===0?`${mon.name}跳出來了！再丟一次！`:shakes===1?"啊！差一點點…再試一次！":"可惜！只差一點！再丟一次！");
+    $("hand").hidden=false;
+    $("throwBtn").disabled=false;$("runBtn").disabled=false;
   }
   busy=false;
 }
@@ -887,7 +881,7 @@ function detectBalls(t){
 }
 const BALL_MODE_KEY="colormon-ball-mode";
 function arConfig(){return CFG?.ball||{};}
-function arArmed(){return screen==="encounter"&&current&&!busy&&ballsLeft>0&&!$("throwBtn").disabled;}
+function arArmed(){return screen==="encounter"&&current&&!busy&&!$("throwBtn").disabled;}
 async function startAR(){
   if(AR.stream) return;
   if(!navigator.mediaDevices?.getUserMedia||!isSecureContext){toast("這裡不能開相機（需要 https）");setBallMode(false);return;}

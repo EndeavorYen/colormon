@@ -7,13 +7,10 @@
     "2": 0.45,
     "3": 0.2
   },
-  "ballsPerEncounter": 3,
-  "fleeChance": {
-    "1": 0,
-    "2": 0,
-    "3": 0
-  },
+  "catchBonusPerMiss": 0.15,
+  "guaranteeAfter": 4,
   "silhouetteUnseen": true,
+  "caughtWeight": 0.3,
   "candidates": 8,
   "randomness": 6,
   "similarityWindow": 10,
