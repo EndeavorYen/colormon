@@ -48,6 +48,7 @@
   "sameResultPerDay": false,
   "artUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/{id}.png",
   "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{id}.png",
+  "backSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/{id}.png",
   "ballUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png",
   "ball": {
     "diffThreshold": 28,
@@ -188,5 +189,13 @@
   },
   "dex": {
     "pageSize": 20
+  },
+  "battle": {
+    "enabled": true,
+    "minRarity": 4,
+    "delayMs": 900,
+    "dwellMs": 1000,
+    "cooldownMs": 320,
+    "hitSlack": 14
   }
 }

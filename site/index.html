@@ -162,7 +162,7 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 .ball-mark{position:absolute;left:0;top:0;width:40px;height:40px;margin:-20px 0 0 -20px;border:3px solid #4CC27E;border-radius:50%;z-index:5;pointer-events:none;transition:transform .06s linear}
 .mode-btn{font-size:.92rem;padding:10px}
 .throw-row{display:grid;grid-template-columns:1fr auto;gap:10px}
-.run-btn{padding:14px 18px}
+.run-btn{padding:14px 16px}
 .run-btn:disabled{opacity:.45;cursor:default}
 .sens{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .sens button{border:1.5px solid var(--line);background:var(--card);border-radius:12px;padding:6px 4px;font-weight:700;font-size:.88rem;display:flex;flex-direction:column;align-items:center;gap:1px}
@@ -266,6 +266,70 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 .profile-form .btn{padding:10px 14px;font-size:.92rem}
 .manage-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .manage-row .btn{font-size:.9rem;padding:12px 8px}
+/* ---- 特別對戰（四、五星）：像素風 ---- */
+.battle{position:fixed;inset:0;z-index:25;display:flex;flex-direction:column;background:#10241a;touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;font-family:"Courier New",ui-monospace,monospace;font-weight:900;color:#1d2330}
+.battle[hidden]{display:none}
+.bt-field{position:relative;flex:1;overflow:hidden;cursor:crosshair;background:linear-gradient(#7cc8f4 0 20%,#92d2f6 20% 40%,#aadcf8 40% 60%,#c2e6fa 60% 80%,#d8f0fc 80%) 0 0/100% 46% no-repeat,#78c850}
+.bt-field::before{content:"";position:absolute;left:0;right:0;top:46%;bottom:0;background:repeating-conic-gradient(#7fd154 0 25%,#6fc047 0 50%) 0 0/36px 36px}
+.bt-field::after{content:"";position:absolute;left:0;right:0;top:calc(46% - 6px);height:6px;background:#3f8f3a}
+.bt-cloud{position:absolute;width:72px;height:18px;background:#fff;box-shadow:12px -12px 0 #fff,36px -12px 0 #fff,-12px 12px 0 -2px #e8f4fc;opacity:.9;image-rendering:pixelated}
+.bt-foe,.bt-me{position:absolute;left:0;top:0;will-change:transform}
+.bt-foe img,.bt-me img{display:block;width:100%;height:100%;image-rendering:pixelated;object-fit:contain}
+.bt-foe .sh,.bt-me .sh{position:absolute;left:12%;right:12%;bottom:-6%;height:14%;border-radius:50%;background:rgba(20,50,20,.28)}
+.bt-foe.silhouette img{filter:brightness(0) drop-shadow(0 0 2px #fff) drop-shadow(0 0 6px rgba(255,255,255,.7))}
+.bt-foe.flash img{animation:btblink .42s steps(2,end) 1}
+@keyframes btblink{0%,100%{opacity:1}25%,75%{opacity:.15}}
+.bt-me.lunge img{animation:btlunge .22s steps(3,end) 1}
+@keyframes btlunge{50%{transform:translate(10px,-8px)}}
+.bt-me.in{animation:btin .5s steps(6,end) 1}
+@keyframes btin{from{opacity:0;margin-left:-60px}to{opacity:1;margin-left:0}}
+.bt-me .bob{animation:btbob 1s steps(2,end) infinite}
+@keyframes btbob{50%{transform:translateY(-4px)}}
+.bt-fx{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.bt-fx *{position:absolute;left:0;top:0;will-change:transform,opacity}
+.bt-fx .orb{width:42px;height:42px;margin:-21px 0 0 -21px;border-radius:50%;background:radial-gradient(circle at 36% 36%,var(--c1) 0 28%,var(--c0) 30%);box-shadow:0 0 0 3px #0003,0 0 14px var(--c0)}
+.bt-fx .flame{width:44px;height:56px;margin:-28px 0 0 -22px;background:var(--c0);clip-path:polygon(50% 0,66% 26%,92% 52%,82% 86%,50% 100%,18% 86%,8% 52%,34% 26%)}
+.bt-fx .flame::after{content:"";position:absolute;left:25%;right:25%;top:38%;bottom:8%;background:var(--c1);clip-path:polygon(50% 0,85% 45%,70% 100%,30% 100%,15% 45%)}
+.bt-fx .star{width:50px;height:50px;margin:-25px 0 0 -25px;background:var(--c0);clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%)}
+.bt-fx .star::after{content:"";position:absolute;inset:30%;background:var(--c1);clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%)}
+.bt-fx .shard{width:20px;height:20px;margin:-10px 0 0 -10px;background:var(--c0);border:3px solid var(--c1);transform:rotate(45deg)}
+.bt-fx .ring{width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;border:6px solid var(--c0);box-shadow:inset 0 0 0 3px var(--c1),0 0 10px var(--c0)}
+.bt-fx .pix{width:11px;height:11px;margin:-5px 0 0 -5px;background:var(--c0)}
+.bt-fx .pix.b{background:var(--c1)}
+.bt-fx svg{width:100%;height:100%;overflow:visible}
+.bt-fx .miss{width:auto;height:auto;font-size:1.05rem;color:#fff;text-shadow:2px 2px 0 #333;margin:-12px 0 0 -20px}
+.bt-fx .smoke{width:16px;height:16px;margin:-8px 0 0 -8px;background:#ffffffcc;border-radius:3px}
+.bt-plate{position:absolute;z-index:3;background:#f8f0d0;border:4px solid #3a3a3a;box-shadow:4px 4px 0 #0003,inset -3px -3px 0 #c8bf98;padding:5px 10px 7px;min-width:132px;max-width:56%;pointer-events:none}
+.bt-plate b{display:block;font-size:.95rem;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bt-plate small{font-size:.72rem;letter-spacing:1px;color:#b8860b}
+.bt-plate.foe{left:10px;top:calc(10px + env(safe-area-inset-top,0px))}
+.bt-plate.me{right:10px;bottom:14px}
+.bt-blocks{display:flex;gap:3px;margin-top:3px}
+.bt-blocks i{flex:1;height:10px;max-width:22px;background:#3a3a3a;border:2px solid #3a3a3a}
+.bt-blocks i.on{background:#3aa0ff;box-shadow:inset 0 -3px 0 #1c6ec4,inset 0 2px 0 #9fd4ff}
+.bt-blocks i.pop{animation:btblink .35s steps(2,end) 1}
+.bt-msg{flex:none;background:#f8f0d0;border:4px solid #3a3a3a;box-shadow:inset 0 0 0 3px #c8bf98;margin:0 10px calc(10px + env(safe-area-inset-bottom,0px));padding:12px 14px;min-height:64px;font-size:1.02rem;line-height:1.35;display:flex;align-items:center}
+.bt-skip{position:absolute;z-index:6;right:10px;top:calc(10px + env(safe-area-inset-top,0px));display:flex;align-items:center;gap:6px;min-height:52px;padding:0 14px 0 10px;border:4px solid #fff;background:#e0342f;color:#fff;font:inherit;font-size:1rem;box-shadow:4px 4px 0 #0005;cursor:pointer}
+.bt-skip svg{width:30px;height:30px;fill:#fff}
+.bt-skip:active{transform:translate(2px,2px);box-shadow:2px 2px 0 #0005}
+.bt-hand{position:absolute;z-index:2;left:50%;top:62%;font-size:2rem;pointer-events:none;animation:bthand .9s steps(2,end) infinite}
+@keyframes bthand{50%{transform:translateY(-8px)}}
+@media (prefers-reduced-motion:reduce){.bt-me .bob,.bt-hand{animation:none}}
+/* 逃跑：紅字紅框＋離開圖示 */
+.btn.ghost.run-btn{display:flex;align-items:center;gap:6px;color:var(--bad);border:2px solid var(--bad);background:color-mix(in srgb,var(--bad) 9%,var(--card))}
+.run-btn svg{width:22px;height:22px;fill:currentColor;flex:none}
+/* 放生：詳細頁左上角的小垃圾桶 */
+.sheet-trash{position:absolute;left:12px;top:12px;color:var(--bad)}
+.sheet-trash svg{fill:currentColor}
+.sheet-trash[data-armed]{background:var(--bad);color:#fff;border-color:var(--bad);width:auto;padding:0 12px;gap:6px;font-weight:900;font-size:.85rem;display:flex;align-items:center}
+.dev-tag{position:fixed;left:50%;top:4px;transform:translateX(-50%);z-index:60;display:none;pointer-events:none;background:#6a1b9a;color:#fff;font-size:.72rem;font-weight:900;border-radius:999px;padding:2px 10px;opacity:.92}
+html.devtest .dev-tag{display:block}
+.dev-form{display:flex;flex-direction:column;gap:10px;text-align:left}
+.dev-form label{font-size:.88rem;font-weight:700;display:flex;flex-direction:column;gap:4px}
+.dev-form label.chk{flex-direction:row;align-items:center;gap:8px}
+.dev-form input[type=text]{border:1.5px solid var(--line);border-radius:10px;padding:10px;font-size:1rem;background:var(--card);color:inherit}
+.dev-stars{display:flex;gap:6px}.dev-stars .chip{flex:1}
+.chip[aria-pressed="true"]{border-color:var(--good);color:var(--good)}
 /* detail sheet */
 .sheet-wrap{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center}
 .sheet{position:relative;width:100%;max-width:480px;max-height:88vh;overflow:auto;background:var(--bg);border-radius:22px 22px 0 0;
@@ -450,7 +514,7 @@ html.noscroll,html.noscroll body{overflow:hidden}
     <div id="throwArea" style="display:flex;flex-direction:column;gap:10px">
       <div class="throw-row">
         <button class="btn sun throw" id="throwBtn">丟出寶貝球！</button>
-        <button class="btn ghost run-btn" id="runBtn">逃跑</button>
+        <button class="btn ghost run-btn" id="runBtn" aria-label="逃跑，離開這隻寶可夢"><svg viewBox="0 0 24 24"><path d="M10 17l1.4-1.4-2.6-2.6H20v-2H8.8l2.6-2.6L10 7l-5 5 5 5zM4 5h7V3H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7v-2H4V5z"/></svg>逃跑</button>
       </div>
       <button class="btn ghost mode-btn" id="motionBtn" aria-pressed="false">鏡頭模式：揮手甩球、打護盾</button>
       <button class="btn ghost mode-btn" id="shakeBtn" aria-pressed="false">甩手機模式：甩一下就丟球</button>
@@ -541,18 +605,43 @@ html.noscroll,html.noscroll body{overflow:hidden}
 <div class="sheet-wrap" id="monSheet" hidden>
   <div class="sheet" role="dialog" aria-label="寶可夢資料">
     <button class="icon-btn sheet-close" id="sheetClose" aria-label="關閉"><svg viewBox="0 0 24 24"><path d="M18.3 5.7 16.9 4.3 12 9.2 7.1 4.3 5.7 5.7 10.6 10.6 5.7 15.5l1.4 1.4 4.9-4.9 4.9 4.9 1.4-1.4-4.9-4.9z"/></svg></button>
+    <button class="icon-btn sheet-trash" id="releaseBtn" aria-label="放生（從圖鑑移除）" hidden><svg viewBox="0 0 24 24"><path d="M9 3v1H4v2h16V4h-5V3H9zM6 8l1 13h10l1-13H6zm3 2h2v9H9v-9zm4 0h2v9h-2v-9z"/></svg></button>
     <img id="sheetArt" class="sheet-art" alt="">
     <h2 id="sheetName"></h2>
     <div class="sheet-meta"><span id="sheetNo"></span><span class="type-pill" id="sheetType"></span><span class="stars" id="sheetStars"></span><span class="dots" id="sheetColors"></span></div>
     <div class="sheet-stats" id="sheetStats"></div>
-    <button class="btn ghost danger" id="releaseBtn">放生（從圖鑑移除）</button>
+    <button class="btn ghost" id="sheetBack">返回</button>
   </div>
 </div>
+<div class="battle" id="battle" hidden role="dialog" aria-label="特別對戰">
+  <div class="bt-field" id="btField">
+    <i class="bt-cloud" style="left:8%;top:9%"></i><i class="bt-cloud" style="left:58%;top:16%;transform:scale(.8)"></i>
+    <div class="bt-foe" id="btFoe"><div class="sh"></div><div class="shields" id="btShields"></div><img id="btFoeImg" alt=""></div>
+    <div class="bt-me" id="btMe"><div class="sh"></div><div class="bob"><img id="btMeImg" alt=""></div></div>
+    <div class="bt-fx" id="btFx"></div>
+    <div class="bt-hand" id="btHand">👆</div>
+    <div class="bt-plate foe"><b id="btFoeName"></b><small id="btFoeStars"></small><div class="bt-blocks" id="btFoeBlocks"></div></div>
+    <div class="bt-plate me"><b id="btMeName"></b><small id="btMeType"></small></div>
+    <button class="bt-skip" id="btSkip" aria-label="跳過對戰"><svg viewBox="0 0 24 24"><path d="M18.3 5.7 16.9 4.3 12 9.2 7.1 4.3 5.7 5.7 10.6 10.6 5.7 15.5l1.4 1.4 4.9-4.9 4.9 4.9 1.4-1.4-4.9-4.9z"/></svg>跳過</button>
+  </div>
+  <div class="bt-msg" id="btMsg"></div>
+</div>
+<div class="sheet-wrap center" id="devPanel" hidden>
+  <div class="modal dev-form" role="dialog" aria-label="開發者測試">
+    <h2>🧪 開發者測試</h2>
+    <p class="note" style="margin:0">產生一隻假的遭遇，直接進入丟球／對戰流程。<b>不會記入圖鑑，也不會標記「見過」。</b>四、五星對戰時，圖鑑是空的也會隨機找一隻當我方。</p>
+    <div class="dev-stars" id="devStars"></div>
+    <label>指定寶可夢（編號或名字；空白＝依星等隨機）<input type="text" id="devWho" inputmode="text" placeholder="例如 150 或 超夢" autocomplete="off"></label>
+    <label class="chk"><input type="checkbox" id="devSil" checked>當作沒見過（用剪影出場）</label>
+    <div class="manage-row"><button class="btn ghost" id="devClose">關閉</button><button class="btn primary" id="devGo">開始測試</button></div>
+  </div>
+</div>
+<div class="dev-tag" title="測試遭遇：不會記入圖鑑">🧪 測試</div>
 <div class="toast" id="toast"></div>
 <canvas id="cv" width="48" height="48" hidden></canvas>
 
 <script>
-const BUILD="2026.10.28-1757";
+const BUILD="2026.10.28-2046";
 /* =========================================================
    顏色寶可夢探險
    資料都在 data/：config.json 列出要載入的資料包（packs），
@@ -836,6 +925,7 @@ function show(name){
   if(name==="encounter"&&!current&&!fled) name="camera";
   if(name==="result"&&!lastCaught) name="camera";
   screen=name;
+  if(name!=="encounter"&&name!=="result"&&TEST)setTest(false);
   SCREENS.forEach(s=>$("s-"+s).hidden=s!==name);
   $("barTitle").textContent=TITLES[name];
   $("backBtn").hidden=name==="camera";
@@ -986,11 +1076,12 @@ function setMonVisual(mon,{imgEl,fbEl,glyphEl}){
 }
 async function startEncounter(pal,picked){
   const {mon,sim}=picked, T=TYPES[mon.type];
+  setTest(!!picked.test);
   encounterNight=!!picked.night;
   current=mon;fled=false;misses=0;busy=false;encounterId++;
   $("glow").getAnimations().forEach(a=>a.cancel());
   setMonVisual(mon,{imgEl:$("art"),fbEl:$("monFb"),glyphEl:$("glyph")});
-  revealed=!silhouetteOn()||!!dex[mon.id];                 // 沒抓過的寶可夢先用剪影
+  revealed=picked.test?!picked.silhouette:(!silhouetteOn()||!!dex[mon.id]);                 // 沒抓過的寶可夢先用剪影
   $("mon").classList.toggle("silhouette",!revealed);
   showMonInfo(mon,revealed);
   $("monStars").textContent=starText(mon.rarity);
@@ -1012,6 +1103,12 @@ async function startEncounter(pal,picked){
   if(current!==mon)return;
   setupShields(mon);
   Hardware.notifyEncounter(mon);
+  if(battleEligible(mon)){                                   // 四、五星＋圖鑑有寶可夢：特別對戰（可以跳過）
+    const r=await startBattle(mon);
+    if(current!==mon||encounterId!==BT.eid)return;
+    if(r==="win")bubble("護盾全部打破了！現在很好抓！");
+    else if(r==="skip")bubble(`牠有 ${shieldLayersLeft()} 層護盾！${AR.on?"對著鏡頭揮手":"點牠"}打破，或直接丟球`);
+  }
   $("throwBtn").disabled=false;
   startBallCycle();
 }
@@ -1231,7 +1328,8 @@ function showResult(mon){
   $("resType").textContent=T.name;
   $("resStars").textContent=starText(mon.rarity);
   const n=dex[mon.id]?.n||1;
-  $("resSub").textContent=`#${String(mon.id).padStart(3,"0")}　${lastBall?`用${lastBall.name}　`:""}${n>1?`第 ${n} 次抓到`:"新登錄到圖鑑！"}`;
+  $("toDexBtn").hidden=TEST;
+  $("resSub").textContent=TEST?"測試遭遇：沒有記入圖鑑":`#${String(mon.id).padStart(3,"0")}　${lastBall?`用${lastBall.name}　`:""}${n>1?`第 ${n} 次抓到`:"新登錄到圖鑑！"}`;
   go("result",true);
 }
 
@@ -1255,8 +1353,11 @@ const dexKey=id=>`colormon-dex:${id}`,seenKey=id=>`colormon-seen:${id}`;
 let dex=lsGet(dexKey(PROFILES.cur),{}),seen=lsGet(seenKey(PROFILES.cur),{});
 const curProfile=()=>PROFILES.list.find(p=>p.id===PROFILES.cur)||PROFILES.list[0];
 function saveDexStore(){lsSet(dexKey(PROFILES.cur),dex);}
-function markSeen(m){if(seen[m.id])return;seen[m.id]=Date.now();lsSet(seenKey(PROFILES.cur),seen);}
+let TEST=false;                                              // 開發者測試遭遇：不記圖鑑、不記「見過」
+function setTest(on){TEST=on;document.documentElement.classList.toggle("devtest",on);}
+function markSeen(m){if(TEST||seen[m.id])return;seen[m.id]=Date.now();lsSet(seenKey(PROFILES.cur),seen);}
 function saveDex(m){
+  if(TEST)return;
   markSeen(m);
   const e=(dex[m.id]??={n:0,first:Date.now()});
   e.n++;e.last=Date.now();e.first??=e.last;
@@ -1393,6 +1494,7 @@ function twoStep(btn,confirmText,action){
 
 /* ---------- 寶可夢詳細頁 ---------- */
 let sheetMon=null;
+const TRASH_SVG='<svg viewBox="0 0 24 24"><path d="M9 3v1H4v2h16V4h-5V3H9zM6 8l1 13h10l1-13H6zm3 2h2v9H9v-9zm4 0h2v9h-2v-9z"/></svg>';
 const fmtDate=t=>{if(!t)return"—";const d=new Date(t);return `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;};
 function openMonSheet(id){
   const m=MONS.find(x=>x.id===id);if(!m)return;
@@ -1409,18 +1511,26 @@ function openMonSheet(id){
     <div><span>最近一次</span><b>${fmtDate(c.last)}</b></div>
     <div><span>用過的球</span><b class="balls">${c.balls?Object.entries(c.balls).map(([k,n])=>`<span title="${ballName(k)}">${BALLS?`<img src="${BALLS.spriteUrl.replace("{key}",k)}" alt="">`:""}${ballName(k)}${n>1?`×${n}`:""}</span>`).join(""):(c.ball?ballName(c.ball):"—")}</b></div>`
     :`<div><span>狀態</span><b>見過，還沒抓到</b></div><div><span>第一次見到</span><b>${typeof seen[id]==="number"&&seen[id]>1?fmtDate(seen[id]):"—"}</b></div>`;
-  $("releaseBtn").hidden=!c;delete $("releaseBtn").dataset.armed;$("releaseBtn").textContent="放生（從圖鑑移除）";
+  $("releaseBtn").hidden=!c;releaseLabel();
   $("monSheet").hidden=false;
   anim($("monSheet").firstElementChild,[{transform:"translateY(40px)",opacity:0},{transform:"translateY(0)",opacity:1}],{duration:220,easing:"ease-out"});
 }
 function closeMonSheet(){$("monSheet").hidden=true;sheetMon=null;}
 $("sheetClose").onclick=closeMonSheet;
 $("monSheet").addEventListener("click",e=>{if(e.target===$("monSheet"))closeMonSheet();});
-$("releaseBtn").onclick=()=>twoStep($("releaseBtn"),"真的要放生嗎？再按一次",()=>{
+function releaseLabel(){const b=$("releaseBtn");delete b.dataset.armed;delete b.dataset.label;clearTimeout(b._t);b.innerHTML=TRASH_SVG;}
+$("releaseBtn").onclick=()=>{
+  const b=$("releaseBtn");
+  if(b.dataset.armed){delete b.dataset.armed;clearTimeout(b._t);b.innerHTML=TRASH_SVG;releaseNow();return;}
+  b.dataset.armed="1";b.innerHTML=TRASH_SVG+"再按一次放生";
+  clearTimeout(b._t);b._t=setTimeout(()=>{delete b.dataset.armed;b.innerHTML=TRASH_SVG;},3500);
+};
+function releaseNow(){
   if(!sheetMon)return;const name=sheetMon.name;
   delete dex[sheetMon.id];saveDexStore();updateCount();closeMonSheet();renderDex();
   sfx("flee");toast(`${name}回到大自然了`);
-});
+}
+$("sheetBack").onclick=closeMonSheet;
 
 /* ---------- 玩家管理 ---------- */
 function renderProfiles(){
@@ -1630,7 +1740,7 @@ function detectBalls(t){
 }
 const BALL_MODE_KEY="colormon-ball-mode";
 function arConfig(){return CFG?.ball||{};}
-function arArmed(){return screen==="encounter"&&current&&!busy&&!$("throwBtn").disabled;}
+function arArmed(){return screen==="encounter"&&current&&!busy&&!BT.on&&!$("throwBtn").disabled;}
 async function startAR(){
   if(AR.stream||AR.starting) return;
   if(!navigator.mediaDevices?.getUserMedia||!isSecureContext){toast("這裡不能開相機（需要 https）");AR.failed=true;updateMotionBtn();return;}
@@ -1854,7 +1964,7 @@ function setupShields(mon){
   SHIELD.perLayer=CFG.shieldHitsPerLayer??3;SHIELD.total=layers;SHIELD.hp=layers*SHIELD.perLayer;SHIELD.lastHit=0;
   drawShields();
   if(layers){
-    setTimeout(()=>{if(current===mon&&!busy)bubble(`牠有 ${layers} 層護盾！${AR.on?"對著鏡頭揮手打牠":"點牠"}可以打破護盾！`);},1600);
+    setTimeout(()=>{if(current===mon&&!busy&&!BT.on)bubble(`牠有 ${layers} 層護盾！${AR.on?"對著鏡頭揮手打牠":"點牠"}可以打破護盾！`);},1600);
   }
 }
 function drawShields(){
@@ -1864,7 +1974,7 @@ function drawShields(){
   hud.innerHTML=SHIELD.total?`護盾 ${"◆".repeat(left)}${"◇".repeat(SHIELD.total-left)}`:"";
 }
 function hitShield(){
-  if(!current||busy||!SHIELD.hp)return;
+  if(!current||busy||BT.on||!SHIELD.hp)return;
   const now=performance.now();if(now-SHIELD.lastHit<(CFG.shieldHitCooldownMs??380))return;
   SHIELD.lastHit=now;
   const before=shieldLayersLeft();SHIELD.hp--;const after=shieldLayersLeft();
@@ -1885,6 +1995,232 @@ function hitShield(){
   drawShields();
 }
 $("mon").addEventListener("pointerdown",e=>{if(SHIELD.hp){e.preventDefault();hitShield();}});
+
+/* =========================================================
+   隱藏的開發者測試：連按版本文字 7 下（或網址加 ?dev）
+   產生一隻指定星等／指定的寶可夢，直接進遭遇與對戰流程；不會記入圖鑑、不會標記「見過」
+   ========================================================= */
+const DEV={star:+(lsGet("colormon-dev-star",4))||4};
+function openDev(){
+  $("devStars").innerHTML=[1,2,3,4,5].map(n=>`<button class="chip" data-star="${n}" aria-pressed="${n===DEV.star}">${n}★</button>`).join("");
+  $("devPanel").hidden=false;
+}
+function closeDev(){$("devPanel").hidden=true;}
+$("devStars").addEventListener("click",e=>{const b=e.target.closest("[data-star]");if(!b)return;DEV.star=+b.dataset.star;lsSet("colormon-dev-star",DEV.star);
+  [...$("devStars").children].forEach(x=>x.setAttribute("aria-pressed",x===b));});
+$("devClose").onclick=closeDev;
+$("devPanel").addEventListener("click",e=>{if(e.target===$("devPanel"))closeDev();});
+$("devGo").onclick=()=>{
+  const q=$("devWho").value.trim();let mon=null;
+  if(q){mon=MONS.find(m=>String(m.id)===q||m.name===q)||MONS.find(m=>m.name.includes(q));if(!mon){toast("找不到這隻");return;}}
+  else{const pool=MONS.filter(m=>m.rarity===DEV.star),all=pool.length?pool:MONS;mon=all[Math.floor(Math.random()*all.length)];}
+  closeDev();
+  const pal=mon.colors.map(h=>({rgb:[1,3,5].map(i=>parseInt(h.slice(i,i+2),16))}));
+  startEncounter(pal,{mon,sim:99,test:true,silhouette:$("devSil").checked});
+};
+let verTaps=[];
+$("ver").addEventListener("click",()=>{
+  const t=performance.now();verTaps=verTaps.filter(x=>t-x<3000);verTaps.push(t);
+  if(verTaps.length>=7){verTaps=[];openDev();}
+});
+
+/* =========================================================
+   特別對戰（四、五星）：像素風小對戰，打破護盾
+   - 條件：這隻有護盾、四星以上，而且圖鑑裡至少有一隻（沒有的話走原本的打護盾）
+   - 我方是圖鑑裡隨機一隻；敵人一直閃來閃去；點螢幕任何地方＝我方從嘴巴發射該屬性的招式，朝敵人飛過去（飛行途中敵人可能閃開 → MISS）
+   - 打中＝破一層護盾；沒打中什麼都不會發生；層數打光就回到丟球
+   - 屬性只影響特效（types.json 的 fx），不算相剋
+   - 右上角大大的 ✕「跳過」：不想玩就回到原本的打護盾／直接丟球，絕不強迫
+   ========================================================= */
+const BT={on:false,live:false,mon:null,me:null,eid:0,W:0,H:0,S:0,slots:[],cur:0,from:null,to:null,t0:0,dur:0,nextAt:0,raf:0,lastShot:0,fx:null,done:null,msgT:0,shots:0,hits:0,tick:null};
+const btCfg=()=>({enabled:true,minRarity:4,delayMs:900,dwellMs:1000,hopMs:260,flightMs:380,cooldownMs:320,hitSlack:14,...(CFG?.battle||{})});
+function battleEligible(mon){
+  const c=btCfg();
+  if(c.enabled===false||!SHIELD.total||mon.rarity<c.minRarity)return false;
+  return TEST||Object.keys(dex).some(id=>dex[id]&&MONS.some(m=>m.id===+id));
+}
+function backSpriteUrl(id){return (CFG.backSpriteUrl||CFG.spriteUrl.replace("/pokemon/","/pokemon/back/")).replace("{id}",id);}
+function btPickMine(foe){
+  let ids=Object.keys(dex).filter(id=>dex[id]).map(Number).filter(id=>MONS.some(m=>m.id===id));
+  if(!ids.length&&TEST)ids=MONS.map(m=>m.id);                  // 測試時圖鑑空的也能對戰：隨便找一隻當我方
+  const pool=ids.filter(id=>id!==foe.id);
+  const id=(pool.length?pool:ids)[Math.floor(Math.random()*(pool.length?pool.length:ids.length))];
+  return MONS.find(m=>m.id===id);
+}
+const btFx=mon=>{const T=TYPES[mon.type]||{};return {style:"orb",colors:[T.color||"#ffffff","#ffffff"],...(T.fx||{})};};
+function btMsg(t,hold){
+  $("btMsg").textContent=t;clearTimeout(BT.msgT);
+  if(hold)BT.msgT=setTimeout(()=>{if(BT.on)$("btMsg").textContent=BT.hint;},hold);
+}
+function btBlocks(){
+  $("btFoeBlocks").innerHTML=Array.from({length:SHIELD.total},(_,k)=>`<i class="${k<shieldLayersLeft()?"on":""}"></i>`).join("");
+}
+function btDrawShields(){
+  const left=shieldLayersLeft();
+  $("btShields").innerHTML=Array.from({length:left},(_,k)=>`<i style="inset:${-6-k*7}%;animation-delay:${-k*.4}s;animation-iteration-count:infinite"></i>`).join("");
+}
+function btLayout(){
+  const r=$("btField").getBoundingClientRect();BT.W=r.width;BT.H=r.height;
+  BT.S=Math.max(80,Math.min(170,BT.W*.34,BT.H*.34));
+  const xs=[.24,.5,.76];BT.slots=[];
+  for(const [y,s] of [[.30,.74],[.45,1]])for(const x of xs)BT.slots.push({x:x*BT.W,y:y*BT.H,s});
+  const me=1.3*BT.S;
+  $("btMe").style.width=$("btMe").style.height=me+"px";
+  $("btMe").style.transform=`translate(${BT.W*.04}px,${BT.H*.97-me}px)`;
+  BT.mouth={x:BT.W*.04+me*.78,y:BT.H*.97-me+me*.34};
+  $("btFoe").style.width=$("btFoe").style.height=BT.S+"px";
+}
+function btFoePos(t){
+  const a=BT.slots[BT.from],b=BT.slots[BT.to];
+  if(!BT.dur||t>=BT.t0+BT.dur)return {x:b.x,y:b.y,s:b.s,moving:false};
+  const p=Math.max(0,(t-BT.t0)/BT.dur),e=p<.5?2*p*p:1-2*(1-p)*(1-p);
+  return {x:a.x+(b.x-a.x)*e,y:a.y+(b.y-a.y)*e-Math.sin(Math.PI*p)*BT.S*.3,s:a.s+(b.s-a.s)*e,moving:true};
+}
+function btHop(t){
+  const c=btCfg(),left=shieldLayersLeft(),broken=SHIELD.total-left;
+  const opts=BT.slots.map((_,i)=>i).filter(i=>i!==BT.to);
+  BT.from=BT.to;BT.to=opts[Math.floor(Math.random()*opts.length)];
+  BT.t0=t;BT.dur=Math.max(170,c.hopMs-broken*18);
+  const dwell=Math.max(480,c.dwellMs-broken*110);
+  BT.nextAt=t+BT.dur+dwell*(.75+Math.random()*.5);
+  sfx("hop");
+}
+function btFrame(t){
+  BT.raf=0;if(!BT.on)return;
+  if(current!==BT.mon||encounterId!==BT.eid){btFinish("abort");return;}
+  if(BT.live&&t>=BT.nextAt)btHop(t);
+  const p=btFoePos(t),sz=BT.S*p.s;
+  $("btFoe").style.transform=`translate(${p.x-BT.S/2}px,${p.y-BT.S/2}px) scale(${p.s})`;
+  BT.raf=requestAnimationFrame(btFrame);
+}
+function btFinish(result){
+  if(!BT.on)return;
+  BT.on=false;BT.live=false;cancelAnimationFrame(BT.raf);BT.raf=0;clearTimeout(BT.msgT);
+  $("battle").hidden=true;$("btFx").innerHTML="";
+  window.removeEventListener("resize",BT.onResize);
+  const d=BT.done;BT.done=null;d&&d(result);
+}
+function btImg(img,src,fallback){
+  return new Promise(res=>{
+    const done=()=>{img.onload=img.onerror=null;res();};
+    img.onload=done;
+    img.onerror=()=>{if(fallback){fallback();img.onload=done;img.onerror=done;}else done();};
+    img.src=src;setTimeout(res,1800);
+  });
+}
+async function startBattle(mon){
+  const me=btPickMine(mon),eid=encounterId;
+  Object.assign(BT,{on:true,live:false,mon,me,eid,lastShot:0,shots:0,hits:0,fx:btFx(me),cur:4,from:4,to:4,dur:0,t0:0});
+  BT.hint="點螢幕發射招式！牠會閃躲，打中才破護盾";
+  $("battle").hidden=false;
+  BT.onResize=()=>{if(BT.on)btLayout();};window.addEventListener("resize",BT.onResize);
+  $("btFoeName").textContent=revealed?mon.name:"？？？";$("btFoeStars").textContent=starText(mon.rarity);
+  $("btMeName").textContent=me.name;$("btMeType").textContent=TYPES[me.type]?.name||"";
+  $("btFoe").classList.toggle("silhouette",!revealed);$("btFoe").classList.remove("flash");$("btMe").classList.remove("in","lunge");
+  $("btHand").hidden=true;
+  btLayout();btBlocks();btDrawShields();
+  btMsg(`野生的${revealed?mon.name:"寶可夢"}擋住了去路！`);
+  const meImg=$("btMeImg");meImg.style.transform="";
+  await Promise.all([
+    btImg($("btFoeImg"),spriteUrl(mon.id),null),
+    btImg(meImg,backSpriteUrl(me.id),()=>{meImg.src=spriteUrl(me.id);meImg.style.transform="scaleX(-1)";}),
+  ]);
+  const p=new Promise(res=>BT.done=res);
+  BT.raf=requestAnimationFrame(btFrame);
+  sfx("btStart");
+  await wait(btCfg().delayMs*.55);
+  if(!BT.on)return p;
+  btMsg(`出來吧！${me.name}！`);$("btMe").classList.add("in");sfx("appear");
+  await wait(btCfg().delayMs*.6);
+  if(!BT.on)return p;
+  BT.live=true;BT.nextAt=performance.now()+700;
+  btMsg(BT.hint);$("btHand").hidden=false;
+  return p;
+}
+$("btSkip").addEventListener("click",e=>{e.stopPropagation();if(BT.on){sfx("tap");btFinish("skip");}});
+$("btField").addEventListener("pointerdown",e=>{
+  if(!BT.on||!BT.live||e.target.closest("#btSkip"))return;
+  e.preventDefault();
+  const c=btCfg(),now=performance.now();
+  if(now-BT.lastShot<c.cooldownMs)return;
+  BT.lastShot=now;$("btHand").hidden=true;
+  const fp=btFoePos(now);                                    // 點哪裡都一樣：招式從我方嘴巴朝著敵人「現在的位置」飛過去，到了才判定打不打得中
+  btShoot({x:fp.x,y:fp.y});
+});
+const btEl=(cls,x,y,vars)=>{
+  const d=document.createElement("i");d.className=cls;d.style.cssText=`--c0:${BT.fx.colors[0]};--c1:${BT.fx.colors[1]}`;
+  if(x!=null)d.style.transform=`translate(${x}px,${y}px)`;$("btFx").appendChild(d);return d;
+};
+const btGone=(el,ms)=>setTimeout(()=>el.remove(),ms+60);
+function btShoot(tap){
+  const c=btCfg(),fx=BT.fx,m=BT.mouth,st=fx.style;
+  BT.shots++;sfx("shoot",st);
+  const lunge=$("btMe");lunge.classList.remove("lunge");void lunge.offsetWidth;lunge.classList.add("lunge");
+  const dx=tap.x-m.x,dy=tap.y-m.y,ang=Math.atan2(dy,dx)*180/Math.PI;
+  let flight=T_(st==="bolt"?Math.round(c.flightMs*.6):c.flightMs);
+  const tr=(x,y,extra="")=>`translate(${x}px,${y}px) ${extra}`;
+  if(st==="bolt"){
+    const el=btEl("bolt"),pts=[[m.x,m.y]],n=7,len=Math.hypot(dx,dy)||1,nx=-dy/len,ny=dx/len;
+    for(let k=1;k<n;k++){const o=(Math.random()-.5)*34;pts.push([m.x+dx*k/n+nx*o,m.y+dy*k/n+ny*o]);}
+    pts.push([tap.x,tap.y]);
+    const ptsS=pts.map(p=>p.join(",")).join(" ");
+    el.style.cssText="inset:0;width:100%;height:100%;margin:0";el.className="";
+    el.innerHTML=`<svg viewBox="0 0 ${BT.W} ${BT.H}"><polyline pathLength="1" stroke-dasharray="1" points="${ptsS}" fill="none" stroke="${fx.colors[0]}" stroke-width="12" stroke-linejoin="miter"/><polyline pathLength="1" stroke-dasharray="1" points="${ptsS}" fill="none" stroke="${fx.colors[1]}" stroke-width="4" stroke-linejoin="miter"/></svg>`;
+    el.querySelectorAll("polyline").forEach(pl=>pl.animate([{strokeDashoffset:1},{strokeDashoffset:0}],{duration:flight,easing:"steps(8,end)",fill:"both"}));   // 閃電一格一格「竄」過去
+    el.animate([{opacity:1},{opacity:1,offset:.7},{opacity:0}],{duration:flight+T_(260),easing:"steps(3,end)"});btGone(el,flight+T_(260));
+  }else if(st==="shards"){
+    for(let k=0;k<5;k++){
+      const el=btEl("shard",m.x,m.y),sp=(k-2)*16,px=-Math.sin(ang*Math.PI/180)*sp,py=Math.cos(ang*Math.PI/180)*sp;
+      el.animate([{transform:tr(m.x,m.y,"rotate(45deg)")},{transform:tr(tap.x+px*.3,tap.y+py*.3,"rotate(405deg)")}],{duration:flight,delay:k*22,easing:"steps(7,end)",fill:"both"});btGone(el,flight+k*22);
+    }
+  }else if(st==="ring"){
+    for(let k=0;k<3;k++){
+      const el=btEl("ring",m.x,m.y);
+      el.animate([{transform:tr(m.x,m.y,"scale(.5)"),opacity:.95},{transform:tr(tap.x,tap.y,"scale(1.5)"),opacity:.75}],{duration:flight,delay:k*70,easing:"steps(6,end)",fill:"both"});btGone(el,flight+k*70);
+    }
+  }else{
+    const el=btEl(st==="flame"?"flame":st==="star"?"star":"orb",m.x,m.y);
+    const spin=st==="star"?"rotate(540deg)":st==="flame"?`rotate(${ang+90}deg)`:"";
+    el.animate([{transform:tr(m.x,m.y,st==="flame"?`rotate(${ang+90}deg) scale(.6)`:"scale(.6)")},{transform:tr(tap.x,tap.y,(spin?spin+" ":"")+"scale(1.1)")}],{duration:flight,easing:"steps(8,end)",fill:"both"});btGone(el,flight);
+    // 小小的尾巴
+    for(let k=1;k<=3;k++){const tl=btEl("pix"+(k%2?"":" b"),m.x,m.y);tl.animate([{transform:tr(m.x,m.y),opacity:.9},{transform:tr(tap.x-dx*.02*k,tap.y-dy*.02*k),opacity:0}],{duration:flight,delay:k*28,easing:"steps(6,end)",fill:"both"});btGone(tl,flight+k*28);}
+  }
+  const arrive=performance.now()+flight;
+  setTimeout(()=>{
+    if(!BT.on)return;
+    const fp=btFoePos(performance.now()),rad=BT.S*fp.s*.5+c.hitSlack;
+    if(Math.hypot(tap.x-fp.x,tap.y-fp.y)<=rad)btHit(tap);else btMiss(tap);
+  },Math.max(0,arrive-performance.now()));
+}
+function btBurst(x,y,n=12,big=false){
+  for(let k=0;k<n;k++){
+    const a=k/n*Math.PI*2+Math.random()*.4,d=(big?70:42)+Math.random()*28;
+    const el=btEl("pix"+(k%2?" b":""),x,y);
+    el.animate([{transform:tr2(x,y),opacity:1},{transform:tr2(x+Math.cos(a)*d,y+Math.sin(a)*d),opacity:0}],{duration:T_(big?520:380),easing:"steps(5,end)",fill:"both"});btGone(el,T_(520));
+  }
+}
+const tr2=(x,y)=>`translate(${x}px,${y}px)`;
+function btHit(tap){
+  const left=shieldLayersLeft();if(!left)return;
+  BT.hits++;
+  SHIELD.hp=(left-1)*SHIELD.perLayer;drawShields();
+  const fp=btFoePos(performance.now());
+  btBurst(fp.x,fp.y,12,left===1);
+  const f=$("btFoe");f.classList.remove("flash");void f.offsetWidth;f.classList.add("flash");
+  btDrawShields();btBlocks();
+  const blocks=$("btFoeBlocks").children;if(blocks[left-1])blocks[left-1].classList.add("pop");
+  sfx("foeHit",BT.fx.style);try{navigator.vibrate&&navigator.vibrate(left===1?160:60);}catch(e){}
+  if(left-1>0){btMsg(`打中了！護盾破掉一層，還剩 ${left-1} 層`,1100);return;}
+  // 全部打破了
+  BT.live=false;sfx("btWin");btMsg("護盾全部打破了！",9999);
+  setTimeout(()=>btFinish("win"),T_(1200));
+}
+function btMiss(tap){
+  sfx("whiff");btBurst(tap.x,tap.y,4);
+  const el=btEl("miss",tap.x,tap.y);el.textContent="MISS";
+  el.animate([{transform:tr2(tap.x,tap.y),opacity:1},{transform:tr2(tap.x,tap.y-26),opacity:0}],{duration:T_(520),easing:"steps(5,end)",fill:"both"});btGone(el,T_(520));
+  btMsg("被牠閃開了！再試一次",1100);
+}
 
 /* =========================================================
    鏡頭動作偵測：揮手甩球、打護盾（比較前後兩張畫面的變化）
@@ -1990,7 +2326,7 @@ function motionActions(t,M){
   if(screen!=="encounter")return false;
   const c=swipeConfig(),sRect=$("scene").getBoundingClientRect();let active=false;
   // 打護盾：寶可夢的位置有夠多變化
-  if(SHIELD.hp&&!busy&&current){
+  if(SHIELD.hp&&!busy&&current&&!BT.on){
     const m=$("mon").getBoundingClientRect(),mc=sceneToVideo(m.left-sRect.left+m.width/2,m.top-sRect.top+m.height/2);
     const r=M.region(mc.x,mc.y,c.hitRadius,c.hitRadius*1.2);
     if(r.n>=3)active=true;
@@ -2303,6 +2639,17 @@ const SFX={
   shieldBreak:t=>{ GB.noise(t,.35,{v:.4,hp:2500}); GB.seq(t+.05,"E7:1 B6:1 G6:1 E6:1 B5:2",.04,{duty:.125,v:.3}); },  // 碎掉
   step:t=>{ GB.noise(t,.04,{v:.25,hp:300}); GB.tone(t,240,.05,{duty:.5,v:.25,slide:160}); },                  // 腳步：咚
   radar:(t,w=0)=>{ GB.tone(t,500+900*w,.05+.03*w,{duty:.125,v:.25+.2*w}); },                                  // 探索雷達：越近越高
+  hop:t=>{ GB.tone(t,420,.07,{duty:.25,v:.12,slide:900}); },                                                  // 敵人閃開：輕輕的咻
+  btStart:t=>{ GB.seq(t,"E5:1 E5:1 G5:1 E5:1 A5:1 G5:2 -:1 E5:1 G5:1 B5:1 E6:3",.07,{duty:.5,v:.3}); GB.seq(t,"E3:2 E3:2 A3:2 E3:2 C4:2 A3:2 E3:2 G3:2",.07,{duty:.25,v:.2}); },
+  shoot:(t,st)=>{ if(st==="bolt"){GB.noise(t,.18,{v:.3,hp:2500});GB.tone(t,2400,.16,{duty:.125,v:.3,slide:300});}
+                  else if(st==="flame"){GB.noise(t,.28,{v:.28,hp:700});GB.tone(t,300,.24,{duty:.5,v:.22,slide:700});}
+                  else if(st==="shards"){GB.noise(t,.1,{v:.3,hp:3500});GB.tone(t,1500,.14,{duty:.25,v:.3,slide:900});}
+                  else if(st==="ring"){GB.tone(t,500,.26,{duty:.5,v:.3,slide:1500});GB.tone(t+.08,750,.2,{duty:.5,v:.2,slide:1800});}
+                  else if(st==="star"){GB.tone(t,1200,.2,{duty:.125,v:.3,slide:500});GB.tone(t+.05,1600,.12,{duty:.125,v:.2});}
+                  else{GB.tone(t,900,.22,{duty:.25,v:.35,slide:380});GB.noise(t,.08,{v:.15,hp:2000});} },
+  foeHit:(t,st)=>{ GB.noise(t,.14,{v:.4,hp:900}); GB.tone(t,330,.16,{duty:.5,v:.35,slide:90}); GB.seq(t+.05,"E6:1 A6:1",.05,{duty:.125,v:.25}); },
+  whiff:t=>{ GB.tone(t,260,.12,{duty:.5,v:.18,slide:130}); },
+  btWin:t=>{ GB.seq(t,"C5:1 E5:1 G5:1 C6:2 G5:1 C6:1 E6:1 G6:4",.065,{duty:.25,v:.35}); GB.seq(t,"C4:3 G3:3 C4:3 E4:4",.065,{duty:.5,v:.22}); },
   found:t=>{ const e=GB.seq(t,"C6:1 -:1 C6:1 -:1 C6:1 -:1",.07,{duty:.25,v:.45});                              // 噔噔噔
              GB.seq(e,"G5:1 C6:1 E6:1 G6:4",.06,{duty:.125,v:.4}); GB.seq(e,"C4:7",.06,{duty:.5,v:.25}); },
 };
@@ -2443,7 +2790,7 @@ if("serviceWorker" in navigator&&(location.protocol==="https:"||location.hostnam
 const incomingMove=location.hash.startsWith("#migrate=")?location.hash.slice(9):null;   // 從舊網址搬家過來的圖鑑（先拿走，網址列不留資料）
 history.replaceState(null,"","#camera");
 show("camera");
-loadData().then(()=>{updateCount();fillDexSelects();setupBallArt();setBallMode(AR.on);setShakeMode(SHAKE.on);loadChangelog();checkMove(incomingMove);}).catch(err=>{
+loadData().then(()=>{updateCount();fillDexSelects();setupBallArt();setBallMode(AR.on);setShakeMode(SHAKE.on);loadChangelog();checkMove(incomingMove);if(/[?&]dev(=|&|$)/.test(location.search))openDev();}).catch(err=>{
   console.error(err);
   $("camMsg").textContent="寶可夢資料載入失敗。請用網址開啟，而不是直接打開檔案。";
 });

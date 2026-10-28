@@ -7,7 +7,14 @@
       "#E8402A",
       "#F27A22",
       "#F8B030"
-    ]
+    ],
+    "fx": {
+      "style": "flame",
+      "colors": [
+        "#ff5a1f",
+        "#ffd54a"
+      ]
+    }
   },
   "water": {
     "name": "水",
@@ -18,7 +25,14 @@
       "#5AA8F0",
       "#1C4FA0",
       "#7FD0E8"
-    ]
+    ],
+    "fx": {
+      "style": "orb",
+      "colors": [
+        "#3b8cff",
+        "#d4ecff"
+      ]
+    }
   },
   "grass": {
     "name": "草",
@@ -28,7 +42,14 @@
       "#3E9A3A",
       "#7CC84A",
       "#2C6E30"
-    ]
+    ],
+    "fx": {
+      "style": "shards",
+      "colors": [
+        "#3fae4a",
+        "#b4f07a"
+      ]
+    }
   },
   "electric": {
     "name": "電",
@@ -38,7 +59,14 @@
       "#F8D030",
       "#F0E060",
       "#E8B020"
-    ]
+    ],
+    "fx": {
+      "style": "bolt",
+      "colors": [
+        "#ffe14a",
+        "#ffffff"
+      ]
+    }
   },
   "bug": {
     "name": "蟲",
@@ -49,7 +77,14 @@
       "#6E8E2A",
       "#B89A50",
       "#5A7A3A"
-    ]
+    ],
+    "fx": {
+      "style": "shards",
+      "colors": [
+        "#8fc12a",
+        "#f2e84a"
+      ]
+    }
   },
   "poison": {
     "name": "毒",
@@ -59,7 +94,14 @@
       "#8A4AB0",
       "#5A2E70",
       "#B080C8"
-    ]
+    ],
+    "fx": {
+      "style": "orb",
+      "colors": [
+        "#a14cd1",
+        "#e6b3ff"
+      ]
+    }
   },
   "psychic": {
     "name": "超能力",
@@ -69,7 +111,14 @@
       "#E85A9A",
       "#F0A0C8",
       "#9A60C8"
-    ]
+    ],
+    "fx": {
+      "style": "ring",
+      "colors": [
+        "#ff5fae",
+        "#ffd6ec"
+      ]
+    }
   },
   "fairy": {
     "name": "妖精",
@@ -79,7 +128,14 @@
       "#F4A6C8",
       "#FFD0E0",
       "#E070A8"
-    ]
+    ],
+    "fx": {
+      "style": "ring",
+      "colors": [
+        "#ff8fcf",
+        "#ffe6f5"
+      ]
+    }
   },
   "ice": {
     "name": "冰",
@@ -89,7 +145,14 @@
       "#A8E0F0",
       "#E8F6FA",
       "#70C0D8"
-    ]
+    ],
+    "fx": {
+      "style": "shards",
+      "colors": [
+        "#6fdcf2",
+        "#f0fcff"
+      ]
+    }
   },
   "flying": {
     "name": "飛行",
@@ -100,7 +163,14 @@
       "#C8DCF8",
       "#F4F6F8",
       "#B08860"
-    ]
+    ],
+    "fx": {
+      "style": "ring",
+      "colors": [
+        "#a9c4ff",
+        "#ffffff"
+      ]
+    }
   },
   "normal": {
     "name": "一般",
@@ -111,7 +181,14 @@
       "#C8B49A",
       "#F2F0EA",
       "#A89A88"
-    ]
+    ],
+    "fx": {
+      "style": "star",
+      "colors": [
+        "#e6dccb",
+        "#ffffff"
+      ]
+    }
   },
   "ground": {
     "name": "地面",
@@ -122,7 +199,14 @@
       "#8B5A2B",
       "#D8B070",
       "#6E4A28"
-    ]
+    ],
+    "fx": {
+      "style": "shards",
+      "colors": [
+        "#a8793a",
+        "#e6c88a"
+      ]
+    }
   },
   "rock": {
     "name": "岩石",
@@ -133,7 +217,14 @@
       "#B0A890",
       "#6E6658",
       "#A07850"
-    ]
+    ],
+    "fx": {
+      "style": "shards",
+      "colors": [
+        "#8f8260",
+        "#d6c994"
+      ]
+    }
   },
   "ghost": {
     "name": "幽靈",
@@ -144,7 +235,14 @@
       "#4E3A70",
       "#151018",
       "#6A5A90"
-    ]
+    ],
+    "fx": {
+      "style": "orb",
+      "colors": [
+        "#6a4c93",
+        "#cdb6ff"
+      ]
+    }
   },
   "dark": {
     "name": "惡",
@@ -155,7 +253,14 @@
       "#2A2A30",
       "#3E3A48",
       "#4A3428"
-    ]
+    ],
+    "fx": {
+      "style": "orb",
+      "colors": [
+        "#34343f",
+        "#9a9aae"
+      ]
+    }
   },
   "dragon": {
     "name": "龍",
@@ -165,7 +270,14 @@
       "#3A50B8",
       "#5A3AA0",
       "#2A6E8E"
-    ]
+    ],
+    "fx": {
+      "style": "orb",
+      "colors": [
+        "#4a5bd6",
+        "#9fb0ff"
+      ]
+    }
   },
   "fighting": {
     "name": "格鬥",
@@ -175,7 +287,14 @@
       "#A06A48",
       "#C8946A",
       "#7A5038"
-    ]
+    ],
+    "fx": {
+      "style": "star",
+      "colors": [
+        "#d9531e",
+        "#ffd9b0"
+      ]
+    }
   },
   "steel": {
     "name": "鋼",
@@ -185,6 +304,13 @@
       "#9AA6B4",
       "#C8D0D8",
       "#6E7884"
-    ]
+    ],
+    "fx": {
+      "style": "bolt",
+      "colors": [
+        "#b9c3d6",
+        "#ffffff"
+      ]
+    }
   }
 }
