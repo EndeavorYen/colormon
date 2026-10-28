@@ -2,7 +2,7 @@
 
 和小朋友一起玩的抓寶可夢遊戲：用手機拍下身邊的東西，照片的顏色最像哪隻寶可夢，牠就會出現，再丟球把牠抓起來。
 
-網址：https://endeavoryen.github.io/colormon/
+網址：https://colormon-nu.vercel.app/ （舊網址 https://endeavoryen.github.io/colormon/ 會提示搬家）
 
 ## 怎麼玩
 畫面依流程切換，一次只顯示一個步驟：
@@ -153,7 +153,20 @@ python3 tools/build-packs.py 1 2 3 4 5 6 7 8 9  # 全部九代（新增的資料
 目前是模擬模式：按「丟出寶貝球！」等於丟出，0.7 秒後自動回報落地。
 
 ## 部署
-push 到 `main` 後，GitHub Actions 會檢查資料格式與網頁語法，再部署到 GitHub Pages。
+正式網址在 **Vercel**（https://colormon-nu.vercel.app/），設定在 `vercel.json`：
+- 網站根目錄是 `site/`（`outputDirectory`），不需要安裝或打包。
+- 建置指令是 `node tools/validate-data.mjs`：資料格式有錯就不會部署。
+- 網頁、`data/`、`sw.js` 都設成每次拿最新版（`Cache-Control: no-cache`）。
+- Vercel 專案的 Root Directory 要保持空白（repo 根目錄），`vercel.json` 和資料檢查才會生效。
+
+push 到 `main` 後，Vercel 會自動部署；GitHub Actions 也會檢查資料和語法，並繼續部署到舊的 GitHub Pages。
+
+### 搬家（GitHub Pages → Vercel）
+圖鑑存在瀏覽器裡、綁定網址，換網址資料不會自動跟過去。`config.json` 的 `home` 設定新網址和舊網址：
+- 在舊網址（`home.oldHosts`）打開遊戲，拍照畫面上方會出現「遊戲搬家了！」，按「帶著圖鑑搬過去」會把所有玩家的圖鑑壓縮後放在新網址的 `#` 後面帶過去（`#` 後面的內容不會送到伺服器）。
+- 新網址會問「要把舊網址的圖鑑搬過來嗎？」，確認後**合併**進來：同一隻寶可夢取比較大的次數、比較早的第一次、比較晚的最近一次，不會刪掉任何資料。
+- 不能用的時候，還是可以用「圖鑑管理 → 下載備份檔／從備份檔還原」。
+- 大家都搬好以後，可以關掉 GitHub Pages（停用 `.github/workflows/pages.yml` 或在 repo 的 Settings → Pages 關閉）。
 
 本機測試：`cd site && python3 -m http.server`，再打開 http://localhost:8000 （直接雙擊 index.html 會讀不到資料檔）。
 

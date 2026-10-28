@@ -1,4 +1,10 @@
 {
+  "home": {
+    "url": "https://colormon-nu.vercel.app/",
+    "oldHosts": [
+      "endeavoryen.github.io"
+    ]
+  },
   "packs": [
     "packs/gen1.json",
     "packs/gen2.json",

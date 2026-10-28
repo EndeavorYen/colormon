@@ -272,6 +272,13 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 .scan-tag{position:absolute;transform:translate(-50%,-50%);z-index:2;background:#ffd54a;color:#3a2a00;font-weight:900;font-size:.85rem;border-radius:999px;padding:3px 10px;box-shadow:0 2px 8px rgba(0,0,0,.35)}
 .scan-photo::after{z-index:3}
 
+/* moving to the new address */
+.move-box{background:color-mix(in srgb,var(--sun) 22%,var(--card));border:2px solid var(--sun);border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.move-box b{font-family:var(--display);font-weight:900;font-size:1.15rem}
+.move-box p{margin:0;font-size:.9rem}
+.move-actions{display:flex;gap:8px;flex-wrap:wrap}
+.move-actions .btn{flex:1;padding:12px;font-size:.98rem}
+
 /* result screen */
 .result{align-items:center;text-align:center;justify-content:center}
 .burst{position:relative;width:min(78vw,300px);aspect-ratio:1;display:grid;place-items:center}
@@ -320,6 +327,11 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 
   <!-- 1 拍照 -->
   <section class="screen" id="s-camera">
+    <div class="move-box" id="moveBox" hidden>
+      <b id="moveTitle"></b>
+      <p id="moveText"></p>
+      <div class="move-actions"><button class="btn sun" id="moveGo"></button><button class="btn ghost" id="moveSkip" hidden></button></div>
+    </div>
     <div class="viewer" id="viewer">
       <video id="video" playsinline muted autoplay hidden></video>
       <div class="cam-off" id="camOff">
@@ -492,7 +504,7 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 <canvas id="cv" width="48" height="48" hidden></canvas>
 
 <script>
-const BUILD="2026.10.28-1128";
+const BUILD="2026.10.28-1313";
 /* =========================================================
    顏色寶可夢探險
    資料都在 data/：config.json 列出要載入的資料包（packs），
@@ -2008,6 +2020,80 @@ function setMuted(m){
 $("muteBtn").onclick=()=>{unlockAudio();setMuted(!muted);if(!muted)setTimeout(()=>sfx("tap"),30);};
 setMuted(muted);
 
+/* =========================================================
+   搬家：遊戲換到新網址（config.home.url）。圖鑑存在瀏覽器裡、綁定網址，所以要幫忙帶過去：
+   舊網址把所有玩家的圖鑑壓縮後放在新網址的 # 後面（不會送到伺服器），新網址確認後「合併」進來
+   ========================================================= */
+const b64url={enc:u8=>{let s="";for(let i=0;i<u8.length;i+=0x8000)s+=String.fromCharCode(...u8.subarray(i,i+0x8000));return btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");},
+  dec:t=>{t=t.replace(/-/g,"+").replace(/_/g,"/");const s=atob(t);return Uint8Array.from(s,c=>c.charCodeAt(0));}};
+async function packAll(){
+  const data={app:"colormon",format:1,cur:PROFILES.cur,players:PROFILES.list.map(p=>({id:p.id,name:p.name,dex:lsGet(dexKey(p.id),{}),seen:lsGet(seenKey(p.id),{})}))};
+  let bytes=new TextEncoder().encode(JSON.stringify(data));
+  if(typeof CompressionStream!=="undefined"){
+    bytes=new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new CompressionStream("deflate-raw"))).arrayBuffer());
+    return "z"+b64url.enc(bytes);
+  }
+  return "j"+b64url.enc(bytes);
+}
+async function unpackAll(t){
+  let bytes=b64url.dec(t.slice(1));
+  if(t[0]==="z") bytes=new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).arrayBuffer());
+  const d=JSON.parse(new TextDecoder().decode(bytes));
+  if(d.app!=="colormon"||!Array.isArray(d.players))throw new Error("格式不對");
+  return d;
+}
+/* 合併：同一位玩家的同一隻寶可夢取比較大的次數、比較早的第一次、比較晚的最近一次；不會刪掉任何資料 */
+function mergeIn(d){
+  let added=0;
+  for(const p of d.players){
+    let mine=PROFILES.list.find(x=>x.id===p.id);
+    if(!mine){mine={id:p.id,name:p.name};PROFILES.list.push(mine);}
+    const dx=lsGet(dexKey(p.id),{}),sn=lsGet(seenKey(p.id),{});
+    for(const [id,e] of Object.entries(p.dex||{})){
+      const m=dx[id];
+      if(!m){dx[id]=e;added++;continue;}
+      m.n=Math.max(m.n||0,e.n||0);m.first=Math.min(m.first||Infinity,e.first||e.last||Infinity);if(m.first===Infinity)delete m.first;
+      m.last=Math.max(m.last||0,e.last||0);m.ball??=e.ball;
+      if(e.balls){m.balls??={};for(const [k,n] of Object.entries(e.balls))m.balls[k]=Math.max(m.balls[k]||0,n);}
+    }
+    for(const [id,t] of Object.entries(p.seen||{})) if(!sn[id]||(typeof t==="number"&&t<sn[id]))sn[id]=t;
+    lsSet(dexKey(p.id),dx);lsSet(seenKey(p.id),sn);
+  }
+  if(PROFILES.list.some(x=>x.id===d.cur))PROFILES.cur=d.cur;
+  lsSet(PROFILES_KEY,PROFILES);switchProfile(PROFILES.cur);
+  return added;
+}
+function homeConfig(){return CFG?.home||{};}
+async function checkMove(incoming){
+  const h=homeConfig();
+  // 在新網址：收到舊網址帶來的圖鑑
+  if(incoming){
+    try{
+      const d=await unpackAll(incoming),total=d.players.reduce((a,p)=>a+Object.keys(p.dex||{}).length,0);
+      $("moveTitle").textContent="要把舊網址的圖鑑搬過來嗎？";
+      $("moveText").textContent=`有 ${d.players.length} 位玩家（${d.players.map(p=>p.name).join("、")}），共 ${total} 筆抓到的紀錄。會和這裡的圖鑑合併，不會刪掉任何資料。`;
+      $("moveGo").textContent="搬過來";$("moveSkip").textContent="不要";$("moveSkip").hidden=false;
+      $("moveGo").onclick=()=>{const n=mergeIn(d);$("moveBox").hidden=true;sfx("caught");toast(`圖鑑搬好了！帶過來 ${n} 筆新的紀錄`);};
+      $("moveSkip").onclick=()=>{$("moveBox").hidden=true;};
+      $("moveBox").hidden=false;
+    }catch(e){toast("搬家的資料讀不到，可以改用「圖鑑管理 → 從備份檔還原」");}
+    return;
+  }
+  // 在舊網址：提示遊戲搬家了
+  if(h.url&&(h.oldHosts||[]).includes(location.hostname)){
+    const url=new URL(h.url);
+    $("moveTitle").textContent="遊戲搬家了！";
+    $("moveText").textContent=`新網址是 ${url.host}。按下面的按鈕，會把所有玩家的圖鑑一起帶過去。`;
+    $("moveGo").textContent="帶著圖鑑搬過去";$("moveSkip").hidden=true;
+    $("moveGo").onclick=async()=>{
+      $("moveGo").disabled=true;$("moveGo").textContent="打包中…";
+      try{location.href=h.url.replace(/#.*$/,"")+"#migrate="+(await packAll());}
+      catch(e){$("moveGo").disabled=false;$("moveGo").textContent="帶著圖鑑搬過去";toast("打包失敗，請改用「圖鑑管理 → 下載備份檔」");}
+    };
+    $("moveBox").hidden=false;
+  }
+}
+
 /* ---------- 切到背景或鎖螢幕：相機、運算、感測器、聲音全部停；回來再依畫面恢復 ---------- */
 document.addEventListener("visibilitychange",()=>{
   if(document.hidden){
@@ -2055,11 +2141,12 @@ if("serviceWorker" in navigator&&(location.protocol==="https:"||location.hostnam
     $("camMsg").textContent="這個 App 內建的瀏覽器可能打不開相機，請用右上角選單「以瀏覽器開啟」。";
   }
 })();
+const incomingMove=location.hash.startsWith("#migrate=")?location.hash.slice(9):null;   // 從舊網址搬家過來的圖鑑（先拿走，網址列不留資料）
 history.replaceState(null,"","#camera");
 show("camera");
-loadData().then(()=>{updateCount();fillDexSelects();setupBallArt();setBallMode(AR.on);loadChangelog();}).catch(err=>{
+loadData().then(()=>{updateCount();fillDexSelects();setupBallArt();setBallMode(AR.on);loadChangelog();checkMove(incomingMove);}).catch(err=>{
   console.error(err);
-  $("camMsg").textContent="寶可夢資料載入失敗。請用網址（例如 GitHub Pages）開啟，而不是直接打開檔案。";
+  $("camMsg").textContent="寶可夢資料載入失敗。請用網址開啟，而不是直接打開檔案。";
 });
 document.getElementById("ver").textContent="版本 "+BUILD;
 </script>
