@@ -647,7 +647,7 @@ html.noscroll,html.noscroll body{overflow:hidden}
 <canvas id="cv" width="48" height="48" hidden></canvas>
 
 <script>
-const BUILD="2026.10.28-2100";
+const BUILD="2026.10.28-2112";
 /* =========================================================
    顏色寶可夢探險
    資料都在 data/：config.json 列出要載入的資料包（packs），
@@ -2041,7 +2041,7 @@ $("ver").addEventListener("click",()=>{
    ========================================================= */
 const BT={on:false,live:false,mon:null,me:null,eid:0,W:0,H:0,S:0,U:1,box:{x0:0,x1:0,y0:0,y1:0},mouth:{x:0,y:0},
   foe:{x:0,y:0,tx:0,ty:0,pause:0,dashUntil:0},shots:[],raf:0,last:0,lastShot:0,fx:null,done:null,msgT:0,hint:"",shotN:0,hits:0,trailAt:0,onResize:null};
-const btCfg=()=>({enabled:true,minRarity:4,delayMs:900,foeSpeed:230,foeSpeedStep:30,pauseMs:420,dashMul:2.5,dodgeChance:.45,reactMs:170,cooldownMs:300,hitSlack:8,...(CFG?.battle||{})});
+const btCfg=()=>({enabled:true,minRarity:4,delayMs:900,foeSpeed:250,foeSpeedStep:30,pauseMs:420,dashMul:2.5,dodgeChance:.6,reactMs:170,cooldownMs:300,hitSlack:8,...(CFG?.battle||{})});
 const RAD=Math.PI/180,rnd=(a,b)=>a+Math.random()*(b-a);
 /* 每種招式的特性：mk() 回傳這一發的所有粒子（o＝偏離方向的角度，sp＝速度，r＝半徑，grow＝最後放大幾倍，delay＝延遲秒數，wob＝左右擺動，home＝追蹤力，bounce＝可反彈次數，range＝最遠飛幾個畫面高）
    dodge＝敵人偵測到來襲後衝刺閃開的機率倍率（0＝來不及閃） */
