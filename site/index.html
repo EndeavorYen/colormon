@@ -207,6 +207,9 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 .hand .ring path.on{stroke:#ffc21a;stroke-width:8;filter:drop-shadow(0 0 3px rgba(255,194,26,.9))}
 .hand.touched .ring path{stroke:#4CC27E}
 .hand.touched{animation:none;transform:scale(1.2);box-shadow:0 0 0 10px rgba(76,194,126,.6);border-radius:50%}
+.shields i.crack{border-style:dashed;opacity:.8}
+.shields i.crack.c2{border-style:dotted;border-width:4px;opacity:.65;filter:hue-rotate(-30deg)}
+.shields i.crack.c3{border-style:dotted;border-width:2px;opacity:.5;filter:hue-rotate(-60deg)}
 @media (prefers-reduced-motion:reduce){.shields i,.scene.gold::after,.scene.legend::after{animation:none}}
 
 /* info / changelog */
@@ -307,6 +310,10 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 .bt-fx .pix.b{background:var(--c1)}
 .bt-fx .bolt{inset:0;width:100%;height:100%}
 .bt-fx .bolt svg{width:100%;height:100%;overflow:visible}
+.bt-fx .flash{inset:0;width:100%;height:100%;mix-blend-mode:screen}
+.bt-fx .ringfx{width:40px;height:40px;border-radius:50%;border:5px solid var(--c0);box-shadow:0 0 12px var(--c0),inset 0 0 8px var(--c0)}
+.bt-fx .pop{font-size:1.25rem;color:#fff;text-shadow:2px 2px 0 #333,-2px -2px 0 #333,2px -2px 0 #333,-2px 2px 0 #333;white-space:nowrap;margin:-12px 0 0 -26px;font-style:normal}
+.bt-fx .pop.brk{font-size:1.7rem;color:#ffe45c;margin-left:-34px}
 .bt-fx .miss{font-size:1.05rem;color:#fff;text-shadow:2px 2px 0 #333;margin:-12px 0 0 -22px;font-style:normal}
 .bt-plate{position:absolute;z-index:3;background:#f8f0d0;border:4px solid #3a3a3a;box-shadow:4px 4px 0 #0003,inset -3px -3px 0 #c8bf98;padding:5px 10px 7px;min-width:132px;max-width:56%;pointer-events:none}
 .bt-plate b{display:block;font-size:.95rem;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -316,6 +323,7 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 .bt-blocks{display:flex;gap:3px;margin-top:3px}
 .bt-blocks i{flex:1;height:10px;max-width:22px;background:#3a3a3a;border:2px solid #3a3a3a}
 .bt-blocks i.on{background:#3aa0ff;box-shadow:inset 0 -3px 0 #1c6ec4,inset 0 2px 0 #9fd4ff}
+.bt-blocks i.on.dmg{background:linear-gradient(90deg,#3aa0ff var(--p),#8a3c3c var(--p));box-shadow:inset 0 -3px 0 #0003,inset 0 2px 0 #fff5}
 .bt-msg{flex:none;background:#f8f0d0;border:4px solid #3a3a3a;box-shadow:inset 0 0 0 3px #c8bf98;margin:0 10px calc(10px + env(safe-area-inset-bottom,0px));padding:10px 14px;min-height:58px;font-size:1rem;line-height:1.35;display:flex;align-items:center}
 .bt-skip{position:absolute;z-index:6;right:10px;top:calc(10px + env(safe-area-inset-top,0px));display:flex;align-items:center;gap:6px;min-height:52px;padding:0 14px 0 10px;border:4px solid #fff;background:#e0342f;color:#fff;font:inherit;font-size:1rem;box-shadow:4px 4px 0 #0005;cursor:pointer}
 .bt-skip svg{width:30px;height:30px;fill:#fff}
@@ -650,7 +658,7 @@ html.noscroll,html.noscroll body{overflow:hidden}
 <canvas id="cv" width="48" height="48" hidden></canvas>
 
 <script>
-const BUILD="2026.10.28-2202";
+const BUILD="2026.10.29-0232";
 /* =========================================================
    顏色寶可夢探險
    資料都在 data/：config.json 列出要載入的資料包（packs），
@@ -845,9 +853,9 @@ function typeDistances(pal){
   return out;
 }
 /* 在一群寶可夢裡依分數挑一隻（越像、越不稀有、沒抓過的越容易） */
-function pickFrom(scored,pal,r){
+function pickFrom(scored,pal,r,opt={}){
   const dmin=scored[0].d, win=CFG.similarityWindow??10;
-  let cands=scored.filter(c=>c.d<=dmin+win).slice(0,CFG.candidates||30);
+  let cands=scored.filter(c=>c.d<=dmin+win).slice(0,opt.cands||CFG.candidates||30);
   if(cands.length<(CFG.minCandidates??6)) cands=scored.slice(0,CFG.minCandidates??6);
   if(cands.filter(c=>!dex[c.m.id]).length<2){                  // 沒抓過的太少 → 放寬範圍找沒抓過的
     const extra=scored.filter(c=>!dex[c.m.id]&&!cands.includes(c)&&c.d<=dmin+win*(CFG.widenFactor??3)).slice(0,6);
@@ -856,9 +864,17 @@ function pickFrom(scored,pal,r){
   const p0=pal[0].lab, vivid=Math.min(1,Math.hypot(p0[1],p0[2])/70);
   // 出現機率依星數（config.rarityWeight）；鮮豔的照片稍微容易出現高星
   const rw=CFG.rarityWeight||{1:1,2:0.6,3:0.35,4:0.14,5:0.02};
-  const rar=k=>(rw[k]??1)*(k>=3?1+vivid*0.8:1);
+  const rar=k=>(rw[k]??1)*(k>=3&&!opt.noVivid?1+vivid*0.8:1)*(opt.scale?.[k]??1);
   const temp=CFG.randomness??6, caughtW=CFG.caughtWeight??0.3;
   const ws=cands.map(c=>Math.exp(-(c.d-dmin)/temp)*rar(c.m.rarity)*(dex[c.m.id]?caughtW:1));
+  // 稀有度上限：候選名單很小（例如全黑、灰色，接近的只有那幾隻）、而且常見的大多抓過了，四五星的比例會被「相對」墊高 → 每次抽選最多佔 config.rarityCap
+  const cap=CFG.rarityCap||{4:.1,5:.02};
+  for(const k of [5,4]){
+    if(cap[k]==null)continue;
+    const idx=[];cands.forEach((c,i)=>{if(c.m.rarity===k)idx.push(i);});
+    const sk=idx.reduce((q,i)=>q+ws[i],0),all=ws.reduce((q,v)=>q+v,0),rest=all-sk;
+    if(sk>0&&rest>0&&sk/all>cap[k]){const f=cap[k]*rest/((1-cap[k])*sk);idx.forEach(i=>{ws[i]*=f;});}
+  }
   let acc=0,tot=ws.reduce((a,b)=>a+b,0);
   for(let i=0;i<cands.length;i++){acc+=ws[i]/tot;if(r<acc)return cands[i];}
   return cands[0];
@@ -871,7 +887,9 @@ function pickNight(pal,rand){
   const pool=MONS.filter(m=>ids.has(m.id)||types.has(m.type));
   // 暗處的顏色很難分辨，所以範圍放寬，讓夜行性寶可夢都有機會
   const scored=pool.map(m=>({m,d:scoreMon(pal,m)*(CFG.night?.colorFactor??0.1)})).sort((a,b)=>a.d-b.d);
-  return pickFrom(scored,pal,rand());
+  // 全黑時，顏色接近「黑」的傳說（達克萊伊、騎拉帝納…）會擠進前 30 名，而且圖鑑裡常見的都抓過了（權重打折），五星就變得很常出現。
+  // 所以夜晚：整個夜行名單一起抽（不只前 30 名）、不吃「鮮豔加成」、四五星再乘上 night.rarityScale
+  return pickFrom(scored,pal,rand(),{cands:n.candidates||scored.length,noVivid:true,scale:n.rarityScale||{4:.6,5:.3}});
 }
 function pickMon(pal){
   const seed=CFG.sameResultPerDay ? pal.slice(0,2).map(c=>c.lab.map(v=>Math.round(v/12)).join(",")).join("|")+"|"+today() : `${Date.now()}|${Math.random()}`;
@@ -2044,9 +2062,12 @@ $("ver").addEventListener("click",()=>{
    - 打中一次破一層護盾（一次發射最多破一層）；全破後回到丟球。屬性不算相剋，只影響招式
    - 右上角大大的紅色 ✕「跳過」：不想玩就回到原本的打護盾／直接丟球，絕不強迫
    ========================================================= */
-const BT={K:1,on:false,live:false,mon:null,me:null,eid:0,W:0,H:0,S:0,U:1,box:{x0:0,x1:0,y0:0,y1:0},mouth:{x:0,y:0},
+const BT={K:1,per:2,hp:0,on:false,live:false,mon:null,me:null,eid:0,W:0,H:0,S:0,U:1,box:{x0:0,x1:0,y0:0,y1:0},mouth:{x:0,y:0},
   foe:{x:0,y:0,tx:0,ty:0,pause:0,dashUntil:0},shots:[],raf:0,last:0,lastShot:0,fx:null,done:null,msgT:0,hint:"",shotN:0,hits:0,trailAt:0,onResize:null};
-const btCfg=()=>({enabled:true,minRarity:4,delayMs:900,foeSpeed:300,foeSpeedStep:30,pauseMs:420,dashMul:2.5,dodgeChance:.6,reactMs:170,cooldownMs:300,hitSlack:8,...(CFG?.battle||{})});
+const btCfg=()=>({enabled:true,minRarity:4,delayMs:900,foeSpeed:300,foeSpeedStep:30,pauseMs:420,dashMul:2.5,dodgeChance:.6,reactMs:170,cooldownMs:380,hitSlack:7,hitsPerLayer:{default:2,"5":3},shakePx:5,shotScale:.8,...(CFG?.battle||{})});
+/* 每層護盾要打幾下（battle.hitsPerLayer：數字＝全部一樣；或 {"4":2,"5":3,"default":2} 依星等） */
+const btPer=mon=>{const h=btCfg().hitsPerLayer;return Math.max(1,Math.round((typeof h==="object"?(h[mon.rarity]??h.default):h)||2));};
+const btLeft=()=>BT.per?Math.ceil(BT.hp/BT.per):0;
 const RAD=Math.PI/180,rnd=(a,b)=>a+Math.random()*(b-a);
 /* 每種招式的特性：mk() 回傳這一發的所有粒子（o＝偏離方向的角度，sp＝速度，r＝半徑，grow＝最後放大幾倍，delay＝延遲秒數，wob＝左右擺動，home＝追蹤力，bounce＝可反彈次數，range＝最遠飛幾個畫面高）
    dodge＝敵人偵測到來襲後衝刺閃開的機率倍率（0＝來不及閃） */
@@ -2055,17 +2076,17 @@ const BT_STY={
   jet:     {dodge:.5, mk:()=>[{o:0,sp:1000,r:16,shape:"orb",trail:1}]},                                                                                 // 水：又快又直
   bolt:    {instant:true,dodge:0},                                                                                                                     // 電：瞬間，但很細
   leaf:    {dodge:.8, mk:()=>[-20,0,20].map(o=>({o,sp:560,r:17,shape:"leaf",orient:1,home:2.3}))},                                                     // 草：三片葉子，會彎向敵人
-  ice:     {dodge:.8, mk:()=>[{o:0,sp:430,r:32,grow:1.25,shape:"shard",orient:1,trail:1}]},                                                             // 冰：慢，大塊，一路掉冰碎片
+  ice:     {dodge:.8, mk:()=>[{o:0,sp:480,r:32,grow:1.25,shape:"shard",orient:1,trail:1,home:.9}]},                                                             // 冰：慢，大塊，一路掉冰碎片
   tornado: {dodge:1,  mk:()=>[-24,0,24].map((o,i)=>({o,sp:400,r:24,grow:1.25,shape:"twist",wob:{amp:34,f:5,p:i*2.1}}))},                               // 飛行：好幾個小龍卷風，各走各的
-  boulder: {dodge:.9, mk:()=>[{o:0,sp:330,r:46,shape:"rock",spin:240}]},                                                                                 // 岩石／地面：大石頭，慢但很大顆
-  wave:    {dodge:1,  mk:()=>[{o:0,sp:420,r:16,grow:6,life:1.25,shape:"ring"}]},                                                                         // 超能力：一邊飛一邊變大的波紋
+  boulder: {dodge:.9, mk:()=>[{o:0,sp:360,r:46,shape:"rock",spin:240,home:.9}]},                                                                                 // 岩石／地面：大石頭，慢但很大顆
+  wave:    {dodge:1,  mk:()=>[{o:0,sp:480,r:16,grow:6,life:1.3,shape:"ring",home:.5}]},                                                                         // 超能力：一邊飛一邊變大的波紋
   bubble:  {dodge:.9, mk:()=>[0,1,2,3,4].map(i=>({o:rnd(-5,5),sp:360,r:20,delay:i*.1,shape:"bubble",wob:{amp:18,f:6,p:i*1.3}}))},                       // 毒：一串慢慢飄的毒泡泡
   swarm:   {dodge:.9, mk:()=>Array.from({length:7},(_,i)=>({o:rnd(-12,12),sp:rnd(520,640),r:11,delay:i*.04,shape:"shard",orient:1,wob:{amp:22,f:12,p:rnd(0,6)}}))}, // 蟲：一群亂飛的小蟲
   charm:   {dodge:.8, mk:()=>[{o:0,sp:470,r:28,shape:"star",spin:360,home:1.6,trail:1}]},                                                                // 妖精：會慢慢追蹤的閃亮星星
   star:    {dodge:.9, mk:()=>[{o:0,sp:700,r:22,shape:"star",spin:540}]},                                                                                 // 一般：旋轉星星
-  wisp:    {dodge:.9, mk:()=>[{o:0,sp:430,r:24,shape:"wisp",wob:{amp:62,f:5.5,p:0},trail:1}]},                                                           // 幽靈：蛇行的鬼火
+  wisp:    {dodge:.9, mk:()=>[{o:0,sp:460,r:24,shape:"wisp",wob:{amp:50,f:5.5,p:0},trail:1,home:1.1}]},                                                           // 幽靈：蛇行的鬼火
   twin:    {dodge:.8, mk:()=>[-1,1].map(s=>({o:0,side:s*28,sp:640,r:21,shape:"orb",trail:1}))},                                                          // 龍：兩發並排的龍息
-  crescent:{dodge:.7, mk:()=>[{o:0,sp:780,r:38,shape:"crescent",orient:1,range:.55}]},                                                                   // 惡：又快又寬的斬擊，但飛不遠
+  crescent:{dodge:.7, mk:()=>[{o:0,sp:780,r:38,shape:"crescent",orient:1,range:.8}]},                                                                   // 惡：又快又寬的斬擊，但飛不遠
   ricochet:{dodge:.9, mk:()=>[{o:0,sp:700,r:20,shape:"disc",spin:900,bounce:2,range:2.6}]},                                                              // 鋼：會在牆上反彈的鐵盤
   fist:    {dodge:.8, mk:()=>[0,1,2].map(i=>({o:0,sp:820,r:19,delay:i*.12,shape:"fist",spin:200}))},                                                     // 格鬥：連續三拳
 };
@@ -2089,10 +2110,15 @@ function btMsg(t,hold){
   $("btMsg").textContent=t;clearTimeout(BT.msgT);
   if(hold)BT.msgT=setTimeout(()=>{if(BT.on)$("btMsg").textContent=BT.hint;},hold);
 }
-function btBlocks(){$("btFoeBlocks").innerHTML=Array.from({length:SHIELD.total},(_,k)=>`<i class="${k<shieldLayersLeft()?"on":""}"></i>`).join("");}
+function btBlocks(){                                                          // 每層一格；正在打的那一層會一格一格變少
+  const left=btLeft(),cur=left?BT.hp-(left-1)*BT.per:0;                      // cur＝目前這層還剩幾下
+  $("btFoeBlocks").innerHTML=Array.from({length:SHIELD.total},(_,k)=>{
+    const on=k<left,dmg=on&&k===left-1&&cur<BT.per;
+    return `<i class="${on?"on":""}${dmg?" dmg":""}"${dmg?` style="--p:${Math.round(cur/BT.per*100)}%"`:""}></i>`;}).join("");
+}
 function btDrawShields(){
-  const left=shieldLayersLeft();
-  $("btShields").innerHTML=Array.from({length:left},(_,k)=>`<i style="inset:${-6-k*7}%;animation-delay:${-k*.4}s;animation-iteration-count:infinite"></i>`).join("");
+  const left=btLeft(),cur=left?BT.hp-(left-1)*BT.per:0,dmg=BT.per-cur;       // 最外層被打到的次數 → 越來越破
+  $("btShields").innerHTML=Array.from({length:left},(_,k)=>`<i class="${k===left-1&&dmg>0?"crack c"+Math.min(3,dmg):""}" style="inset:${-6-k*7}%;animation-delay:${-k*.4}s;animation-iteration-count:infinite"></i>`).join("");
 }
 function btLayout(){
   const r=$("btField").getBoundingClientRect();BT.W=r.width;BT.H=r.height;
@@ -2153,7 +2179,7 @@ function btPickTarget(){
 function btUpdateFoe(t,dt){
   const f=BT.foe,c=btCfg();
   if(BT.live&&t>=f.pause){
-    const broken=SHIELD.total-shieldLayersLeft();
+    const broken=SHIELD.total-btLeft()+(BT.per>1?(BT.per-(BT.hp-(btLeft()-1)*BT.per))/BT.per*.5:0);   // 打破越多、傷得越重，敵人越快（每層最多多算半層）
     let sp=(c.foeSpeed+broken*c.foeSpeedStep)*BT.U;if(t<f.dashUntil)sp*=c.dashMul;
     const dx=f.tx-f.x,dy=f.ty-f.y,d=Math.hypot(dx,dy),st=sp*dt;
     if(d<=st){f.x=f.tx;f.y=f.ty;f.pause=t+rnd(c.pauseMs*.5,c.pauseMs*1.3)*(1-.07*broken);btPickTarget();}
@@ -2215,7 +2241,7 @@ function btShoot(tap){
   }
   const specs=sty.mk(),nx=-Math.sin(ang),ny=Math.cos(ang);
   for(const s of specs){
-    const P={...s,h:ang+(s.o||0)*RAD,x:m.x+nx*(s.side||0),y:m.y+ny*(s.side||0),age:0,delay:s.delay||0,dist:0,bounce:s.bounce||0,life:s.life||5,started:false,alive:true,r:s.r*BT.U*BT.K,sp:s.sp*BT.U};
+    const P={...s,h:ang+(s.o||0)*RAD,x:m.x+nx*(s.side||0),y:m.y+ny*(s.side||0),age:0,delay:s.delay||0,dist:0,bounce:s.bounce||0,life:s.life||5,started:false,alive:true,r:s.r*BT.U*BT.K*(btCfg().shotScale||1),sp:s.sp*BT.U};
     if(P.home){let df=Math.atan2(BT.foe.y-P.y,BT.foe.x-P.x)-P.h;df=Math.atan2(Math.sin(df),Math.cos(df));if(Math.abs(df)>60*RAD)P.home=0;}   // 只有大致瞄準敵人時才會追蹤，亂瞄不會被拉過去
     P.el=btMkEl(P);P.maxDist=(s.range||99)*BT.H;shot.parts.push(P);
   }
@@ -2280,7 +2306,7 @@ function btImg(img,src,fallback){
 async function startBattle(mon){
   const me=btPickMine(mon),eid=encounterId;
   if(!me)return "skip";                                        // 保險：找不到我方就當作跳過
-  Object.assign(BT,{on:true,live:false,mon,me,eid,lastShot:0,shotN:0,hits:0,fx:btFx(me),shots:[],last:0});
+  Object.assign(BT,{on:true,live:false,mon,me,eid,lastShot:0,shotN:0,hits:0,fx:btFx(me),shots:[],last:0,per:btPer(mon),hp:SHIELD.total*btPer(mon)});
   Object.assign(BT.foe,{x:0,y:0,tx:0,ty:0,pause:0,dashUntil:0,moving:false});
   BT.hint="點螢幕發射招式！招式會朝你點的方向飛出去，敵人會閃躲";
   $("battle").hidden=false;bgmKick();
@@ -2326,19 +2352,46 @@ function btBurst(x,y,n=12,big=false){
     el.animate([{transform:`translate(${x}px,${y}px)`,opacity:1},{transform:`translate(${x+Math.cos(a)*d}px,${y+Math.sin(a)*d}px)`,opacity:0}],{duration:T_(big?520:380),easing:"steps(5,end)"}).onfinish=()=>el.remove();
   }
 }
+/* 畫面震動：整個戰場晃一下（命中小晃、破一層中晃、全破大晃） */
+function btShake(mult=1,ms=260){
+  const px=(btCfg().shakePx||5)*mult*BT.U,k=[0,-1,.9,-.7,.5,-.25,0].map((f,i)=>({transform:`translate(${f*px}px,${(i%2?-1:1)*Math.abs(f)*px*.5}px)`}));
+  $("btField").animate(k,{duration:T_(ms),easing:"linear"});
+}
+/* 閃光：整個戰場閃一下招式的顏色，再在命中點炸出一圈 */
+function btFlash(x,y,a=.35,c=BT.fx.colors[0],ring=70){
+  const fx=$("btFx"),f=document.createElement("i");f.className="flash";f.style.background=c;fx.appendChild(f);
+  f.animate([{opacity:a},{opacity:0}],{duration:T_(190),easing:"steps(3,end)"}).onfinish=()=>f.remove();
+  const r=document.createElement("i");r.className="ringfx";r.style.cssText=`--c0:${BT.fx.colors[1]||"#fff"};left:${x}px;top:${y}px`;fx.appendChild(r);
+  r.animate([{transform:"translate(-50%,-50%) scale(.2)",opacity:1},{transform:`translate(-50%,-50%) scale(${ring/20})`,opacity:0}],{duration:T_(330),easing:"steps(4,end)"}).onfinish=()=>r.remove();
+}
+function btPop(x,y,t,cls=""){
+  const el=document.createElement("i");el.className="pop "+cls;el.textContent=t;$("btFx").appendChild(el);
+  const yy=Math.max(40,y-BT.S*.5);
+  el.animate([{transform:`translate(${x}px,${yy}px) scale(.5)`,opacity:1},{transform:`translate(${x}px,${yy-6}px) scale(1.25)`,opacity:1,offset:.25},{transform:`translate(${x}px,${yy-34}px) scale(1)`,opacity:0}],{duration:T_(700),easing:"steps(7,end)"}).onfinish=()=>el.remove();
+}
 function btHit(shot){
-  const left=shieldLayersLeft();if(!left||!BT.on)return;
-  BT.hits++;
-  SHIELD.hp=(left-1)*SHIELD.perLayer;drawShields();
-  const f=BT.foe;
-  btBurst(shot.hx??f.x,shot.hy??f.y,12,left===1);
-  $("btFoeImg").animate([{opacity:1},{opacity:.15},{opacity:1},{opacity:.15},{opacity:1}],{duration:T_(420),easing:"steps(1,end)"});
+  if(!BT.on||BT.hp<=0)return;
+  const before=btLeft();BT.hits++;BT.hp--;
+  const left=btLeft(),broke=left<before,cur=left?BT.hp-(left-1)*BT.per:0,f=BT.foe;
+  SHIELD.hp=left*SHIELD.perLayer;drawShields();                                  // 跟一般模式的護盾同步（以「層」為單位）
+  const x=shot.hx??f.x,y=shot.hy??f.y,last=left===0;
+  btBurst(x,y,broke?18:10,broke);
+  btFlash(x,y,last?.6:broke?.45:.28,undefined,last?150:broke?110:70);
+  btShake(last?2.6:broke?1.8:1,last?420:broke?320:240);
+  $("btFoeImg").animate([{opacity:1,filter:"brightness(2.6)"},{opacity:.25,filter:"none"},{opacity:1,filter:"brightness(2)"},{opacity:.25,filter:"none"},{opacity:1,filter:"none"}],{duration:T_(broke?460:300),easing:"steps(1,end)"});
+  $("btFoeImg").animate([{transform:"translate(0,0)"},{transform:`translate(${(f.x<BT.W/2?-1:1)*5}px,-4px)`},{transform:"translate(0,0)"}],{duration:T_(160),easing:"steps(2,end)"});   // 被打到退一下
   btDrawShields();btBlocks();
-  const blocks=$("btFoeBlocks").children;if(blocks[left-1])blocks[left-1].animate([{opacity:1},{opacity:.2},{opacity:1}],{duration:T_(350),easing:"steps(1,end)"});
-  sfx("foeHit",BT.fx.style);try{navigator.vibrate&&navigator.vibrate(left===1?160:60);}catch(e){}
-  if(left-1>0){btMsg(`打中了！護盾破掉一層，還剩 ${left-1} 層`,1100);return;}
+  const bl=$("btFoeBlocks").children[(broke?before:left)-1];if(bl)bl.animate([{opacity:1},{opacity:.2},{opacity:1},{opacity:.2},{opacity:1}],{duration:T_(380),easing:"steps(1,end)"});
+  sfx("foeHit",{st:BT.fx.style,k:broke?-1:cur,per:BT.per,last});
+  try{navigator.vibrate&&navigator.vibrate(last?[60,40,120]:broke?[40,30,60]:25);}catch(e){}
+  if(!last){
+    if(broke){btPop(x,y,"破！","brk");btMsg(`護盾破掉一層！還剩 ${left} 層`,1200);}
+    else{btPop(x,y,"命中!");btMsg(`打中了！這層護盾出現裂痕，再 ${cur} 下`,1000);}
+    return;
+  }
+  btPop(x,y,"全破！","brk");
   BT.live=false;sfx("btWin");btMsg("護盾全部打破了！",9999);                                // 全部打破了
-  setTimeout(()=>btFinish("win"),T_(1200));
+  setTimeout(()=>btFinish("win"),T_(1300));
 }
 function btMiss(shot){
   if(!BT.on)return;
@@ -2781,7 +2834,11 @@ const SFX={
     else if(st==="crescent"||st==="ricochet"){GB.noise(t,.1,{v:.3,hp:4500});GB.tone(t,2000,.12,{duty:.125,v:.28,slide:700});}
     else if(st==="fist"){for(let i=0;i<3;i++){GB.noise(t+i*.12,.06,{v:.3,hp:600});GB.tone(t+i*.12,200,.06,{duty:.5,v:.35});}}
     else{GB.tone(t,900,.22,{duty:.25,v:.35,slide:380});GB.noise(t,.08,{v:.15,hp:2000});} },
-  foeHit:(t,st)=>{ GB.noise(t,.14,{v:.4,hp:900}); GB.tone(t,330,.16,{duty:.5,v:.35,slide:90}); GB.seq(t+.05,"E6:1 A6:1",.05,{duty:.125,v:.25}); },
+  foeHit:(t,o)=>{ const k=o?.k??0,per=o?.per||2;                                                              // 命中：同一層連續打中，音越來越高；破層＝玻璃碎裂；全破＝再加一個上揚
+                  if(o?.k===-1){ GB.noise(t,.3,{v:.45,hp:1800}); GB.tone(t,200,.2,{duty:.5,v:.4,slide:60}); GB.seq(t+.03,"B6:1 G6:1 E6:1 B5:1 E7:2",.04,{duty:.125,v:.3}); }
+                  else{ const f=330*Math.pow(2,(per-k)/12*3);
+                        GB.noise(t,.12,{v:.4,hp:900}); GB.tone(t,f,.14,{duty:.5,v:.35,slide:Math.max(70,f*.3)}); GB.tone(t+.02,f*2.5,.08,{duty:.125,v:.25,slide:f*1.5}); }
+                  if(o?.last) GB.seq(t+.18,"G6:1 C7:1 E7:3",.05,{duty:.125,v:.3}); },
   whiff:t=>{ GB.tone(t,260,.12,{duty:.5,v:.18,slide:130}); },
   btWin:t=>{ GB.seq(t,"C5:1 E5:1 G5:1 C6:2 G5:1 C6:1 E6:1 G6:4",.065,{duty:.25,v:.35}); GB.seq(t,"C4:3 G3:3 C4:3 E4:4",.065,{duty:.5,v:.22}); },
   found:t=>{ const e=GB.seq(t,"C6:1 -:1 C6:1 -:1 C6:1 -:1",.07,{duty:.25,v:.45});                              // 噔噔噔

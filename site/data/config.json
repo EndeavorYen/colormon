@@ -136,7 +136,11 @@
       93,
       94,
       269
-    ]
+    ],
+    "rarityScale": {
+      "4": 0.6,
+      "5": 0.3
+    }
   },
   "subject": {
     "enabled": true,
@@ -200,7 +204,17 @@
     "dashMul": 2.5,
     "dodgeChance": 0.6,
     "reactMs": 170,
-    "cooldownMs": 300,
-    "hitSlack": 8
+    "cooldownMs": 380,
+    "hitSlack": 7,
+    "hitsPerLayer": {
+      "default": 2,
+      "5": 3
+    },
+    "shakePx": 5,
+    "shotScale": 0.8
+  },
+  "rarityCap": {
+    "4": 0.1,
+    "5": 0.02
   }
 }
