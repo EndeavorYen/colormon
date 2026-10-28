@@ -650,7 +650,7 @@ html.noscroll,html.noscroll body{overflow:hidden}
 <canvas id="cv" width="48" height="48" hidden></canvas>
 
 <script>
-const BUILD="2026.10.28-2152";
+const BUILD="2026.10.28-2202";
 /* =========================================================
    顏色寶可夢探險
    資料都在 data/：config.json 列出要載入的資料包（packs），
@@ -2216,6 +2216,7 @@ function btShoot(tap){
   const specs=sty.mk(),nx=-Math.sin(ang),ny=Math.cos(ang);
   for(const s of specs){
     const P={...s,h:ang+(s.o||0)*RAD,x:m.x+nx*(s.side||0),y:m.y+ny*(s.side||0),age:0,delay:s.delay||0,dist:0,bounce:s.bounce||0,life:s.life||5,started:false,alive:true,r:s.r*BT.U*BT.K,sp:s.sp*BT.U};
+    if(P.home){let df=Math.atan2(BT.foe.y-P.y,BT.foe.x-P.x)-P.h;df=Math.atan2(Math.sin(df),Math.cos(df));if(Math.abs(df)>60*RAD)P.home=0;}   // 只有大致瞄準敵人時才會追蹤，亂瞄不會被拉過去
     P.el=btMkEl(P);P.maxDist=(s.range||99)*BT.H;shot.parts.push(P);
   }
   BT.shots.push(shot);
