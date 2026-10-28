@@ -13,7 +13,7 @@ for (const [key, t] of Object.entries(types)) {
   if (!t.name) errors.push(`types.json：${key} 缺少 name`);
   if (!HEX.test(t.color || "")) errors.push(`types.json：${key} 的 color 不是 #RRGGBB`);
   if (!t.glyph) errors.push(`types.json：${key} 缺少 glyph（SVG path）`);
-  if (t.fx && !["orb", "flame", "bolt", "shards", "ring", "star"].includes(t.fx.style)) errors.push(`types.json：${key} 的 fx.style 要是 orb／flame／bolt／shards／ring／star`);
+  if (t.fx && !["flame","jet","bolt","leaf","ice","tornado","boulder","wave","bubble","swarm","charm","star","wisp","twin","crescent","ricochet","fist"].includes(t.fx.style)) errors.push(`types.json：${key} 的 fx.style 要是 flame／jet／bolt／leaf／ice／tornado／boulder／wave／bubble／swarm／charm／star／wisp／twin／crescent／ricochet／fist 其中之一`);
   if (t.fx && !(Array.isArray(t.fx.colors) && t.fx.colors.every(c => HEX.test(c)))) errors.push(`types.json：${key} 的 fx.colors 要是 #RRGGBB 陣列`);
 }
 

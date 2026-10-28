@@ -59,10 +59,34 @@ Game Boy 風格的原創音效，用程式即時合成（兩個方波通道加�
 ## 特別對戰（四、五星）
 
 - 條件：這隻有護盾、星等 ≥ `battle.minRarity`（預設 4），而且玩家的圖鑑裡至少有一隻。圖鑑是空的就走原本的打護盾／丟球
-- 像素風畫面：我方是圖鑑裡隨機一隻（背面圖 `backSpriteUrl`，沒有就用正面圖翻轉）。**點螢幕任何地方**，我方從嘴巴朝敵人「當下的位置」發射該屬性的招式；招式要飛 `flightMs`，敵人每隔一下就閃到另一個位置（左右、前後共 6 格），所以可能被閃開（MISS，沒有任何損失）
-- 打中一次破一層護盾；全破後回到丟球。屬性不算相剋，只影響特效
+- 俯瞰的像素決鬥場：整個手機畫面是一塊平面（XY 平面），我方（圖鑑裡隨機一隻，背面圖 `backSpriteUrl`）固定在最下面，敵人在場地裡到處移動
+- **點螢幕任何地方**，我方從嘴巴朝你點的方向發射招式，飛到場地邊緣為止。敵人一直移動，偵測到來襲還有機率（`dodgeChance`）往旁邊衝刺閃開，所以可能打偏（MISS，沒有任何損失）
+- 打中一次破一層護盾（一次發射最多破一層）；全破後回到丟球。屬性不算相剋，只影響招式
+- 每種屬性的招式特性（`site/data/types.json` 的 `fx.style`，顏色是 `fx.colors`）：
+
+| style | 屬性 | 特性 |
+|---|---|---|
+| flame | 火 | 慢，五發扇形散開，範圍大 |
+| jet | 水 | 又快又直，敵人來不及閃 |
+| bolt | 電 | 瞬間一條線，但很細，完全閃不掉 |
+| leaf | 草 | 三片葉子，會彎向敵人 |
+| ice | 冰 | 慢、大顆，一路掉冰碎片 |
+| tornado | 飛行 | 三個小龍卷風，蛇行各走各的 |
+| boulder | 岩石、地面 | 很大顆的石頭，慢 |
+| wave | 超能力 | 一邊飛一邊變大的波紋 |
+| bubble | 毒 | 一串慢慢飄的毒泡泡 |
+| swarm | 蟲 | 一群亂飛的小蟲 |
+| charm | 妖精 | 會慢慢追蹤的閃亮星星 |
+| star | 一般 | 旋轉星星 |
+| wisp | 幽靈 | 蛇行的鬼火 |
+| twin | 龍 | 兩發並排的龍息 |
+| crescent | 惡 | 又快又寬的斬擊，但飛不遠 |
+| ricochet | 鋼 | 會在牆上反彈的鐵盤 |
+| fist | 格鬥 | 連續三拳 |
+
+- 新增招式：在 `app.js` 的 `BT_STY` 加一個 style（粒子的速度、半徑、數量、擺動、追蹤、反彈…），再在 `types.json` 指定給屬性，並在 `validate-data.mjs` 的清單加上名字
+- 設定在 `site/data/config.json` 的 `battle`：`enabled`、`minRarity`、`foeSpeed`／`foeSpeedStep`（敵人速度，每破一層加快）、`pauseMs`（停頓）、`dashMul`（衝刺倍率）、`dodgeChance`（閃避機率）、`reactMs`（反應時間）、`cooldownMs`、`hitSlack`
 - 右上角紅色 ✕「跳過」：不想玩就回到原本的機制，不強迫
-- 各屬性的特效在 `site/data/types.json` 的 `fx`：`style`（orb／flame／bolt／shards／ring／star）與 `colors`（主色、亮色）。設定在 `site/data/config.json` 的 `battle`：`enabled`、`minRarity`、`dwellMs`（敵人停留）、`hopMs`、`flightMs`、`cooldownMs`、`hitSlack`
 - 開發者測試（隱藏）：首頁連按「版本」文字 7 下，或網址加 `?dev`。可指定星等或寶可夢，直接進遭遇與對戰；不會記入圖鑑、不會標記「見過」，圖鑑是空的也會隨機找一隻當我方
 
 ## 按星數分級的出場效果

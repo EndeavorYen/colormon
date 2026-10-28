@@ -27,7 +27,7 @@
       "#7FD0E8"
     ],
     "fx": {
-      "style": "orb",
+      "style": "jet",
       "colors": [
         "#3b8cff",
         "#d4ecff"
@@ -44,7 +44,7 @@
       "#2C6E30"
     ],
     "fx": {
-      "style": "shards",
+      "style": "leaf",
       "colors": [
         "#3fae4a",
         "#b4f07a"
@@ -79,7 +79,7 @@
       "#5A7A3A"
     ],
     "fx": {
-      "style": "shards",
+      "style": "swarm",
       "colors": [
         "#8fc12a",
         "#f2e84a"
@@ -96,7 +96,7 @@
       "#B080C8"
     ],
     "fx": {
-      "style": "orb",
+      "style": "bubble",
       "colors": [
         "#a14cd1",
         "#e6b3ff"
@@ -113,7 +113,7 @@
       "#9A60C8"
     ],
     "fx": {
-      "style": "ring",
+      "style": "wave",
       "colors": [
         "#ff5fae",
         "#ffd6ec"
@@ -130,7 +130,7 @@
       "#E070A8"
     ],
     "fx": {
-      "style": "ring",
+      "style": "charm",
       "colors": [
         "#ff8fcf",
         "#ffe6f5"
@@ -147,7 +147,7 @@
       "#70C0D8"
     ],
     "fx": {
-      "style": "shards",
+      "style": "ice",
       "colors": [
         "#6fdcf2",
         "#f0fcff"
@@ -165,7 +165,7 @@
       "#B08860"
     ],
     "fx": {
-      "style": "ring",
+      "style": "tornado",
       "colors": [
         "#a9c4ff",
         "#ffffff"
@@ -201,7 +201,7 @@
       "#6E4A28"
     ],
     "fx": {
-      "style": "shards",
+      "style": "boulder",
       "colors": [
         "#a8793a",
         "#e6c88a"
@@ -219,7 +219,7 @@
       "#A07850"
     ],
     "fx": {
-      "style": "shards",
+      "style": "boulder",
       "colors": [
         "#8f8260",
         "#d6c994"
@@ -237,7 +237,7 @@
       "#6A5A90"
     ],
     "fx": {
-      "style": "orb",
+      "style": "wisp",
       "colors": [
         "#6a4c93",
         "#cdb6ff"
@@ -255,7 +255,7 @@
       "#4A3428"
     ],
     "fx": {
-      "style": "orb",
+      "style": "crescent",
       "colors": [
         "#34343f",
         "#9a9aae"
@@ -272,7 +272,7 @@
       "#2A6E8E"
     ],
     "fx": {
-      "style": "orb",
+      "style": "twin",
       "colors": [
         "#4a5bd6",
         "#9fb0ff"
@@ -289,7 +289,7 @@
       "#7A5038"
     ],
     "fx": {
-      "style": "star",
+      "style": "fist",
       "colors": [
         "#d9531e",
         "#ffd9b0"
@@ -306,7 +306,7 @@
       "#6E7884"
     ],
     "fx": {
-      "style": "bolt",
+      "style": "ricochet",
       "colors": [
         "#b9c3d6",
         "#ffffff"

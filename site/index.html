@@ -266,54 +266,61 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 .profile-form .btn{padding:10px 14px;font-size:.92rem}
 .manage-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .manage-row .btn{font-size:.9rem;padding:12px 8px}
-/* ---- 特別對戰（四、五星）：像素風 ---- */
-.battle{position:fixed;inset:0;z-index:25;display:flex;flex-direction:column;background:#10241a;touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;font-family:"Courier New",ui-monospace,monospace;font-weight:900;color:#1d2330}
+/* ---- 特別對戰（四、五星）：俯瞰的像素決鬥場 ---- */
+.battle{position:fixed;inset:0;z-index:25;display:flex;flex-direction:column;background:#252a36;touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;font-family:"Courier New",ui-monospace,monospace;font-weight:900;color:#1d2330}
 .battle[hidden]{display:none}
-.bt-field{position:relative;flex:1;overflow:hidden;cursor:crosshair;background:linear-gradient(#7cc8f4 0 20%,#92d2f6 20% 40%,#aadcf8 40% 60%,#c2e6fa 60% 80%,#d8f0fc 80%) 0 0/100% 46% no-repeat,#78c850}
-.bt-field::before{content:"";position:absolute;left:0;right:0;top:46%;bottom:0;background:repeating-conic-gradient(#7fd154 0 25%,#6fc047 0 50%) 0 0/36px 36px}
-.bt-field::after{content:"";position:absolute;left:0;right:0;top:calc(46% - 6px);height:6px;background:#3f8f3a}
-.bt-cloud{position:absolute;width:72px;height:18px;background:#fff;box-shadow:12px -12px 0 #fff,36px -12px 0 #fff,-12px 12px 0 -2px #e8f4fc;opacity:.9;image-rendering:pixelated}
+.bt-field{position:relative;flex:1;overflow:hidden;cursor:crosshair;background:repeating-conic-gradient(#aeb6c4 0 25%,#9ea7b8 0 50%) 0 0/44px 44px}
+.bt-field::before{content:"";position:absolute;inset:8px;border:4px solid #4a5163;box-shadow:inset 0 0 0 4px #d3d9e4;pointer-events:none}
+.bt-field::after{content:"";position:absolute;left:50%;top:42%;width:160px;height:160px;margin:-80px 0 0 -80px;border:4px solid #7a8397;border-radius:50%;opacity:.45;pointer-events:none}
 .bt-foe,.bt-me{position:absolute;left:0;top:0;will-change:transform}
-.bt-foe img,.bt-me img{display:block;width:100%;height:100%;image-rendering:pixelated;object-fit:contain}
-.bt-foe .sh,.bt-me .sh{position:absolute;left:12%;right:12%;bottom:-6%;height:14%;border-radius:50%;background:rgba(20,50,20,.28)}
+.bt-foe img,.bt-me img{display:block;width:100%;height:100%;image-rendering:pixelated;object-fit:contain;position:relative}
+.bt-foe .sh,.bt-me .sh{position:absolute;left:14%;right:14%;bottom:-2%;height:16%;border-radius:50%;background:rgba(30,35,50,.3)}
 .bt-foe.silhouette img{filter:brightness(0) drop-shadow(0 0 2px #fff) drop-shadow(0 0 6px rgba(255,255,255,.7))}
-.bt-foe.flash img{animation:btblink .42s steps(2,end) 1}
-@keyframes btblink{0%,100%{opacity:1}25%,75%{opacity:.15}}
-.bt-me.lunge img{animation:btlunge .22s steps(3,end) 1}
-@keyframes btlunge{50%{transform:translate(10px,-8px)}}
-.bt-me.in{animation:btin .5s steps(6,end) 1}
-@keyframes btin{from{opacity:0;margin-left:-60px}to{opacity:1;margin-left:0}}
+.bt-me .lun,.bt-me .bob{width:100%;height:100%}
 .bt-me .bob{animation:btbob 1s steps(2,end) infinite}
+.bt-me.in img{animation:btin .5s steps(6,end) 1}
 @keyframes btbob{50%{transform:translateY(-4px)}}
-.bt-fx{position:absolute;inset:0;pointer-events:none;overflow:hidden}
-.bt-fx *{position:absolute;left:0;top:0;will-change:transform,opacity}
-.bt-fx .orb{width:42px;height:42px;margin:-21px 0 0 -21px;border-radius:50%;background:radial-gradient(circle at 36% 36%,var(--c1) 0 28%,var(--c0) 30%);box-shadow:0 0 0 3px #0003,0 0 14px var(--c0)}
-.bt-fx .flame{width:44px;height:56px;margin:-28px 0 0 -22px;background:var(--c0);clip-path:polygon(50% 0,66% 26%,92% 52%,82% 86%,50% 100%,18% 86%,8% 52%,34% 26%)}
+@keyframes btin{from{opacity:0;transform:translateY(50px)}to{opacity:1;transform:none}}
+.bt-fx{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:2}
+.bt-fx>*{position:absolute;left:0;top:0;will-change:transform,opacity}
+.bt-fx .p{width:calc(var(--r)*2);height:calc(var(--r)*2);margin:calc(var(--r)*-1) 0 0 calc(var(--r)*-1)}
+.bt-fx .orb{border-radius:50%;background:radial-gradient(circle at 36% 36%,var(--c1) 0 28%,var(--c0) 30%);box-shadow:0 0 0 3px #0003,0 0 14px var(--c0)}
+.bt-fx .flame{height:calc(var(--r)*2.6);margin-top:calc(var(--r)*-1.3);background:var(--c0);clip-path:polygon(50% 0,66% 26%,92% 52%,82% 86%,50% 100%,18% 86%,8% 52%,34% 26%)}
 .bt-fx .flame::after{content:"";position:absolute;left:25%;right:25%;top:38%;bottom:8%;background:var(--c1);clip-path:polygon(50% 0,85% 45%,70% 100%,30% 100%,15% 45%)}
-.bt-fx .star{width:50px;height:50px;margin:-25px 0 0 -25px;background:var(--c0);clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%)}
+.bt-fx .leaf{height:calc(var(--r)*2.4);margin-top:calc(var(--r)*-1.2);background:var(--c0);clip-path:polygon(50% 0,92% 30%,82% 80%,50% 100%,18% 80%,8% 30%)}
+.bt-fx .leaf::after{content:"";position:absolute;left:46%;width:8%;top:12%;bottom:0;background:var(--c1)}
+.bt-fx .shard{height:calc(var(--r)*2.6);margin-top:calc(var(--r)*-1.3);background:var(--c0);clip-path:polygon(50% 0,100% 40%,70% 100%,30% 100%,0 40%);box-shadow:inset 0 0 0 3px var(--c1)}
+.bt-fx .twist{height:calc(var(--r)*2.4);margin-top:calc(var(--r)*-1.2);background:repeating-linear-gradient(var(--c0) 0 22%,var(--c1) 22% 30%);clip-path:polygon(0 0,100% 0,78% 24%,100% 24%,66% 54%,84% 54%,50% 100%,16% 54%,34% 54%,0 24%,22% 24%);animation:btspinx .3s steps(2,end) infinite}
+@keyframes btspinx{50%{filter:brightness(1.5)}}
+.bt-fx .rock{background:var(--c0);clip-path:polygon(20% 4%,60% 0,95% 24%,100% 64%,70% 100%,26% 96%,0 60%,4% 26%);box-shadow:inset 0 0 0 4px var(--c1)}
+.bt-fx .ring{border-radius:50%;border:5px solid var(--c0);box-shadow:inset 0 0 0 3px var(--c1),0 0 10px var(--c0)}
+.bt-fx .bubble{border-radius:50%;border:4px solid var(--c1);background:radial-gradient(circle at 32% 30%,#fff 0 12%,transparent 14%),var(--c0);opacity:.88}
+.bt-fx .star,.bt-fx .charm{background:var(--c0);clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%)}
 .bt-fx .star::after{content:"";position:absolute;inset:30%;background:var(--c1);clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%)}
-.bt-fx .shard{width:20px;height:20px;margin:-10px 0 0 -10px;background:var(--c0);border:3px solid var(--c1);transform:rotate(45deg)}
-.bt-fx .ring{width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;border:6px solid var(--c0);box-shadow:inset 0 0 0 3px var(--c1),0 0 10px var(--c0)}
+.bt-fx .wisp{border-radius:50% 50% 50% 8%;background:radial-gradient(circle at 36% 38%,var(--c1) 0 20%,var(--c0) 22%);box-shadow:0 0 14px var(--c0);opacity:.92}
+.bt-fx .wisp::before{content:"";position:absolute;left:24%;top:34%;width:16%;height:16%;background:#111;box-shadow:calc(var(--r)*.7) 0 0 #111}
+.bt-fx .crescent{border-radius:50%;box-shadow:inset calc(var(--r)*-.55) 0 0 0 var(--c0),0 0 10px var(--c0)}
+.bt-fx .disc{border-radius:50%;background:conic-gradient(var(--c1),var(--c0),var(--c1),var(--c0),var(--c1));border:3px solid #4a5163}
+.bt-fx .fist{border-radius:30%;background:var(--c0);box-shadow:inset 0 0 0 4px var(--c1)}
 .bt-fx .pix{width:11px;height:11px;margin:-5px 0 0 -5px;background:var(--c0)}
 .bt-fx .pix.b{background:var(--c1)}
-.bt-fx svg{width:100%;height:100%;overflow:visible}
-.bt-fx .miss{width:auto;height:auto;font-size:1.05rem;color:#fff;text-shadow:2px 2px 0 #333;margin:-12px 0 0 -20px}
-.bt-fx .smoke{width:16px;height:16px;margin:-8px 0 0 -8px;background:#ffffffcc;border-radius:3px}
+.bt-fx .bolt{inset:0;width:100%;height:100%}
+.bt-fx .bolt svg{width:100%;height:100%;overflow:visible}
+.bt-fx .miss{font-size:1.05rem;color:#fff;text-shadow:2px 2px 0 #333;margin:-12px 0 0 -22px;font-style:normal}
 .bt-plate{position:absolute;z-index:3;background:#f8f0d0;border:4px solid #3a3a3a;box-shadow:4px 4px 0 #0003,inset -3px -3px 0 #c8bf98;padding:5px 10px 7px;min-width:132px;max-width:56%;pointer-events:none}
 .bt-plate b{display:block;font-size:.95rem;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bt-plate small{font-size:.72rem;letter-spacing:1px;color:#b8860b}
 .bt-plate.foe{left:10px;top:calc(10px + env(safe-area-inset-top,0px))}
-.bt-plate.me{right:10px;bottom:14px}
+.bt-plate.me{right:10px;bottom:14px;min-width:110px}
 .bt-blocks{display:flex;gap:3px;margin-top:3px}
 .bt-blocks i{flex:1;height:10px;max-width:22px;background:#3a3a3a;border:2px solid #3a3a3a}
 .bt-blocks i.on{background:#3aa0ff;box-shadow:inset 0 -3px 0 #1c6ec4,inset 0 2px 0 #9fd4ff}
-.bt-blocks i.pop{animation:btblink .35s steps(2,end) 1}
-.bt-msg{flex:none;background:#f8f0d0;border:4px solid #3a3a3a;box-shadow:inset 0 0 0 3px #c8bf98;margin:0 10px calc(10px + env(safe-area-inset-bottom,0px));padding:12px 14px;min-height:64px;font-size:1.02rem;line-height:1.35;display:flex;align-items:center}
+.bt-msg{flex:none;background:#f8f0d0;border:4px solid #3a3a3a;box-shadow:inset 0 0 0 3px #c8bf98;margin:0 10px calc(10px + env(safe-area-inset-bottom,0px));padding:10px 14px;min-height:58px;font-size:1rem;line-height:1.35;display:flex;align-items:center}
 .bt-skip{position:absolute;z-index:6;right:10px;top:calc(10px + env(safe-area-inset-top,0px));display:flex;align-items:center;gap:6px;min-height:52px;padding:0 14px 0 10px;border:4px solid #fff;background:#e0342f;color:#fff;font:inherit;font-size:1rem;box-shadow:4px 4px 0 #0005;cursor:pointer}
 .bt-skip svg{width:30px;height:30px;fill:#fff}
 .bt-skip:active{transform:translate(2px,2px);box-shadow:2px 2px 0 #0005}
-.bt-hand{position:absolute;z-index:2;left:50%;top:62%;font-size:2rem;pointer-events:none;animation:bthand .9s steps(2,end) infinite}
-@keyframes bthand{50%{transform:translateY(-8px)}}
+.bt-hand{position:absolute;z-index:2;left:50%;bottom:34%;margin-left:-16px;font-size:2rem;pointer-events:none;animation:bthand .9s steps(2,end) infinite}
+@keyframes bthand{50%{transform:translateY(-10px)}}
 @media (prefers-reduced-motion:reduce){.bt-me .bob,.bt-hand{animation:none}}
 /* 逃跑：紅字紅框＋離開圖示 */
 .btn.ghost.run-btn{display:flex;align-items:center;gap:6px;color:var(--bad);border:2px solid var(--bad);background:color-mix(in srgb,var(--bad) 9%,var(--card))}
@@ -615,9 +622,8 @@ html.noscroll,html.noscroll body{overflow:hidden}
 </div>
 <div class="battle" id="battle" hidden role="dialog" aria-label="特別對戰">
   <div class="bt-field" id="btField">
-    <i class="bt-cloud" style="left:8%;top:9%"></i><i class="bt-cloud" style="left:58%;top:16%;transform:scale(.8)"></i>
     <div class="bt-foe" id="btFoe"><div class="sh"></div><div class="shields" id="btShields"></div><img id="btFoeImg" alt=""></div>
-    <div class="bt-me" id="btMe"><div class="sh"></div><div class="bob"><img id="btMeImg" alt=""></div></div>
+    <div class="bt-me" id="btMe"><div class="sh"></div><div class="lun" id="btLun"><div class="bob"><img id="btMeImg" alt=""></div></div></div>
     <div class="bt-fx" id="btFx"></div>
     <div class="bt-hand" id="btHand">👆</div>
     <div class="bt-plate foe"><b id="btFoeName"></b><small id="btFoeStars"></small><div class="bt-blocks" id="btFoeBlocks"></div></div>
@@ -641,7 +647,7 @@ html.noscroll,html.noscroll body{overflow:hidden}
 <canvas id="cv" width="48" height="48" hidden></canvas>
 
 <script>
-const BUILD="2026.10.28-2046";
+const BUILD="2026.10.28-2100";
 /* =========================================================
    顏色寶可夢探險
    資料都在 data/：config.json 列出要載入的資料包（packs），
@@ -2025,15 +2031,39 @@ $("ver").addEventListener("click",()=>{
 });
 
 /* =========================================================
-   特別對戰（四、五星）：像素風小對戰，打破護盾
-   - 條件：這隻有護盾、四星以上，而且圖鑑裡至少有一隻（沒有的話走原本的打護盾）
-   - 我方是圖鑑裡隨機一隻；敵人一直閃來閃去；點螢幕任何地方＝我方從嘴巴發射該屬性的招式，朝敵人飛過去（飛行途中敵人可能閃開 → MISS）
-   - 打中＝破一層護盾；沒打中什麼都不會發生；層數打光就回到丟球
-   - 屬性只影響特效（types.json 的 fx），不算相剋
-   - 右上角大大的 ✕「跳過」：不想玩就回到原本的打護盾／直接丟球，絕不強迫
+   特別對戰（四、五星）：俯瞰的像素決鬥場，打破護盾
+   - 條件：這隻有護盾、星等 ≥ battle.minRarity（預設 4），而且圖鑑裡至少有一隻（沒有的話走原本的打護盾）
+   - 整個手機畫面就是一塊平面場地（XY 平面）：我方固定在最下面，敵人在場地裡到處跑
+   - 點螢幕＝我方從嘴巴朝你點的方向「飛出」招式（不是直接打到點的位置）；敵人會一直移動、偵測到來襲還會衝刺閃開，所以可能打偏（MISS，沒有損失）
+   - 每種屬性的招式特性不同（types.json 的 fx.style）：火＝慢但扇形散開、水＝又快又直、電＝瞬間但很細、飛行＝好幾個小龍卷風…
+   - 打中一次破一層護盾（一次發射最多破一層）；全破後回到丟球。屬性不算相剋，只影響招式
+   - 右上角大大的紅色 ✕「跳過」：不想玩就回到原本的打護盾／直接丟球，絕不強迫
    ========================================================= */
-const BT={on:false,live:false,mon:null,me:null,eid:0,W:0,H:0,S:0,slots:[],cur:0,from:null,to:null,t0:0,dur:0,nextAt:0,raf:0,lastShot:0,fx:null,done:null,msgT:0,shots:0,hits:0,tick:null};
-const btCfg=()=>({enabled:true,minRarity:4,delayMs:900,dwellMs:1000,hopMs:260,flightMs:380,cooldownMs:320,hitSlack:14,...(CFG?.battle||{})});
+const BT={on:false,live:false,mon:null,me:null,eid:0,W:0,H:0,S:0,U:1,box:{x0:0,x1:0,y0:0,y1:0},mouth:{x:0,y:0},
+  foe:{x:0,y:0,tx:0,ty:0,pause:0,dashUntil:0},shots:[],raf:0,last:0,lastShot:0,fx:null,done:null,msgT:0,hint:"",shotN:0,hits:0,trailAt:0,onResize:null};
+const btCfg=()=>({enabled:true,minRarity:4,delayMs:900,foeSpeed:230,foeSpeedStep:30,pauseMs:420,dashMul:2.5,dodgeChance:.45,reactMs:170,cooldownMs:300,hitSlack:8,...(CFG?.battle||{})});
+const RAD=Math.PI/180,rnd=(a,b)=>a+Math.random()*(b-a);
+/* 每種招式的特性：mk() 回傳這一發的所有粒子（o＝偏離方向的角度，sp＝速度，r＝半徑，grow＝最後放大幾倍，delay＝延遲秒數，wob＝左右擺動，home＝追蹤力，bounce＝可反彈次數，range＝最遠飛幾個畫面高）
+   dodge＝敵人偵測到來襲後衝刺閃開的機率倍率（0＝來不及閃） */
+const BT_STY={
+  flame:   {dodge:1,  mk:()=>[-28,-14,0,14,28].map((o,i)=>({o,sp:420,r:20,grow:1.7,shape:"flame",trail:1,orient:1,wob:{amp:7,f:9,p:i*1.7}}))},          // 火：慢，扇形散開，一片
+  jet:     {dodge:.5, mk:()=>[{o:0,sp:1000,r:16,shape:"orb",trail:1}]},                                                                                 // 水：又快又直
+  bolt:    {instant:true,dodge:0},                                                                                                                     // 電：瞬間，但很細
+  leaf:    {dodge:.8, mk:()=>[-20,0,20].map(o=>({o,sp:560,r:17,shape:"leaf",orient:1,home:2.3}))},                                                     // 草：三片葉子，會彎向敵人
+  ice:     {dodge:.8, mk:()=>[{o:0,sp:430,r:32,grow:1.25,shape:"shard",orient:1,trail:1}]},                                                             // 冰：慢，大塊，一路掉冰碎片
+  tornado: {dodge:1,  mk:()=>[-24,0,24].map((o,i)=>({o,sp:400,r:24,grow:1.25,shape:"twist",wob:{amp:34,f:5,p:i*2.1}}))},                               // 飛行：好幾個小龍卷風，各走各的
+  boulder: {dodge:.9, mk:()=>[{o:0,sp:330,r:46,shape:"rock",spin:240}]},                                                                                 // 岩石／地面：大石頭，慢但很大顆
+  wave:    {dodge:1,  mk:()=>[{o:0,sp:420,r:16,grow:6,life:1.25,shape:"ring"}]},                                                                         // 超能力：一邊飛一邊變大的波紋
+  bubble:  {dodge:.9, mk:()=>[0,1,2,3,4].map(i=>({o:rnd(-5,5),sp:360,r:20,delay:i*.1,shape:"bubble",wob:{amp:18,f:6,p:i*1.3}}))},                       // 毒：一串慢慢飄的毒泡泡
+  swarm:   {dodge:.9, mk:()=>Array.from({length:7},(_,i)=>({o:rnd(-12,12),sp:rnd(520,640),r:11,delay:i*.04,shape:"shard",orient:1,wob:{amp:22,f:12,p:rnd(0,6)}}))}, // 蟲：一群亂飛的小蟲
+  charm:   {dodge:.8, mk:()=>[{o:0,sp:470,r:28,shape:"star",spin:360,home:1.6,trail:1}]},                                                                // 妖精：會慢慢追蹤的閃亮星星
+  star:    {dodge:.9, mk:()=>[{o:0,sp:700,r:22,shape:"star",spin:540}]},                                                                                 // 一般：旋轉星星
+  wisp:    {dodge:.9, mk:()=>[{o:0,sp:430,r:24,shape:"wisp",wob:{amp:62,f:5.5,p:0},trail:1}]},                                                           // 幽靈：蛇行的鬼火
+  twin:    {dodge:.8, mk:()=>[-1,1].map(s=>({o:0,side:s*28,sp:640,r:21,shape:"orb",trail:1}))},                                                          // 龍：兩發並排的龍息
+  crescent:{dodge:.7, mk:()=>[{o:0,sp:780,r:38,shape:"crescent",orient:1,range:.55}]},                                                                   // 惡：又快又寬的斬擊，但飛不遠
+  ricochet:{dodge:.9, mk:()=>[{o:0,sp:700,r:20,shape:"disc",spin:900,bounce:2,range:2.6}]},                                                              // 鋼：會在牆上反彈的鐵盤
+  fist:    {dodge:.8, mk:()=>[0,1,2].map(i=>({o:0,sp:820,r:19,delay:i*.12,shape:"fist",spin:200}))},                                                     // 格鬥：連續三拳
+};
 function battleEligible(mon){
   const c=btCfg();
   if(c.enabled===false||!SHIELD.total||mon.rarity<c.minRarity)return false;
@@ -2043,59 +2073,155 @@ function backSpriteUrl(id){return (CFG.backSpriteUrl||CFG.spriteUrl.replace("/po
 function btPickMine(foe){
   let ids=Object.keys(dex).filter(id=>dex[id]).map(Number).filter(id=>MONS.some(m=>m.id===id));
   if(!ids.length&&TEST)ids=MONS.map(m=>m.id);                  // 測試時圖鑑空的也能對戰：隨便找一隻當我方
-  const pool=ids.filter(id=>id!==foe.id);
-  const id=(pool.length?pool:ids)[Math.floor(Math.random()*(pool.length?pool.length:ids.length))];
-  return MONS.find(m=>m.id===id);
+  const pool=ids.filter(id=>id!==foe.id),a=pool.length?pool:ids;
+  return MONS.find(m=>m.id===a[Math.floor(Math.random()*a.length)]);
 }
 const btFx=mon=>{const T=TYPES[mon.type]||{};return {style:"orb",colors:[T.color||"#ffffff","#ffffff"],...(T.fx||{})};};
+const btStyle=st=>BT_STY[st]||BT_STY.star;
+const btFoeR=()=>BT.S*.36+btCfg().hitSlack;
 function btMsg(t,hold){
   $("btMsg").textContent=t;clearTimeout(BT.msgT);
   if(hold)BT.msgT=setTimeout(()=>{if(BT.on)$("btMsg").textContent=BT.hint;},hold);
 }
-function btBlocks(){
-  $("btFoeBlocks").innerHTML=Array.from({length:SHIELD.total},(_,k)=>`<i class="${k<shieldLayersLeft()?"on":""}"></i>`).join("");
-}
+function btBlocks(){$("btFoeBlocks").innerHTML=Array.from({length:SHIELD.total},(_,k)=>`<i class="${k<shieldLayersLeft()?"on":""}"></i>`).join("");}
 function btDrawShields(){
   const left=shieldLayersLeft();
   $("btShields").innerHTML=Array.from({length:left},(_,k)=>`<i style="inset:${-6-k*7}%;animation-delay:${-k*.4}s;animation-iteration-count:infinite"></i>`).join("");
 }
 function btLayout(){
   const r=$("btField").getBoundingClientRect();BT.W=r.width;BT.H=r.height;
-  BT.S=Math.max(80,Math.min(170,BT.W*.34,BT.H*.34));
-  const xs=[.24,.5,.76];BT.slots=[];
-  for(const [y,s] of [[.30,.74],[.45,1]])for(const x of xs)BT.slots.push({x:x*BT.W,y:y*BT.H,s});
-  const me=1.3*BT.S;
-  $("btMe").style.width=$("btMe").style.height=me+"px";
-  $("btMe").style.transform=`translate(${BT.W*.04}px,${BT.H*.97-me}px)`;
-  BT.mouth={x:BT.W*.04+me*.78,y:BT.H*.97-me+me*.34};
-  $("btFoe").style.width=$("btFoe").style.height=BT.S+"px";
+  BT.U=Math.max(.7,Math.min(1.4,BT.H/760));
+  BT.S=Math.max(84,Math.min(150,BT.W*.34,BT.H*.2));
+  const me=BT.S*1.1,meTop=BT.H-me-12;
+  Object.assign($("btMe").style,{width:me+"px",height:me+"px",transform:`translate(${BT.W/2-me/2}px,${meTop}px)`});
+  BT.mouth={x:BT.W/2,y:meTop+me*.22};
+  Object.assign($("btFoe").style,{width:BT.S+"px",height:BT.S+"px"});
+  BT.box={x0:BT.S*.5+8,x1:BT.W-BT.S*.5-8,y0:BT.S*.5+60,y1:Math.max(BT.S*.5+130,meTop-BT.S*.45)};
+  const f=BT.foe;f.x=Math.max(BT.box.x0,Math.min(BT.box.x1,f.x||BT.W/2));f.y=Math.max(BT.box.y0,Math.min(BT.box.y1,f.y||BT.box.y0+20));
+  f.tx=Math.max(BT.box.x0,Math.min(BT.box.x1,f.tx||f.x));f.ty=Math.max(BT.box.y0,Math.min(BT.box.y1,f.ty||f.y));
 }
-function btFoePos(t){
-  const a=BT.slots[BT.from],b=BT.slots[BT.to];
-  if(!BT.dur||t>=BT.t0+BT.dur)return {x:b.x,y:b.y,s:b.s,moving:false};
-  const p=Math.max(0,(t-BT.t0)/BT.dur),e=p<.5?2*p*p:1-2*(1-p)*(1-p);
-  return {x:a.x+(b.x-a.x)*e,y:a.y+(b.y-a.y)*e-Math.sin(Math.PI*p)*BT.S*.3,s:a.s+(b.s-a.s)*e,moving:true};
+function btPickTarget(){
+  const f=BT.foe,b=BT.box;let tx=f.x,ty=f.y;
+  for(let k=0;k<10;k++){
+    tx=rnd(b.x0,b.x1);ty=rnd(b.y0,b.y1);
+    if(Math.hypot(tx-f.x,ty-f.y)>=BT.W*.3)break;
+  }
+  f.tx=tx;f.ty=ty;
 }
-function btHop(t){
-  const c=btCfg(),left=shieldLayersLeft(),broken=SHIELD.total-left;
-  const opts=BT.slots.map((_,i)=>i).filter(i=>i!==BT.to);
-  BT.from=BT.to;BT.to=opts[Math.floor(Math.random()*opts.length)];
-  BT.t0=t;BT.dur=Math.max(170,c.hopMs-broken*18);
-  const dwell=Math.max(480,c.dwellMs-broken*110);
-  BT.nextAt=t+BT.dur+dwell*(.75+Math.random()*.5);
-  sfx("hop");
+function btUpdateFoe(t,dt){
+  const f=BT.foe,c=btCfg();
+  if(BT.live&&t>=f.pause){
+    const broken=SHIELD.total-shieldLayersLeft();
+    let sp=(c.foeSpeed+broken*c.foeSpeedStep)*BT.U;if(t<f.dashUntil)sp*=c.dashMul;
+    const dx=f.tx-f.x,dy=f.ty-f.y,d=Math.hypot(dx,dy),st=sp*dt;
+    if(d<=st){f.x=f.tx;f.y=f.ty;f.pause=t+rnd(c.pauseMs*.5,c.pauseMs*1.3)*(1-.07*broken);btPickTarget();}
+    else{f.x+=dx/d*st;f.y+=dy/d*st;}
+    f.moving=true;
+  }else f.moving=false;
+  const bob=f.moving?Math.sin(t/70)*3:Math.sin(t/260)*2;
+  $("btFoe").style.transform=`translate(${f.x-BT.S/2}px,${f.y-BT.S/2+bob}px)`;
+}
+/* 敵人看到招式朝自己飛來：有機率往旁邊衝刺閃開 */
+function btMaybeDodge(ang,sty){
+  const c=btCfg(),f=BT.foe,m=BT.mouth,dx=Math.cos(ang),dy=Math.sin(ang);
+  const rel={x:f.x-m.x,y:f.y-m.y},along=rel.x*dx+rel.y*dy,side=-rel.x*dy+rel.y*dx;
+  if(along<0||Math.abs(side)>btFoeR()+50||Math.random()>c.dodgeChance*sty.dodge)return;
+  setTimeout(()=>{
+    if(!BT.on||!BT.live)return;
+    const sg=side>=0?1:-1,d=BT.S*1.0+rnd(0,60),b=BT.box;
+    f.tx=Math.max(b.x0,Math.min(b.x1,f.x+(-dy)*sg*d));f.ty=Math.max(b.y0,Math.min(b.y1,f.y+dx*sg*d));
+    if(Math.hypot(f.tx-f.x,f.ty-f.y)<BT.S*.5){f.tx=Math.max(b.x0,Math.min(b.x1,f.x-(-dy)*sg*d));f.ty=Math.max(b.y0,Math.min(b.y1,f.y-dx*sg*d));}
+    f.pause=0;f.dashUntil=performance.now()+420;sfx("hop");
+  },c.reactMs*rnd(.8,1.3));
+}
+/* ---- 招式的粒子 ---- */
+function btMkEl(P){
+  const d=document.createElement("i");d.className="p "+P.shape;
+  d.style.cssText=`--r:${P.r}px;--c0:${BT.fx.colors[0]};--c1:${BT.fx.colors[1]};visibility:hidden`;
+  $("btFx").appendChild(d);return d;
+}
+function btTrail(x,y,small){
+  const fx=$("btFx");if(fx.childElementCount>110)return;
+  const d=document.createElement("i");d.className="pix"+(Math.random()<.5?" b":"");d.style.cssText=`--c0:${BT.fx.colors[0]};--c1:${BT.fx.colors[1]};transform:translate(${x+rnd(-5,5)}px,${y+rnd(-5,5)}px) scale(${small?.7:1})`;
+  fx.appendChild(d);
+  d.animate([{opacity:.9},{opacity:0}],{duration:T_(340),easing:"steps(4,end)"}).onfinish=()=>d.remove();
+}
+function btShoot(tap){
+  const c=btCfg(),fx=BT.fx,m=BT.mouth,sty=btStyle(fx.style);
+  BT.shotN++;sfx("shoot",fx.style);
+  $("btLun").animate([{transform:"translateY(0)"},{transform:"translateY(9px)"},{transform:"translateY(0)"}],{duration:T_(170),easing:"steps(3,end)"});
+  let dx=tap.x-m.x,dy=tap.y-m.y;
+  if(Math.hypot(dx,dy)<28){dx=0;dy=-1;}
+  let ang=Math.atan2(dy,dx);
+  if(ang>0)ang=Math.cos(ang)>=0?-5*RAD:-175*RAD;                                       // 只往前方（上半部）發射
+  ang=Math.max(-175*RAD,Math.min(-5*RAD,ang));
+  const shot={hit:false,parts:[],done:false,lx:m.x,ly:m.y-30};
+  if(sty.instant){                                                                      // 閃電：瞬間一條線
+    const L=Math.hypot(BT.W,BT.H)*1.1,ex=m.x+Math.cos(ang)*L,ey=m.y+Math.sin(ang)*L,nx=-Math.sin(ang),ny=Math.cos(ang),pts=[[m.x,m.y]],n=9;
+    for(let k=1;k<n;k++)pts.push([m.x+(ex-m.x)*k/n+nx*rnd(-17,17),m.y+(ey-m.y)*k/n+ny*rnd(-17,17)]);
+    pts.push([ex,ey]);const ps=pts.map(p=>p.map(Math.round).join(",")).join(" ");
+    const el=document.createElement("i");el.className="bolt";
+    el.innerHTML=`<svg viewBox="0 0 ${BT.W} ${BT.H}"><polyline points="${ps}" fill="none" stroke="${fx.colors[0]}" stroke-width="12"/><polyline points="${ps}" fill="none" stroke="${fx.colors[1]}" stroke-width="4"/></svg>`;
+    $("btFx").appendChild(el);
+    el.animate([{opacity:1},{opacity:1,offset:.6},{opacity:0}],{duration:T_(300),easing:"steps(3,end)"}).onfinish=()=>el.remove();
+    const f=BT.foe,t2=((f.x-m.x)*Math.cos(ang)+(f.y-m.y)*Math.sin(ang)),perp=Math.abs(-(f.x-m.x)*Math.sin(ang)+(f.y-m.y)*Math.cos(ang));
+    const hit=t2>0&&perp<btFoeR()+9;
+    // 命中點：線上離敵人最近的一點，視覺上讓閃電「竄」到那裡
+    shot.lx=Math.max(8,Math.min(BT.W-8,ex));shot.ly=Math.max(46,Math.min(BT.H-8,ey));
+    setTimeout(()=>{if(!BT.on)return;if(hit)btHit(shot);else btMiss(shot);},T_(90));
+    return;
+  }
+  const specs=sty.mk(),nx=-Math.sin(ang),ny=Math.cos(ang);
+  for(const s of specs){
+    const P={...s,h:ang+(s.o||0)*RAD,x:m.x+nx*(s.side||0),y:m.y+ny*(s.side||0),age:0,delay:s.delay||0,dist:0,bounce:s.bounce||0,life:s.life||5,started:false,alive:true,r:s.r*BT.U,sp:s.sp*BT.U};
+    P.el=btMkEl(P);P.maxDist=(s.range||99)*BT.H;shot.parts.push(P);
+  }
+  BT.shots.push(shot);
+  btMaybeDodge(ang,sty);
+}
+function btKill(P){P.alive=false;P.el.remove();}
+function btUpdateShots(dt){
+  const W=BT.W,H=BT.H,f=BT.foe,R=btFoeR();
+  for(const shot of BT.shots){
+    for(const P of shot.parts){
+      if(!P.alive)continue;
+      P.age+=dt;if(P.age<P.delay)continue;
+      if(!P.started){P.started=true;P.el.style.visibility="visible";}
+      const a=P.age-P.delay;
+      if(P.home){let diff=Math.atan2(f.y-P.y,f.x-P.x)-P.h;diff=Math.atan2(Math.sin(diff),Math.cos(diff));const mx=P.home*dt;P.h+=Math.max(-mx,Math.min(mx,diff));}
+      const step=P.sp*dt;P.x+=Math.cos(P.h)*step;P.y+=Math.sin(P.h)*step;P.dist+=step;
+      if(P.bounce>0){                                                                     // 鋼：撞到牆會反彈
+        let hx=Math.cos(P.h),hy=Math.sin(P.h),b=false;
+        if(P.x<P.r&&hx<0||P.x>W-P.r&&hx>0){hx=-hx;b=true;}
+        if(P.y<P.r+40&&hy<0||P.y>H-P.r&&hy>0){hy=-hy;b=true;}
+        if(b){P.h=Math.atan2(hy,hx);P.bounce--;sfx("whiff");}
+      }
+      const sc=1+((P.grow||1)-1)*Math.min(1,a/(P.life<5?P.life:1.2));
+      let px=P.x,py=P.y;
+      if(P.wob){const w=P.wob.amp*Math.min(1,a*3)*Math.sin(P.wob.f*a+P.wob.p);px+=-Math.sin(P.h)*w;py+=Math.cos(P.h)*w;}
+      P.px=px;P.py=py;P.rr=P.r*sc;shot.lx=px;shot.ly=py;
+      const rot=(P.orient?P.h/RAD+90:0)+(P.spin?P.spin*a:0);
+      P.el.style.transform=`translate(${px}px,${py}px) rotate(${rot}deg) scale(${sc})`;
+      if(P.trail&&performance.now()-(P.tt||0)>50){P.tt=performance.now();btTrail(px,py,true);}
+      if(!shot.hit&&Math.hypot(px-f.x,py-f.y)<R+P.rr*.85){shot.hit=true;shot.hx=px;shot.hy=py;}
+      if(P.dist>P.maxDist||a>P.life||P.x<-70||P.x>W+70||P.y<-70||P.y>H+70)btKill(P);
+    }
+    if(shot.hit&&!shot.done){shot.done=true;shot.parts.forEach(P=>P.alive&&btKill(P));btHit(shot);}
+    else if(!shot.done&&shot.parts.every(P=>!P.alive)){shot.done=true;btMiss(shot);}
+  }
+  BT.shots=BT.shots.filter(s=>!s.done);
 }
 function btFrame(t){
   BT.raf=0;if(!BT.on)return;
   if(current!==BT.mon||encounterId!==BT.eid){btFinish("abort");return;}
-  if(BT.live&&t>=BT.nextAt)btHop(t);
-  const p=btFoePos(t),sz=BT.S*p.s;
-  $("btFoe").style.transform=`translate(${p.x-BT.S/2}px,${p.y-BT.S/2}px) scale(${p.s})`;
+  const dt=Math.min(.05,(t-(BT.last||t))/1000);BT.last=t;
+  btUpdateFoe(t,dt);btUpdateShots(dt);
   BT.raf=requestAnimationFrame(btFrame);
 }
 function btFinish(result){
   if(!BT.on)return;
   BT.on=false;BT.live=false;cancelAnimationFrame(BT.raf);BT.raf=0;clearTimeout(BT.msgT);
+  BT.shots.forEach(s=>s.parts.forEach(P=>P.el.remove()));BT.shots=[];
   $("battle").hidden=true;$("btFx").innerHTML="";
   window.removeEventListener("resize",BT.onResize);
   const d=BT.done;BT.done=null;d&&d(result);
@@ -2110,15 +2236,16 @@ function btImg(img,src,fallback){
 }
 async function startBattle(mon){
   const me=btPickMine(mon),eid=encounterId;
-  Object.assign(BT,{on:true,live:false,mon,me,eid,lastShot:0,shots:0,hits:0,fx:btFx(me),cur:4,from:4,to:4,dur:0,t0:0});
-  BT.hint="點螢幕發射招式！牠會閃躲，打中才破護盾";
+  Object.assign(BT,{on:true,live:false,mon,me,eid,lastShot:0,shotN:0,hits:0,fx:btFx(me),shots:[],last:0});
+  Object.assign(BT.foe,{x:0,y:0,tx:0,ty:0,pause:0,dashUntil:0,moving:false});
+  BT.hint="點螢幕發射招式！招式會朝你點的方向飛出去，敵人會閃躲";
   $("battle").hidden=false;
   BT.onResize=()=>{if(BT.on)btLayout();};window.addEventListener("resize",BT.onResize);
   $("btFoeName").textContent=revealed?mon.name:"？？？";$("btFoeStars").textContent=starText(mon.rarity);
   $("btMeName").textContent=me.name;$("btMeType").textContent=TYPES[me.type]?.name||"";
-  $("btFoe").classList.toggle("silhouette",!revealed);$("btFoe").classList.remove("flash");$("btMe").classList.remove("in","lunge");
+  $("btFoe").classList.toggle("silhouette",!revealed);$("btMe").classList.remove("in");
   $("btHand").hidden=true;
-  btLayout();btBlocks();btDrawShields();
+  btLayout();BT.foe.x=BT.W/2;BT.foe.y=BT.box.y0+30;BT.foe.tx=BT.foe.x;BT.foe.ty=BT.foe.y;btBlocks();btDrawShields();
   btMsg(`野生的${revealed?mon.name:"寶可夢"}擋住了去路！`);
   const meImg=$("btMeImg");meImg.style.transform="";
   await Promise.all([
@@ -2133,7 +2260,7 @@ async function startBattle(mon){
   btMsg(`出來吧！${me.name}！`);$("btMe").classList.add("in");sfx("appear");
   await wait(btCfg().delayMs*.6);
   if(!BT.on)return p;
-  BT.live=true;BT.nextAt=performance.now()+700;
+  BT.live=true;btPickTarget();BT.foe.pause=performance.now()+400;
   btMsg(BT.hint);$("btHand").hidden=false;
   return p;
 }
@@ -2144,82 +2271,38 @@ $("btField").addEventListener("pointerdown",e=>{
   const c=btCfg(),now=performance.now();
   if(now-BT.lastShot<c.cooldownMs)return;
   BT.lastShot=now;$("btHand").hidden=true;
-  const fp=btFoePos(now);                                    // 點哪裡都一樣：招式從我方嘴巴朝著敵人「現在的位置」飛過去，到了才判定打不打得中
-  btShoot({x:fp.x,y:fp.y});
+  const r=$("btField").getBoundingClientRect();
+  btShoot({x:Math.max(0,Math.min(BT.W,e.clientX-r.left)),y:Math.max(0,Math.min(BT.H,e.clientY-r.top))});
 });
-const btEl=(cls,x,y,vars)=>{
-  const d=document.createElement("i");d.className=cls;d.style.cssText=`--c0:${BT.fx.colors[0]};--c1:${BT.fx.colors[1]}`;
-  if(x!=null)d.style.transform=`translate(${x}px,${y}px)`;$("btFx").appendChild(d);return d;
-};
-const btGone=(el,ms)=>setTimeout(()=>el.remove(),ms+60);
-function btShoot(tap){
-  const c=btCfg(),fx=BT.fx,m=BT.mouth,st=fx.style;
-  BT.shots++;sfx("shoot",st);
-  const lunge=$("btMe");lunge.classList.remove("lunge");void lunge.offsetWidth;lunge.classList.add("lunge");
-  const dx=tap.x-m.x,dy=tap.y-m.y,ang=Math.atan2(dy,dx)*180/Math.PI;
-  let flight=T_(st==="bolt"?Math.round(c.flightMs*.6):c.flightMs);
-  const tr=(x,y,extra="")=>`translate(${x}px,${y}px) ${extra}`;
-  if(st==="bolt"){
-    const el=btEl("bolt"),pts=[[m.x,m.y]],n=7,len=Math.hypot(dx,dy)||1,nx=-dy/len,ny=dx/len;
-    for(let k=1;k<n;k++){const o=(Math.random()-.5)*34;pts.push([m.x+dx*k/n+nx*o,m.y+dy*k/n+ny*o]);}
-    pts.push([tap.x,tap.y]);
-    const ptsS=pts.map(p=>p.join(",")).join(" ");
-    el.style.cssText="inset:0;width:100%;height:100%;margin:0";el.className="";
-    el.innerHTML=`<svg viewBox="0 0 ${BT.W} ${BT.H}"><polyline pathLength="1" stroke-dasharray="1" points="${ptsS}" fill="none" stroke="${fx.colors[0]}" stroke-width="12" stroke-linejoin="miter"/><polyline pathLength="1" stroke-dasharray="1" points="${ptsS}" fill="none" stroke="${fx.colors[1]}" stroke-width="4" stroke-linejoin="miter"/></svg>`;
-    el.querySelectorAll("polyline").forEach(pl=>pl.animate([{strokeDashoffset:1},{strokeDashoffset:0}],{duration:flight,easing:"steps(8,end)",fill:"both"}));   // 閃電一格一格「竄」過去
-    el.animate([{opacity:1},{opacity:1,offset:.7},{opacity:0}],{duration:flight+T_(260),easing:"steps(3,end)"});btGone(el,flight+T_(260));
-  }else if(st==="shards"){
-    for(let k=0;k<5;k++){
-      const el=btEl("shard",m.x,m.y),sp=(k-2)*16,px=-Math.sin(ang*Math.PI/180)*sp,py=Math.cos(ang*Math.PI/180)*sp;
-      el.animate([{transform:tr(m.x,m.y,"rotate(45deg)")},{transform:tr(tap.x+px*.3,tap.y+py*.3,"rotate(405deg)")}],{duration:flight,delay:k*22,easing:"steps(7,end)",fill:"both"});btGone(el,flight+k*22);
-    }
-  }else if(st==="ring"){
-    for(let k=0;k<3;k++){
-      const el=btEl("ring",m.x,m.y);
-      el.animate([{transform:tr(m.x,m.y,"scale(.5)"),opacity:.95},{transform:tr(tap.x,tap.y,"scale(1.5)"),opacity:.75}],{duration:flight,delay:k*70,easing:"steps(6,end)",fill:"both"});btGone(el,flight+k*70);
-    }
-  }else{
-    const el=btEl(st==="flame"?"flame":st==="star"?"star":"orb",m.x,m.y);
-    const spin=st==="star"?"rotate(540deg)":st==="flame"?`rotate(${ang+90}deg)`:"";
-    el.animate([{transform:tr(m.x,m.y,st==="flame"?`rotate(${ang+90}deg) scale(.6)`:"scale(.6)")},{transform:tr(tap.x,tap.y,(spin?spin+" ":"")+"scale(1.1)")}],{duration:flight,easing:"steps(8,end)",fill:"both"});btGone(el,flight);
-    // 小小的尾巴
-    for(let k=1;k<=3;k++){const tl=btEl("pix"+(k%2?"":" b"),m.x,m.y);tl.animate([{transform:tr(m.x,m.y),opacity:.9},{transform:tr(tap.x-dx*.02*k,tap.y-dy*.02*k),opacity:0}],{duration:flight,delay:k*28,easing:"steps(6,end)",fill:"both"});btGone(tl,flight+k*28);}
-  }
-  const arrive=performance.now()+flight;
-  setTimeout(()=>{
-    if(!BT.on)return;
-    const fp=btFoePos(performance.now()),rad=BT.S*fp.s*.5+c.hitSlack;
-    if(Math.hypot(tap.x-fp.x,tap.y-fp.y)<=rad)btHit(tap);else btMiss(tap);
-  },Math.max(0,arrive-performance.now()));
-}
 function btBurst(x,y,n=12,big=false){
+  const fx=$("btFx");
   for(let k=0;k<n;k++){
-    const a=k/n*Math.PI*2+Math.random()*.4,d=(big?70:42)+Math.random()*28;
-    const el=btEl("pix"+(k%2?" b":""),x,y);
-    el.animate([{transform:tr2(x,y),opacity:1},{transform:tr2(x+Math.cos(a)*d,y+Math.sin(a)*d),opacity:0}],{duration:T_(big?520:380),easing:"steps(5,end)",fill:"both"});btGone(el,T_(520));
+    const a=k/n*Math.PI*2+Math.random()*.4,d=(big?72:44)+Math.random()*28;
+    const el=document.createElement("i");el.className="pix"+(k%2?" b":"");el.style.cssText=`--c0:${BT.fx.colors[0]};--c1:${BT.fx.colors[1]}`;fx.appendChild(el);
+    el.animate([{transform:`translate(${x}px,${y}px)`,opacity:1},{transform:`translate(${x+Math.cos(a)*d}px,${y+Math.sin(a)*d}px)`,opacity:0}],{duration:T_(big?520:380),easing:"steps(5,end)"}).onfinish=()=>el.remove();
   }
 }
-const tr2=(x,y)=>`translate(${x}px,${y}px)`;
-function btHit(tap){
-  const left=shieldLayersLeft();if(!left)return;
+function btHit(shot){
+  const left=shieldLayersLeft();if(!left||!BT.on)return;
   BT.hits++;
   SHIELD.hp=(left-1)*SHIELD.perLayer;drawShields();
-  const fp=btFoePos(performance.now());
-  btBurst(fp.x,fp.y,12,left===1);
-  const f=$("btFoe");f.classList.remove("flash");void f.offsetWidth;f.classList.add("flash");
+  const f=BT.foe;
+  btBurst(shot.hx??f.x,shot.hy??f.y,12,left===1);
+  $("btFoeImg").animate([{opacity:1},{opacity:.15},{opacity:1},{opacity:.15},{opacity:1}],{duration:T_(420),easing:"steps(1,end)"});
   btDrawShields();btBlocks();
-  const blocks=$("btFoeBlocks").children;if(blocks[left-1])blocks[left-1].classList.add("pop");
+  const blocks=$("btFoeBlocks").children;if(blocks[left-1])blocks[left-1].animate([{opacity:1},{opacity:.2},{opacity:1}],{duration:T_(350),easing:"steps(1,end)"});
   sfx("foeHit",BT.fx.style);try{navigator.vibrate&&navigator.vibrate(left===1?160:60);}catch(e){}
   if(left-1>0){btMsg(`打中了！護盾破掉一層，還剩 ${left-1} 層`,1100);return;}
-  // 全部打破了
-  BT.live=false;sfx("btWin");btMsg("護盾全部打破了！",9999);
+  BT.live=false;sfx("btWin");btMsg("護盾全部打破了！",9999);                                // 全部打破了
   setTimeout(()=>btFinish("win"),T_(1200));
 }
-function btMiss(tap){
-  sfx("whiff");btBurst(tap.x,tap.y,4);
-  const el=btEl("miss",tap.x,tap.y);el.textContent="MISS";
-  el.animate([{transform:tr2(tap.x,tap.y),opacity:1},{transform:tr2(tap.x,tap.y-26),opacity:0}],{duration:T_(520),easing:"steps(5,end)",fill:"both"});btGone(el,T_(520));
-  btMsg("被牠閃開了！再試一次",1100);
+function btMiss(shot){
+  if(!BT.on)return;
+  const x=Math.max(26,Math.min(BT.W-26,shot.lx)),y=Math.max(48,Math.min(BT.H-60,shot.ly));
+  sfx("whiff");btBurst(x,y,4);
+  const el=document.createElement("i");el.className="miss";el.textContent="MISS";$("btFx").appendChild(el);
+  el.animate([{transform:`translate(${x}px,${y}px)`,opacity:1},{transform:`translate(${x}px,${y-26}px)`,opacity:0}],{duration:T_(520),easing:"steps(5,end)"}).onfinish=()=>el.remove();
+  btMsg("沒打中！被閃開了，再試一次",1100);
 }
 
 /* =========================================================
@@ -2641,12 +2724,18 @@ const SFX={
   radar:(t,w=0)=>{ GB.tone(t,500+900*w,.05+.03*w,{duty:.125,v:.25+.2*w}); },                                  // 探索雷達：越近越高
   hop:t=>{ GB.tone(t,420,.07,{duty:.25,v:.12,slide:900}); },                                                  // 敵人閃開：輕輕的咻
   btStart:t=>{ GB.seq(t,"E5:1 E5:1 G5:1 E5:1 A5:1 G5:2 -:1 E5:1 G5:1 B5:1 E6:3",.07,{duty:.5,v:.3}); GB.seq(t,"E3:2 E3:2 A3:2 E3:2 C4:2 A3:2 E3:2 G3:2",.07,{duty:.25,v:.2}); },
-  shoot:(t,st)=>{ if(st==="bolt"){GB.noise(t,.18,{v:.3,hp:2500});GB.tone(t,2400,.16,{duty:.125,v:.3,slide:300});}
-                  else if(st==="flame"){GB.noise(t,.28,{v:.28,hp:700});GB.tone(t,300,.24,{duty:.5,v:.22,slide:700});}
-                  else if(st==="shards"){GB.noise(t,.1,{v:.3,hp:3500});GB.tone(t,1500,.14,{duty:.25,v:.3,slide:900});}
-                  else if(st==="ring"){GB.tone(t,500,.26,{duty:.5,v:.3,slide:1500});GB.tone(t+.08,750,.2,{duty:.5,v:.2,slide:1800});}
-                  else if(st==="star"){GB.tone(t,1200,.2,{duty:.125,v:.3,slide:500});GB.tone(t+.05,1600,.12,{duty:.125,v:.2});}
-                  else{GB.tone(t,900,.22,{duty:.25,v:.35,slide:380});GB.noise(t,.08,{v:.15,hp:2000});} },
+  shoot:(t,st)=>{
+    if(st==="bolt"){GB.noise(t,.18,{v:.3,hp:2500});GB.tone(t,2400,.16,{duty:.125,v:.3,slide:300});}
+    else if(st==="flame"){GB.noise(t,.3,{v:.28,hp:700});GB.tone(t,300,.26,{duty:.5,v:.22,slide:700});}
+    else if(st==="jet"){GB.noise(t,.2,{v:.2,hp:3000});GB.tone(t,1100,.18,{duty:.25,v:.3,slide:500});}
+    else if(st==="tornado"||st==="wisp"){GB.tone(t,380,.3,{duty:.5,v:.25,slide:760});GB.tone(t+.1,520,.25,{duty:.5,v:.18,slide:300});}
+    else if(st==="leaf"||st==="swarm"){GB.noise(t,.12,{v:.25,hp:3500});GB.tone(t,1500,.14,{duty:.25,v:.25,slide:900});}
+    else if(st==="boulder"||st==="ice"){GB.noise(t,.2,{v:.35,hp:300});GB.tone(t,160,.2,{duty:.5,v:.35,slide:90});}
+    else if(st==="wave"||st==="charm"){GB.tone(t,500,.28,{duty:.5,v:.3,slide:1500});GB.tone(t+.08,750,.22,{duty:.5,v:.2,slide:1800});}
+    else if(st==="bubble"){for(let i=0;i<4;i++)GB.tone(t+i*.08,500+i*140,.07,{duty:.5,v:.22,slide:900});}
+    else if(st==="crescent"||st==="ricochet"){GB.noise(t,.1,{v:.3,hp:4500});GB.tone(t,2000,.12,{duty:.125,v:.28,slide:700});}
+    else if(st==="fist"){for(let i=0;i<3;i++){GB.noise(t+i*.12,.06,{v:.3,hp:600});GB.tone(t+i*.12,200,.06,{duty:.5,v:.35});}}
+    else{GB.tone(t,900,.22,{duty:.25,v:.35,slide:380});GB.noise(t,.08,{v:.15,hp:2000});} },
   foeHit:(t,st)=>{ GB.noise(t,.14,{v:.4,hp:900}); GB.tone(t,330,.16,{duty:.5,v:.35,slide:90}); GB.seq(t+.05,"E6:1 A6:1",.05,{duty:.125,v:.25}); },
   whiff:t=>{ GB.tone(t,260,.12,{duty:.5,v:.18,slide:130}); },
   btWin:t=>{ GB.seq(t,"C5:1 E5:1 G5:1 C6:2 G5:1 C6:1 E6:1 G6:4",.065,{duty:.25,v:.35}); GB.seq(t,"C4:3 G3:3 C4:3 E4:4",.065,{duty:.5,v:.22}); },

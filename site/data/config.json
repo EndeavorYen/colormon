@@ -194,8 +194,13 @@
     "enabled": true,
     "minRarity": 4,
     "delayMs": 900,
-    "dwellMs": 1000,
-    "cooldownMs": 320,
-    "hitSlack": 14
+    "foeSpeed": 230,
+    "foeSpeedStep": 30,
+    "pauseMs": 420,
+    "dashMul": 2.5,
+    "dodgeChance": 0.45,
+    "reactMs": 170,
+    "cooldownMs": 300,
+    "hitSlack": 8
   }
 }
