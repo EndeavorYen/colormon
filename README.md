@@ -155,14 +155,14 @@ python3 tools/build-packs.py 1 2 3 4 5 6 7 8 9  # 全部九代（新增的資料
 ## 部署
 正式網址在 **Vercel**（https://colormon-nu.vercel.app/），網站根目錄是 `site/`（在 Vercel 專案設定裡指定），不需要安裝或打包。
 
-push 到 `main` 後，Vercel 會自動部署；GitHub Actions 也會檢查資料和語法，並繼續部署到舊的 GitHub Pages。
+push 到 `main` 後，Vercel 會自動部署；GitHub Actions（`.github/workflows/check.yml`）會檢查資料、更新紀錄和網頁語法。舊的 GitHub Pages 不再部署，保留最後的 v0.15 只用來提示搬家（repo 改成 private 後 GitHub Pages 會自動停用）。
 
 ### 搬家（GitHub Pages → Vercel）
 圖鑑存在瀏覽器裡、綁定網址，換網址資料不會自動跟過去。`config.json` 的 `home` 設定新網址和舊網址：
 - 在舊網址（`home.oldHosts`）打開遊戲，拍照畫面上方會出現「遊戲搬家了！」，按「帶著圖鑑搬過去」會把所有玩家的圖鑑壓縮後放在新網址的 `#` 後面帶過去（`#` 後面的內容不會送到伺服器）。
 - 新網址會問「要把舊網址的圖鑑搬過來嗎？」，確認後**合併**進來：同一隻寶可夢取比較大的次數、比較早的第一次、比較晚的最近一次，不會刪掉任何資料。
 - 不能用的時候，還是可以用「圖鑑管理 → 下載備份檔／從備份檔還原」。
-- 大家都搬好以後，可以關掉 GitHub Pages（停用 `.github/workflows/pages.yml` 或在 repo 的 Settings → Pages 關閉）。
+- 大家都搬好以後，可以在 repo 的 Settings → Pages 關閉，或把 repo 改成 private（免費方案會自動停用 GitHub Pages）。**還沒搬的手機，舊網址關掉後就讀不到圖鑑了。**
 
 本機測試：`cd site && python3 -m http.server`，再打開 http://localhost:8000 （直接雙擊 index.html 會讀不到資料檔）。
 

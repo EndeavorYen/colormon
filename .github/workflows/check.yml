@@ -1,18 +1,15 @@
-name: Deploy to GitHub Pages
+name: Check data and page
 
+# 遊戲部署在 Vercel（push 到 main 會自動部署）；這裡只做檢查。
+# 舊的 GitHub Pages 網址保留最後部署的 v0.15，只用來提示搬家。
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: true
 
 jobs:
   check:
@@ -33,18 +30,3 @@ jobs:
           node -e "const s=require('fs').readFileSync('site/index.html','utf8');
           const js=[...s.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m=>m[1]).join('\n');
           new Function(js); console.log('script OK');"
-
-  deploy:
-    needs: check
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: site
-      - id: deployment
-        uses: actions/deploy-pages@v4
