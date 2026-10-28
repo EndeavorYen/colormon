@@ -138,6 +138,23 @@
     "maxFraction": 0.7,
     "weight": 0.75
   },
+  "color": {
+    "whiteBalance": {
+      "enabled": true,
+      "strength": 0.7,
+      "minL": 62,
+      "maxChroma": 42,
+      "hueTolerance": 35,
+      "minFraction": 0.04,
+      "uniformCoverage": 0.93,
+      "uniformFactor": 0.15,
+      "maxGain": 2.2,
+      "refLowL": 64,
+      "refHighL": 80
+    },
+    "vividWeight": 1.2,
+    "lightnessWeight": 0.5
+  },
   "shields": {
     "3": 3,
     "4": 4,
