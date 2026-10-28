@@ -185,5 +185,8 @@
     "cooldownMs": 1500,
     "armDelayMs": 700,
     "gentleAbove": 48
+  },
+  "dex": {
+    "pageSize": 20
   }
 }

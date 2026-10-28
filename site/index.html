@@ -328,6 +328,21 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
   padding:10px 16px;border-radius:12px;font-size:.9rem;opacity:0;transition:opacity .3s;pointer-events:none;max-width:calc(100% - 32px);z-index:20}
 .toast.show{opacity:1}
 @media (prefers-reduced-motion:reduce){.hand{animation:none}.screen,.burst img,.burst .fb{animation:none}.burst::before,.scan-photo::after{animation:none}}
+
+/* 圖鑑：蓋在畫面上的視窗；上方固定標題和關閉鈕，中間自己捲動，下方固定翻頁和「回去抓寶可夢」 */
+.screen.dex-modal{position:fixed;inset:0;z-index:20;width:100%;max-width:480px;margin:0 auto;background:var(--bg);padding:0;gap:0;overflow:hidden}
+.dex-top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:calc(10px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px));border-bottom:1px solid var(--line)}
+.dex-top h2{margin:0;font-family:var(--display);font-weight:900;font-size:1.3rem}
+.dex-scroll{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;position:relative;display:flex;flex-direction:column;gap:12px;padding:12px max(16px,env(safe-area-inset-right,0px)) 16px max(16px,env(safe-area-inset-left,0px))}
+.dex-foot{border-top:1px solid var(--line);background:var(--bg);display:flex;flex-direction:column;gap:8px;padding:8px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.pager{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center}
+.pager .btn{padding:10px 6px}
+.pager .btn:disabled{opacity:.4;cursor:default}
+.pager select{font:inherit;font-weight:700;padding:10px 8px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);text-align:center}
+.dex-modal .dex{grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:6px}
+.dex-modal .dex div{padding:6px 4px}
+html.noscroll,html.noscroll body{overflow:hidden}
+.dex-filters{display:flex;flex-direction:column;gap:8px;padding-top:10px}
 </style>
 
 <div class="app">
@@ -467,7 +482,10 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
   </section>
 
   <!-- 圖鑑 -->
-  <section class="screen" id="s-dex" hidden>
+  <section class="screen dex-modal" id="s-dex" hidden role="dialog" aria-modal="true" aria-label="圖鑑">
+    <div class="dex-top"><h2 id="dexTitle">我的圖鑑</h2>
+      <button class="icon-btn" id="dexClose" aria-label="關閉圖鑑"><svg viewBox="0 0 24 24"><path d="M6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12 19 6.4 17.6 5 12 10.6z"/></svg></button></div>
+    <div class="dex-scroll" id="dexScroll">
     <div class="dex-head"><b id="dexTotal"></b>
       <button class="player-chip" id="playerChip" aria-label="切換玩家"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9zm0 2c-4.4 0-8 2.2-8 5v2h16v-2c0-2.8-3.6-5-8-5z"/></svg><span id="playerName"></span></button>
     </div>
@@ -475,6 +493,7 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
     <details class="panel"><summary>各世代收集進度</summary><div id="genBars" class="gen-bars"></div></details>
     <div class="dex-tools">
       <input type="search" id="dexSearch" placeholder="搜尋名字或編號" autocomplete="off">
+      <details class="panel"><summary>篩選與排序</summary><div class="dex-filters">
       <div class="seg" id="dexStatus" role="group" aria-label="狀態">
         <button data-s="all" aria-pressed="true">全部</button><button data-s="caught" aria-pressed="false">抓到的</button>
         <button data-s="seen" aria-pressed="false">見過</button><button data-s="unknown" aria-pressed="false">還沒發現</button>
@@ -485,10 +504,10 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
         <select id="dexStar" aria-label="星數"><option value="">全部星數</option><option value="1">★1</option><option value="2">★2</option><option value="3">★3</option><option value="4">★4</option><option value="5">★5</option></select>
         <select id="dexSort" aria-label="排序"><option value="id">依編號</option><option value="recent">最近抓到</option><option value="star">星數高到低</option><option value="count">抓到次數</option></select>
       </div>
+      </div></details>
       <div class="dex-result" id="dexResult"></div>
     </div>
     <div class="dex" id="dex"></div>
-    <button class="btn ghost" id="dexMore" hidden>再顯示更多</button>
 
     <details class="panel manage" id="dexManage"><summary>圖鑑管理</summary>
       <label class="setting"><input type="checkbox" id="silToggle"><span>沒抓過的寶可夢先用剪影顯示，抓到或跳出來時才揭曉</span></label>
@@ -504,6 +523,11 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
       <h3>重設</h3>
       <button class="btn ghost danger" id="resetBtn">清空目前玩家的圖鑑</button>
     </details>
+    </div>
+    <div class="dex-foot">
+      <div class="pager"><button class="btn ghost" id="pgPrev" aria-label="上一頁">‹ 上一頁</button><select id="pgSel" aria-label="跳到第幾頁"></select><button class="btn ghost" id="pgNext" aria-label="下一頁">下一頁 ›</button></div>
+      <button class="btn primary" id="dexBack">回去抓寶可夢</button>
+    </div>
   </section>
 </div>
 <div class="sheet-wrap center" id="shakeWarn" hidden>
@@ -528,7 +552,7 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 <canvas id="cv" width="48" height="48" hidden></canvas>
 
 <script>
-const BUILD="2026.10.28-1619";
+const BUILD="2026.10.28-1757";
 /* =========================================================
    顏色寶可夢探險
    資料都在 data/：config.json 列出要載入的資料包（packs），
@@ -823,17 +847,18 @@ function show(name){
   $("moreBtn").textContent=home==="explore"?"繼續探險":"繼續拍照";
   if(name==="encounter"&&AR.on) startAR(); else if(name!=="encounter") stopAR();
   if(name==="encounter"&&SHAKE.on) startShake(); else stopShake();
-  if(name==="dex"){if(DEXUI.focus)focusDexOn(DEXUI.focus);renderDex();}
+  document.documentElement.classList.toggle("noscroll",name==="dex");
+  if(name==="dex"){if(DEXUI.focus)focusDexOn(DEXUI.focus);renderDex();if(!DEXUI.focus)$("dexScroll").scrollTop=0;}
   if(name==="info") renderInfo();
   scrollTo(0,0);
 }
 addEventListener("popstate",()=>show(location.hash.slice(1)));
 let home="camera";
 $("backBtn").onclick=()=>go(screen==="explore"?"camera":home);
-$("dexBtn").onclick=()=>go("dex");
+$("dexBtn").onclick=()=>openDex();
 $("infoBtn").onclick=()=>go("info");
 $("moreBtn").onclick=()=>go(home);
-$("toDexBtn").onclick=()=>{if(RESULT_ID)DEXUI.focus=RESULT_ID;go("dex");};
+$("toDexBtn").onclick=()=>openDex(RESULT_ID);
 $("fledBtn").onclick=()=>go(home);
 
 /* ---------- 1 拍照 ---------- */
@@ -1250,14 +1275,15 @@ function switchProfile(id){
 const GEN_END=[151,251,386,493,649,721,809,905,1025];
 const genOf=id=>{const i=GEN_END.findIndex(e=>id<=e);return i<0?GEN_END.length:i+1;};
 const pad3=n=>String(n).padStart(3,"0");
-const DEXUI={status:"all",gen:"",type:"",star:"",sort:"id",q:"",shown:150,focus:0};
+const DEXUI={status:"all",gen:"",type:"",star:"",sort:"id",q:"",page:0,focus:0,from:"camera",pushed:false};
+const dexPageSize=()=>Math.max(6,CFG?.dex?.pageSize??20);
 /* 從「抓到了」按「看圖鑑」：清掉篩選，照編號排，捲到剛抓到的那一格並閃一下 */
 function focusDexOn(id){
   Object.assign(DEXUI,{status:"all",gen:"",type:"",star:"",sort:"id",q:""});
   $("dexGen").value=$("dexType").value=$("dexStar").value="";$("dexSort").value="id";$("dexSearch").value="";
   document.querySelectorAll("#dexStatus button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.s==="all"));
   const idx=dexFiltered().findIndex(m=>m.id===id);
-  DEXUI.shown=Math.max(150,Math.ceil((idx+1)/150)*150);
+  DEXUI.page=idx<0?0:Math.floor(idx/dexPageSize());
 }
 function dexStatus(m){return dex[m.id]?"caught":seen[m.id]?"seen":"unknown";}
 function dexFiltered(){
@@ -1282,15 +1308,20 @@ function renderDex(){
   const got=MONS.filter(m=>dex[m.id]).length,seenN=MONS.filter(m=>!dex[m.id]&&seen[m.id]).length;
   const pn=curProfile().name;
   $("playerName").textContent=pn;
-  if(screen==="dex")$("barTitle").textContent=pn==="我"?"我的圖鑑":`${pn}的圖鑑`;
+  $("dexTitle").textContent=pn==="我"?"我的圖鑑":`${pn}的圖鑑`;
+  if(screen==="dex")$("barTitle").textContent=$("dexTitle").textContent;
   $("dexTotal").textContent=`抓到 ${got} / ${MONS.length}　見過 ${seenN}`;
   $("dexBar").style.width=(got/MONS.length*100)+"%";
   // 各世代進度
   $("genBars").innerHTML=GEN_END.map((e,i)=>{const g=i+1,ms=MONS.filter(m=>genOf(m.id)===g),c=ms.filter(m=>dex[m.id]).length;
     return `<div class="gen-row"><span>第 ${g} 代</span><div class="progress"><i style="width:${ms.length?c/ms.length*100:0}%"></i></div><b>${c}/${ms.length}</b></div>`;}).join("");
-  const list=dexFiltered();
-  $("dexResult").textContent=`${list.length} 隻`;
-  const cells=list.slice(0,DEXUI.shown).map(m=>{
+  const list=dexFiltered(),ps=dexPageSize(),pages=Math.max(1,Math.ceil(list.length/ps));
+  DEXUI.page=Math.max(0,Math.min(pages-1,DEXUI.page));
+  $("dexResult").textContent=`${list.length} 隻　第 ${DEXUI.page+1} / ${pages} 頁`;
+  const sel=$("pgSel");
+  if(sel.options.length!==pages){sel.innerHTML=Array.from({length:pages},(_,i)=>{const a=i*ps+1,b=Math.min(list.length,(i+1)*ps);return `<option value="${i}">第 ${i+1} / ${pages} 頁</option>`;}).join("");}
+  sel.value=DEXUI.page;$("pgPrev").disabled=DEXUI.page<=0;$("pgNext").disabled=DEXUI.page>=pages-1;
+  const cells=list.slice(DEXUI.page*ps,(DEXUI.page+1)*ps).map(m=>{
     const st=dexStatus(m),c=dex[m.id];
     if(st==="unknown") return `<div class="unknown"><i class="q">？</i><b>#${pad3(m.id)}</b><span>？？？</span></div>`;
     return `<div class="${st}" data-id="${m.id}" role="button" tabindex="0">${c&&c.n>1?`<em>×${c.n}</em>`:""}${st==="seen"?"<em>見過</em>":""}
@@ -1298,8 +1329,6 @@ function renderDex(){
       <b>#${pad3(m.id)}</b><span>${m.name}</span><small>${"★".repeat(m.rarity)}</small></div>`;
   });
   $("dex").innerHTML=cells.length?cells.join(""):`<p class="empty">${got?"沒有符合的寶可夢":"還沒有抓到寶可夢。<br>去拍張照片吧！"}</p>`;
-  $("dexMore").hidden=list.length<=DEXUI.shown;
-  $("dexMore").textContent=`再顯示 ${Math.min(150,list.length-DEXUI.shown)} 隻`;
   $("silToggle").checked=silhouetteOn();
   renderProfiles();
   if(DEXUI.focus){
@@ -1310,12 +1339,43 @@ function renderDex(){
 }
 $("silToggle").addEventListener("change",e=>{try{localStorage.setItem(SIL_KEY,e.target.checked?"1":"0");}catch(err){}});
 // 篩選、排序、搜尋
-document.querySelectorAll("#dexStatus button").forEach(b=>b.onclick=()=>{DEXUI.status=b.dataset.s;DEXUI.shown=150;
+document.querySelectorAll("#dexStatus button").forEach(b=>b.onclick=()=>{DEXUI.status=b.dataset.s;DEXUI.page=0;
   document.querySelectorAll("#dexStatus button").forEach(x=>x.setAttribute("aria-pressed",x===b));renderDex();});
 for(const [id,key] of [["dexGen","gen"],["dexType","type"],["dexStar","star"],["dexSort","sort"]])
-  $(id).addEventListener("change",e=>{DEXUI[key]=e.target.value;DEXUI.shown=150;renderDex();});
-$("dexSearch").addEventListener("input",e=>{DEXUI.q=e.target.value;DEXUI.shown=150;renderDex();});
-$("dexMore").onclick=()=>{DEXUI.shown+=150;renderDex();};
+  $(id).addEventListener("change",e=>{DEXUI[key]=e.target.value;DEXUI.page=0;renderDex();});
+$("dexSearch").addEventListener("input",e=>{DEXUI.q=e.target.value;DEXUI.page=0;renderDex();});
+/* 翻頁：上一頁／下一頁／跳頁選單／左右滑動／鍵盤左右鍵；翻完回到格子的最上面 */
+function dexGo(page,dir){
+  const before=DEXUI.page;DEXUI.page=page;renderDex();
+  if(DEXUI.page!==before){
+    $("dexScroll").scrollTo({top:Math.max(0,$("dex").offsetTop-8)});
+    if(dir)anim($("dex"),[{transform:`translateX(${dir*36}px)`,opacity:0},{transform:"none",opacity:1}],{duration:170,easing:"ease-out"});
+  }
+}
+$("pgPrev").onclick=()=>dexGo(DEXUI.page-1,-1);
+$("pgNext").onclick=()=>dexGo(DEXUI.page+1,1);
+$("pgSel").onchange=e=>dexGo(+e.target.value,+e.target.value>DEXUI.page?1:-1);
+(function(){
+  let x0=0,y0=0,t0=0;const g=$("dex");
+  g.addEventListener("touchstart",e=>{const t=e.touches[0];x0=t.clientX;y0=t.clientY;t0=Date.now();},{passive:true});
+  g.addEventListener("touchend",e=>{const t=e.changedTouches[0],dx=t.clientX-x0,dy=t.clientY-y0;
+    if(Date.now()-t0<700&&Math.abs(dx)>60&&Math.abs(dy)<Math.abs(dx)*.6) dexGo(DEXUI.page+(dx<0?1:-1),dx<0?1:-1);},{passive:true});
+  addEventListener("keydown",e=>{if(screen!=="dex"||/INPUT|SELECT|TEXTAREA/.test(document.activeElement?.tagName||""))return;
+    if(e.key==="ArrowLeft")dexGo(DEXUI.page-1,-1);else if(e.key==="ArrowRight")dexGo(DEXUI.page+1,1);else if(e.key==="Escape")closeDex();});
+})();
+/* 開關圖鑑視窗：✕ 回到打開之前的畫面；「回去抓寶可夢」直接回拍照／探索 */
+function openDex(focusId){
+  DEXUI.from=screen==="dex"?DEXUI.from:screen;DEXUI.pushed=location.hash!=="#dex";
+  if(focusId)DEXUI.focus=focusId;
+  go("dex");
+}
+function closeDex(){
+  if(screen!=="dex")return;
+  if(DEXUI.pushed){DEXUI.pushed=false;history.back();}          // 回到上一個畫面（瀏覽器的返回鍵也是同樣效果）
+  else go(home,true);
+}
+$("dexClose").onclick=closeDex;
+$("dexBack").onclick=()=>{DEXUI.pushed=false;go(home);};
 $("playerChip").onclick=()=>{$("dexManage").open=true;$("dexManage").scrollIntoView({behavior:"smooth"});};
 $("dex").addEventListener("click",e=>{const el=e.target.closest("[data-id]");if(el)openMonSheet(+el.dataset.id);});
 $("dex").addEventListener("keydown",e=>{if(e.key==="Enter"){const el=e.target.closest("[data-id]");if(el)openMonSheet(+el.dataset.id);}});
