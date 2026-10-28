@@ -354,6 +354,20 @@ html.devtest .dev-tag{display:block}
 .sheet-art{width:min(60vw,220px);aspect-ratio:1;object-fit:contain}
 .sheet h2{margin:0;font-family:var(--display);font-weight:900;font-size:1.7rem}
 .sheet-meta{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;font-size:.88rem;color:var(--muted)}
+.sheet-evo{width:100%;text-align:left;display:flex;flex-direction:column;gap:8px}
+.evo-row small{display:block;font-size:.78rem;color:var(--muted);font-weight:700;margin-bottom:3px}
+.evo-row>div{display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+.evo-row em{font-style:normal;font-size:.78rem;font-weight:800;color:var(--muted);padding:2px 8px;border:2px dashed var(--line);border-radius:999px}
+.evo-arrow{color:var(--muted);font-size:.8rem}
+.evo-chip{display:flex;flex-direction:column;align-items:center;gap:1px;width:74px;padding:5px 3px 6px;border:2px solid var(--line);border-radius:14px;background:transparent;font:inherit;color:inherit;cursor:pointer}
+.evo-chip:active{transform:scale(.96)}
+.evo-chip img,.evo-chip .sw,.evo-chip .q{width:48px;height:48px;object-fit:contain;image-rendering:pixelated}
+.evo-chip .q{display:grid;place-items:center;font-size:1.3rem;font-weight:900;color:var(--muted);font-style:normal}
+.evo-chip b{font-size:.68rem;color:var(--muted)}
+.evo-chip span{font-size:.78rem;font-weight:700;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.evo-chip.unk{opacity:.55}
+.evo-chip.seen img{filter:brightness(.55)}
+.evo-none{margin:0;font-size:.85rem;color:var(--muted)}
 .sheet-stats{width:100%;display:flex;flex-direction:column;gap:2px;text-align:left}
 .sheet-stats div{display:grid;grid-template-columns:6em 1fr;gap:8px;padding:7px 2px;border-bottom:1px solid var(--line);font-size:.9rem}
 .sheet-stats span{color:var(--muted)}
@@ -626,6 +640,7 @@ html.noscroll,html.noscroll body{overflow:hidden}
     <img id="sheetArt" class="sheet-art" alt="">
     <h2 id="sheetName"></h2>
     <div class="sheet-meta"><span id="sheetNo"></span><span class="type-pill" id="sheetType"></span><span class="stars" id="sheetStars"></span><span class="dots" id="sheetColors"></span></div>
+    <div class="sheet-evo" id="sheetEvo"></div>
     <div class="sheet-stats" id="sheetStats"></div>
     <button class="btn ghost" id="sheetBack">返回</button>
   </div>
@@ -658,14 +673,14 @@ html.noscroll,html.noscroll body{overflow:hidden}
 <canvas id="cv" width="48" height="48" hidden></canvas>
 
 <script>
-const BUILD="2026.10.29-0232";
+const BUILD="2026.10.29-0239";
 /* =========================================================
    顏色寶可夢探險
    資料都在 data/：config.json 列出要載入的資料包（packs），
    types.json 定義屬性，packs/*.json 定義寶可夢。新增寶可夢只要加資料包。
    ========================================================= */
 const DATA_BASE = "data/";
-let CFG = null, TYPES = {}, MONS = [];
+let CFG = null, TYPES = {}, MONS = [], EVO = {};
 
 /* ---------- 硬體介面（之後接寶貝球） ----------
    寶貝球只需要回報兩件事，不判斷丟得好不好：
@@ -922,6 +937,7 @@ async function loadData(){
   CFG=await get("config.json");
   try{BALLS=await get("balls.json");}catch(e){BALLS=null;}   // 寶可夢球種類（沒有也能玩）
   TYPES=await get("types.json");
+  try{EVO=await get("evolutions.json");}catch(e){EVO={};}   // 進化關係：{"2":{"from":1,"to":[3]}}（沒有這個檔案也能玩，只是詳細頁不顯示）
   for(const t of Object.values(TYPES)) if(t.affinity) t.affLabs=t.affinity.map(hexLab);
   const packs=await Promise.all(CFG.packs.map(get));
   const seen=new Map();
@@ -1533,6 +1549,7 @@ function openMonSheet(id){
   $("sheetType").textContent=T.name;$("sheetType").style.background=T.color;
   $("sheetStars").textContent=starText(m.rarity);
   $("sheetColors").innerHTML=m.colors.map(x=>`<i style="background:${x}"></i>`).join("");
+  fillEvo(id);
   const ballName=k=>BALLS?.balls.find(b=>b.key===k)?.name||k;
   $("sheetStats").innerHTML=c?`
     <div><span>抓到</span><b>${c.n} 次</b></div>
@@ -1544,6 +1561,28 @@ function openMonSheet(id){
   $("monSheet").hidden=false;
   anim($("monSheet").firstElementChild,[{transform:"translateY(40px)",opacity:0},{transform:"translateY(0)",opacity:1}],{duration:220,easing:"ease-out"});
 }
+/* 進化關係：進化前（從最初的型態一路排到上一階）、進化後（下一階，可能有好幾種）。沒見過的先藏起來，不劇透 */
+function evoChip(id){
+  const m=MONS.find(x=>x.id===id);if(!m)return "";
+  const st=dexStatus(m);
+  if(st==="unknown")return `<button type="button" class="evo-chip unk" data-evo="${id}" aria-label="還沒見過"><i class="q">？</i><b>#${pad3(id)}</b><span>？？？</span></button>`;
+  return `<button type="button" class="evo-chip ${st}" data-evo="${id}"><img src="${spriteUrl(id)}" alt="" loading="lazy" onerror="this.outerHTML='<i class=sw style=background:${m.colors[0]}></i>'"><b>#${pad3(id)}</b><span>${m.name}</span></button>`;
+}
+function fillEvo(id){
+  const e=EVO[id]||{},up=[];let p=e.from,n=0;
+  while(p&&n++<6){up.unshift(p);p=EVO[p]?.from;}
+  const down=e.to||[],box=$("sheetEvo");
+  const arrow='<span class="evo-arrow" aria-hidden="true">▶</span>';
+  box.innerHTML=!up.length&&!down.length?'<p class="evo-none">沒有進化前後的型態</p>':
+    `${up.length?`<div class="evo-row"><small>進化前</small><div>${up.map(evoChip).join(arrow)}${arrow}<em>現在</em></div></div>`:""}
+     ${down.length?`<div class="evo-row"><small>進化後</small><div><em>現在</em>${arrow}${down.map(evoChip).join("")}</div></div>`:""}`;
+}
+$("sheetEvo").addEventListener("click",e=>{
+  const b=e.target.closest("[data-evo]");if(!b)return;
+  const id=+b.dataset.evo,m=MONS.find(x=>x.id===id);
+  if(m&&dexStatus(m)!=="unknown"){sfx("tap");openMonSheet(id);}
+  else toast("還沒見過牠，遇到就會解鎖喔");
+});
 function closeMonSheet(){$("monSheet").hidden=true;sheetMon=null;}
 $("sheetClose").onclick=closeMonSheet;
 $("monSheet").addEventListener("click",e=>{if(e.target===$("monSheet"))closeMonSheet();});

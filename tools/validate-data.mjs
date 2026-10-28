@@ -60,6 +60,16 @@ try {
   for (const ver of cl.versions || []) if (!ver.version || !ver.date || !ver.title || !Array.isArray(ver.items)) errors.push(`changelog.json：版本 ${ver.version} 缺少欄位`);
 } catch (e) { errors.push("changelog.json 讀不到或格式錯誤：" + e.message); }
 
+// 進化關係：from／to 要互相對得上，編號要存在
+try {
+  const evo = read("evolutions.json");
+  for (const [k, v] of Object.entries(evo)) {
+    if (!owner.has(+k)) errors.push(`evolutions.json：#${k} 不在任何資料包裡`);
+    if (v.from != null && !(evo[v.from]?.to || []).includes(+k)) errors.push(`evolutions.json：#${k} 的 from=${v.from}，但 #${v.from} 的 to 沒有 ${k}`);
+    for (const t of v.to || []) if (evo[t]?.from !== +k) errors.push(`evolutions.json：#${k} 的 to 有 ${t}，但 #${t} 的 from 不是 ${k}`);
+  }
+} catch (e) { errors.push("evolutions.json 讀不到或格式錯誤：" + e.message); }
+
 if (errors.length) {
   console.error(errors.join("\n"));
   process.exit(1);
