@@ -156,7 +156,7 @@ python3 tools/build-packs.py 1 2 3 4 5 6 7 8 9  # 全部九代（新增的資料
 正式網址在 **Vercel**（https://colormon-nu.vercel.app/），設定在 `vercel.json`：
 - 網站根目錄是 `site/`（`outputDirectory`），不需要安裝或打包。
 - 建置指令是 `node tools/validate-data.mjs`：資料格式有錯就不會部署。
-- 網頁、`data/`、`sw.js` 都設成每次拿最新版（`Cache-Control: no-cache`）。
+- `data/` 和 `sw.js` 設成每次拿最新版（`Cache-Control: no-cache`），網頁本身 Vercel 預設就會每次確認。
 - Vercel 專案的 Root Directory 要保持空白（repo 根目錄），`vercel.json` 和資料檢查才會生效。
 
 push 到 `main` 後，Vercel 會自動部署；GitHub Actions 也會檢查資料和語法，並繼續部署到舊的 GitHub Pages。
