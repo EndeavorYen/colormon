@@ -169,6 +169,10 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 .sens button small{font-weight:400;font-size:.68rem;color:var(--muted)}
 .sens button[aria-pressed="true"]{border-color:var(--good);color:var(--good)}
 .mode-btn[aria-pressed="true"]{border-color:var(--good);color:var(--good)}
+.sheet-wrap.center{align-items:center;padding:16px}
+.modal{width:100%;max-width:380px;background:var(--bg);border-radius:22px;padding:20px 18px;display:flex;flex-direction:column;gap:12px;box-shadow:0 12px 40px rgba(0,0,0,.35)}
+.modal h2{margin:0;font-family:var(--display);font-weight:900;font-size:1.35rem}
+.modal ol{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:6px;font-size:.98rem}
 .shake-meter{height:10px;border-radius:6px;background:var(--line);overflow:hidden}
 .shake-meter i{display:block;height:100%;width:0;background:var(--good);transition:width .06s linear}
 .shake-meter.hot i{background:#ff7a3d}
@@ -428,11 +432,6 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
       </div>
       <button class="btn ghost mode-btn" id="motionBtn" aria-pressed="false">鏡頭模式：揮手甩球、打護盾</button>
       <button class="btn ghost mode-btn" id="shakeBtn" aria-pressed="false">甩手機模式：甩一下就丟球</button>
-      <div class="move-box" id="shakeWarn" hidden>
-        <b>甩之前先檢查！</b>
-        <p>① 手機握緊，最好套上手腕帶<br>② 旁邊沒有人、沒有易碎的東西<br>③ 輕輕往前一甩就會丟出去，不用用力！</p>
-        <div class="move-actions"><button class="btn sun" id="shakeOk">我檢查好了，開始甩</button><button class="btn ghost" id="shakeNo">先不要</button></div>
-      </div>
       <div class="hw" id="hw"><span class="dot"></span><span id="hwText">按「丟出寶貝球！」，或打開鏡頭模式／甩手機模式</span></div>
       <div class="shake-meter" id="shakeMeter" hidden><i id="shakeFill"></i></div>
     </div>
@@ -500,6 +499,14 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
     </details>
   </section>
 </div>
+<div class="sheet-wrap center" id="shakeWarn" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="shakeWarnTitle">
+    <h2 id="shakeWarnTitle">甩之前先檢查！</h2>
+    <ol><li>手機握緊，最好套上手腕帶</li><li>旁邊沒有人、沒有易碎的東西</li><li>輕輕往前一甩就會丟出去，不用用力！</li></ol>
+    <button class="btn sun" id="shakeOk">我檢查好了，開始甩</button>
+    <button class="btn ghost" id="shakeNo">先不要</button>
+  </div>
+</div>
 <div class="sheet-wrap" id="monSheet" hidden>
   <div class="sheet" role="dialog" aria-label="寶可夢資料">
     <button class="icon-btn sheet-close" id="sheetClose" aria-label="關閉"><svg viewBox="0 0 24 24"><path d="M18.3 5.7 16.9 4.3 12 9.2 7.1 4.3 5.7 5.7 10.6 10.6 5.7 15.5l1.4 1.4 4.9-4.9 4.9 4.9 1.4-1.4-4.9-4.9z"/></svg></button>
@@ -514,7 +521,7 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 <canvas id="cv" width="48" height="48" hidden></canvas>
 
 <script>
-const BUILD="2026.10.28-1443";
+const BUILD="2026.10.28-1454";
 /* =========================================================
    顏色寶可夢探險
    資料都在 data/：config.json 列出要載入的資料包（packs），
@@ -1594,7 +1601,8 @@ function setBallMode(on){
   if(on&&screen==="encounter") startAR(); else stopAR();
 }
 $("motionBtn").onclick=()=>{ if(!AR.on) askMotionPermission(); setBallMode(!AR.on); };
-try{AR.on=localStorage.getItem(BALL_MODE_KEY)==="1";}catch(e){}
+AR.on=true;                                            // 預設是鏡頭模式；玩家自己關掉才記住關閉
+try{const v=localStorage.getItem(BALL_MODE_KEY);if(v!==null)AR.on=v==="1";}catch(e){}
 
 /* =========================================================
    甩手機丟球：用手機的加速度感測器，往前輕輕一甩就把球丟出去
@@ -1677,7 +1685,9 @@ $("shakeBtn").onclick=async()=>{
 };
 $("shakeOk").onclick=()=>{SHAKE.ok=true;try{localStorage.setItem(SHAKE_OK_KEY,"1");}catch(e){}setShakeMode(true);};
 $("shakeNo").onclick=()=>{$("shakeWarn").hidden=true;};
-try{SHAKE.on=!AR.on&&localStorage.getItem(SHAKE_KEY)==="1";}catch(e){}
+$("shakeWarn").addEventListener("click",e=>{if(e.target===$("shakeWarn"))$("shakeWarn").hidden=true;});
+addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("shakeWarn").hidden)$("shakeWarn").hidden=true;});
+try{if(localStorage.getItem(SHAKE_KEY)==="1"){SHAKE.on=true;AR.on=false;}}catch(e){}   // 上次選的是甩手機就維持
 
 
 /* =========================================================
