@@ -269,9 +269,10 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 /* ---- 特別對戰（四、五星）：俯瞰的像素決鬥場 ---- */
 .battle{position:fixed;inset:0;z-index:25;display:flex;flex-direction:column;background:#252a36;touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;font-family:"Courier New",ui-monospace,monospace;font-weight:900;color:#1d2330}
 .battle[hidden]{display:none}
-.bt-field{position:relative;flex:1;overflow:hidden;cursor:crosshair;background:repeating-conic-gradient(#aeb6c4 0 25%,#9ea7b8 0 50%) 0 0/44px 44px}
-.bt-field::before{content:"";position:absolute;inset:8px;border:4px solid #4a5163;box-shadow:inset 0 0 0 4px #d3d9e4;pointer-events:none}
-.bt-field::after{content:"";position:absolute;left:50%;top:42%;width:160px;height:160px;margin:-80px 0 0 -80px;border:4px solid #7a8397;border-radius:50%;opacity:.45;pointer-events:none}
+.bt-field{position:relative;flex:1;overflow:hidden;cursor:crosshair;background:#9ea7b8}
+.bt-bg{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated}
+.bt-field::before{content:"";position:absolute;inset:8px;border:4px solid var(--fr,#4a5163);box-shadow:inset 0 0 0 4px rgba(255,255,255,.28);pointer-events:none;z-index:1}
+.bt-field::after{content:"";position:absolute;left:50%;top:42%;width:160px;height:160px;margin:-80px 0 0 -80px;border:4px solid rgba(255,255,255,.3);border-radius:50%;pointer-events:none}
 .bt-foe,.bt-me{position:absolute;left:0;top:0;will-change:transform}
 .bt-foe img,.bt-me img{display:block;width:100%;height:100%;image-rendering:pixelated;object-fit:contain;position:relative}
 .bt-foe .sh,.bt-me .sh{position:absolute;left:14%;right:14%;bottom:-2%;height:16%;border-radius:50%;background:rgba(30,35,50,.3)}
@@ -581,6 +582,7 @@ html.noscroll,html.noscroll body{overflow:hidden}
     <div class="dex" id="dex"></div>
 
     <details class="panel manage" id="dexManage"><summary>圖鑑管理</summary>
+      <label class="setting"><input type="checkbox" id="bgmToggle" checked><span>背景音樂（右上角的喇叭可以全部靜音）</span></label>
       <label class="setting"><input type="checkbox" id="silToggle"><span>沒抓過的寶可夢先用剪影顯示，抓到或跳出來時才揭曉</span></label>
       <h3>玩家</h3>
       <p class="note left">兄弟姊妹共用手機時，每個人有自己的圖鑑。</p>
@@ -622,6 +624,7 @@ html.noscroll,html.noscroll body{overflow:hidden}
 </div>
 <div class="battle" id="battle" hidden role="dialog" aria-label="特別對戰">
   <div class="bt-field" id="btField">
+    <canvas class="bt-bg" id="btBg"></canvas>
     <div class="bt-foe" id="btFoe"><div class="sh"></div><div class="shields" id="btShields"></div><img id="btFoeImg" alt=""></div>
     <div class="bt-me" id="btMe"><div class="sh"></div><div class="lun" id="btLun"><div class="bob"><img id="btMeImg" alt=""></div></div></div>
     <div class="bt-fx" id="btFx"></div>
@@ -647,7 +650,7 @@ html.noscroll,html.noscroll body{overflow:hidden}
 <canvas id="cv" width="48" height="48" hidden></canvas>
 
 <script>
-const BUILD="2026.10.28-2112";
+const BUILD="2026.10.28-2152";
 /* =========================================================
    顏色寶可夢探險
    資料都在 data/：config.json 列出要載入的資料包（packs），
@@ -944,6 +947,7 @@ function show(name){
   if(name==="encounter"&&AR.on) startAR(); else if(name!=="encounter") stopAR();
   if(name==="encounter"&&SHAKE.on) startShake(); else stopShake();
   document.documentElement.classList.toggle("noscroll",name==="dex");
+  bgmKick();
   if(name==="dex"){if(DEXUI.focus)focusDexOn(DEXUI.focus);renderDex();if(!DEXUI.focus)$("dexScroll").scrollTop=0;}
   if(name==="info") renderInfo();
   scrollTo(0,0);
@@ -1110,8 +1114,8 @@ async function startEncounter(pal,picked){
   setupShields(mon);
   Hardware.notifyEncounter(mon);
   if(battleEligible(mon)){                                   // 四、五星＋圖鑑有寶可夢：特別對戰（可以跳過）
-    const r=await startBattle(mon);
-    if(current!==mon||encounterId!==BT.eid)return;
+    const eid0=encounterId,r=await startBattle(mon);
+    if(current!==mon||encounterId!==eid0)return;
     if(r==="win")bubble("護盾全部打破了！現在很好抓！");
     else if(r==="skip")bubble(`牠有 ${shieldLayersLeft()} 層護盾！${AR.on?"對著鏡頭揮手":"點牠"}打破，或直接丟球`);
   }
@@ -1436,7 +1440,7 @@ function renderDex(){
       <b>#${pad3(m.id)}</b><span>${m.name}</span><small>${"★".repeat(m.rarity)}</small></div>`;
   });
   $("dex").innerHTML=cells.length?cells.join(""):`<p class="empty">${got?"沒有符合的寶可夢":"還沒有抓到寶可夢。<br>去拍張照片吧！"}</p>`;
-  $("silToggle").checked=silhouetteOn();
+  $("silToggle").checked=silhouetteOn();$("bgmToggle").checked=BGM.on;
   renderProfiles();
   if(DEXUI.focus){
     const id=DEXUI.focus;DEXUI.focus=0;
@@ -1444,6 +1448,7 @@ function renderDex(){
       el.scrollIntoView({block:"center"});el.classList.add("focus");setTimeout(()=>el.classList.remove("focus"),2400);},60);
   }
 }
+$("bgmToggle").addEventListener("change",e=>{unlockAudio();setBgm(e.target.checked);});
 $("silToggle").addEventListener("change",e=>{try{localStorage.setItem(SIL_KEY,e.target.checked?"1":"0");}catch(err){}});
 // 篩選、排序、搜尋
 document.querySelectorAll("#dexStatus button").forEach(b=>b.onclick=()=>{DEXUI.status=b.dataset.s;DEXUI.page=0;
@@ -2039,9 +2044,9 @@ $("ver").addEventListener("click",()=>{
    - 打中一次破一層護盾（一次發射最多破一層）；全破後回到丟球。屬性不算相剋，只影響招式
    - 右上角大大的紅色 ✕「跳過」：不想玩就回到原本的打護盾／直接丟球，絕不強迫
    ========================================================= */
-const BT={on:false,live:false,mon:null,me:null,eid:0,W:0,H:0,S:0,U:1,box:{x0:0,x1:0,y0:0,y1:0},mouth:{x:0,y:0},
+const BT={K:1,on:false,live:false,mon:null,me:null,eid:0,W:0,H:0,S:0,U:1,box:{x0:0,x1:0,y0:0,y1:0},mouth:{x:0,y:0},
   foe:{x:0,y:0,tx:0,ty:0,pause:0,dashUntil:0},shots:[],raf:0,last:0,lastShot:0,fx:null,done:null,msgT:0,hint:"",shotN:0,hits:0,trailAt:0,onResize:null};
-const btCfg=()=>({enabled:true,minRarity:4,delayMs:900,foeSpeed:250,foeSpeedStep:30,pauseMs:420,dashMul:2.5,dodgeChance:.6,reactMs:170,cooldownMs:300,hitSlack:8,...(CFG?.battle||{})});
+const btCfg=()=>({enabled:true,minRarity:4,delayMs:900,foeSpeed:300,foeSpeedStep:30,pauseMs:420,dashMul:2.5,dodgeChance:.6,reactMs:170,cooldownMs:300,hitSlack:8,...(CFG?.battle||{})});
 const RAD=Math.PI/180,rnd=(a,b)=>a+Math.random()*(b-a);
 /* 每種招式的特性：mk() 回傳這一發的所有粒子（o＝偏離方向的角度，sp＝速度，r＝半徑，grow＝最後放大幾倍，delay＝延遲秒數，wob＝左右擺動，home＝追蹤力，bounce＝可反彈次數，range＝最遠飛幾個畫面高）
    dodge＝敵人偵測到來襲後衝刺閃開的機率倍率（0＝來不及閃） */
@@ -2074,11 +2079,12 @@ function btPickMine(foe){
   let ids=Object.keys(dex).filter(id=>dex[id]).map(Number).filter(id=>MONS.some(m=>m.id===id));
   if(!ids.length&&TEST)ids=MONS.map(m=>m.id);                  // 測試時圖鑑空的也能對戰：隨便找一隻當我方
   const pool=ids.filter(id=>id!==foe.id),a=pool.length?pool:ids;
-  return MONS.find(m=>m.id===a[Math.floor(Math.random()*a.length)]);
+  const pick=a[Math.floor(Math.random()*a.length)];                // 先抽好一個編號，再去找（之前把隨機寫在 find 裡面，每比對一隻就重抽一次，常常找不到）
+  return MONS.find(m=>m.id===pick);
 }
 const btFx=mon=>{const T=TYPES[mon.type]||{};return {style:"orb",colors:[T.color||"#ffffff","#ffffff"],...(T.fx||{})};};
 const btStyle=st=>BT_STY[st]||BT_STY.star;
-const btFoeR=()=>BT.S*.36+btCfg().hitSlack;
+const btFoeR=()=>BT.S*.38+btCfg().hitSlack;
 function btMsg(t,hold){
   $("btMsg").textContent=t;clearTimeout(BT.msgT);
   if(hold)BT.msgT=setTimeout(()=>{if(BT.on)$("btMsg").textContent=BT.hint;},hold);
@@ -2091,14 +2097,50 @@ function btDrawShields(){
 function btLayout(){
   const r=$("btField").getBoundingClientRect();BT.W=r.width;BT.H=r.height;
   BT.U=Math.max(.7,Math.min(1.4,BT.H/760));
-  BT.S=Math.max(84,Math.min(150,BT.W*.34,BT.H*.2));
-  const me=BT.S*1.1,meTop=BT.H-me-12;
+  BT.S=Math.max(60,Math.min(100,BT.W*.25,BT.H*.14));
+  BT.K=Math.max(.62,Math.min(1,BT.S/120));                 // 招式大小跟著角色縮小
+  const me=BT.S*1.05,meTop=BT.H-me-12;
   Object.assign($("btMe").style,{width:me+"px",height:me+"px",transform:`translate(${BT.W/2-me/2}px,${meTop}px)`});
   BT.mouth={x:BT.W/2,y:meTop+me*.22};
   Object.assign($("btFoe").style,{width:BT.S+"px",height:BT.S+"px"});
   BT.box={x0:BT.S*.5+8,x1:BT.W-BT.S*.5-8,y0:BT.S*.5+60,y1:Math.max(BT.S*.5+130,meTop-BT.S*.45)};
   const f=BT.foe;f.x=Math.max(BT.box.x0,Math.min(BT.box.x1,f.x||BT.W/2));f.y=Math.max(BT.box.y0,Math.min(BT.box.y1,f.y||BT.box.y0+20));
   f.tx=Math.max(BT.box.x0,Math.min(BT.box.x1,f.tx||f.x));f.ty=Math.max(BT.box.y0,Math.min(BT.box.y1,f.ty||f.y));
+}
+/* ---- 場地背景：依「敵人」的屬性配對（types.json 的 arena），用像素點陣畫在小畫布上再放大 ---- */
+const BT_DECOR={                                                            // 每個裝飾是幾個 1×1 的像素方塊
+  dot:(c,x,y)=>c.fillRect(x,y,1,1),
+  tuft:(c,x,y)=>{c.fillRect(x,y+1,1,2);c.fillRect(x+1,y,1,3);c.fillRect(x+2,y+1,1,2);},
+  flower:(c,x,y)=>{c.fillRect(x+1,y,1,3);c.fillRect(x,y+1,3,1);},
+  rock:(c,x,y)=>{c.fillRect(x+1,y,3,1);c.fillRect(x,y+1,5,2);c.fillRect(x+1,y+3,3,1);},
+  ripple:(c,x,y)=>{c.fillRect(x,y,2,1);c.fillRect(x+3,y,2,1);c.fillRect(x+1,y+1,3,1);},
+  crystal:(c,x,y)=>{c.fillRect(x+1,y,1,1);c.fillRect(x,y+1,3,2);c.fillRect(x+1,y+3,1,2);},
+  ember:(c,x,y)=>{c.fillRect(x,y,1,1);c.fillRect(x+1,y+1,1,1);},
+  bolt:(c,x,y)=>{c.fillRect(x+2,y,1,1);c.fillRect(x+1,y+1,2,1);c.fillRect(x,y+2,3,1);c.fillRect(x+1,y+3,1,1);c.fillRect(x,y+4,1,1);},
+  bubble:(c,x,y)=>{c.fillRect(x,y,3,1);c.fillRect(x,y+2,3,1);c.fillRect(x,y+1,1,1);c.fillRect(x+2,y+1,1,1);},
+  star:(c,x,y)=>{c.fillRect(x+1,y,1,3);c.fillRect(x,y+1,3,1);},
+  cloud:(c,x,y)=>{c.fillRect(x+2,y,5,1);c.fillRect(x,y+1,9,2);c.fillRect(x+1,y+3,7,1);},
+  mushroom:(c,x,y)=>{c.fillRect(x,y,3,1);c.fillRect(x+1,y+1,1,2);},
+  tomb:(c,x,y)=>{c.fillRect(x+1,y,2,1);c.fillRect(x,y+1,4,4);},
+  rune:(c,x,y,rng)=>{for(let i=0;i<3;i++)for(let j=0;j<3;j++)if(rng()<.55||(i===1&&j===1))c.fillRect(x+i,y+j,1,1);},
+  rivet:(c,x,y)=>c.fillRect(x,y,2,2),
+  crack:(c,x,y,rng)=>{let cx=x,cy=y;for(let i=0;i<8;i++){c.fillRect(cx,cy,1,1);cx+=rng()<.5?1:0;cy+=rng()<.6?1:0;if(rng()<.25)cx-=1;}},
+  leaf:(c,x,y)=>{c.fillRect(x,y+1,2,1);c.fillRect(x+1,y,2,1);},
+  plank:(c,x,y)=>c.fillRect(x,y,14,1),
+  pad:(c,x,y)=>{c.fillRect(x+1,y,2,1);c.fillRect(x,y+1,4,2);c.fillRect(x+1,y+3,2,1);},
+};
+function btRng(seed){let a=seed>>>0;return()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296;};}
+function btPaintArena(mon){
+  const A={base:["#aeb6c4","#9ea7b8"],tile:6,decor:[],frame:"#4a5163",...(TYPES[mon.type]?.arena||{})};
+  const cv=$("btBg"),PX=4,w=Math.ceil(BT.W/PX),h=Math.ceil(BT.H/PX);
+  cv.width=w;cv.height=h;const c=cv.getContext("2d");
+  for(let ty=0;ty*A.tile<h;ty++)for(let tx=0;tx*A.tile<w;tx++){c.fillStyle=A.base[(tx+ty)&1];c.fillRect(tx*A.tile,ty*A.tile,A.tile,A.tile);}
+  const rng=btRng(mon.id*7919+13),area=w*h/(98*190);
+  for(const [kind,col,n] of A.decor){
+    const f=BT_DECOR[kind];if(!f)continue;c.fillStyle=col;
+    for(let i=0,m=Math.round(n*area);i<m;i++)f(c,Math.floor(rng()*(w-10))+2,Math.floor(rng()*(h-8))+2,rng);
+  }
+  $("btField").style.setProperty("--fr",A.frame);
 }
 function btPickTarget(){
   const f=BT.foe,b=BT.box;let tx=f.x,ty=f.y;
@@ -2173,7 +2215,7 @@ function btShoot(tap){
   }
   const specs=sty.mk(),nx=-Math.sin(ang),ny=Math.cos(ang);
   for(const s of specs){
-    const P={...s,h:ang+(s.o||0)*RAD,x:m.x+nx*(s.side||0),y:m.y+ny*(s.side||0),age:0,delay:s.delay||0,dist:0,bounce:s.bounce||0,life:s.life||5,started:false,alive:true,r:s.r*BT.U,sp:s.sp*BT.U};
+    const P={...s,h:ang+(s.o||0)*RAD,x:m.x+nx*(s.side||0),y:m.y+ny*(s.side||0),age:0,delay:s.delay||0,dist:0,bounce:s.bounce||0,life:s.life||5,started:false,alive:true,r:s.r*BT.U*BT.K,sp:s.sp*BT.U};
     P.el=btMkEl(P);P.maxDist=(s.range||99)*BT.H;shot.parts.push(P);
   }
   BT.shots.push(shot);
@@ -2222,7 +2264,7 @@ function btFinish(result){
   if(!BT.on)return;
   BT.on=false;BT.live=false;cancelAnimationFrame(BT.raf);BT.raf=0;clearTimeout(BT.msgT);
   BT.shots.forEach(s=>s.parts.forEach(P=>P.el.remove()));BT.shots=[];
-  $("battle").hidden=true;$("btFx").innerHTML="";
+  $("battle").hidden=true;$("btFx").innerHTML="";bgmKick();
   window.removeEventListener("resize",BT.onResize);
   const d=BT.done;BT.done=null;d&&d(result);
 }
@@ -2236,16 +2278,17 @@ function btImg(img,src,fallback){
 }
 async function startBattle(mon){
   const me=btPickMine(mon),eid=encounterId;
+  if(!me)return "skip";                                        // 保險：找不到我方就當作跳過
   Object.assign(BT,{on:true,live:false,mon,me,eid,lastShot:0,shotN:0,hits:0,fx:btFx(me),shots:[],last:0});
   Object.assign(BT.foe,{x:0,y:0,tx:0,ty:0,pause:0,dashUntil:0,moving:false});
   BT.hint="點螢幕發射招式！招式會朝你點的方向飛出去，敵人會閃躲";
-  $("battle").hidden=false;
+  $("battle").hidden=false;bgmKick();
   BT.onResize=()=>{if(BT.on)btLayout();};window.addEventListener("resize",BT.onResize);
   $("btFoeName").textContent=revealed?mon.name:"？？？";$("btFoeStars").textContent=starText(mon.rarity);
   $("btMeName").textContent=me.name;$("btMeType").textContent=TYPES[me.type]?.name||"";
   $("btFoe").classList.toggle("silhouette",!revealed);$("btMe").classList.remove("in");
   $("btHand").hidden=true;
-  btLayout();BT.foe.x=BT.W/2;BT.foe.y=BT.box.y0+30;BT.foe.tx=BT.foe.x;BT.foe.ty=BT.foe.y;btBlocks();btDrawShields();
+  btLayout();btPaintArena(mon);BT.foe.x=BT.W/2;BT.foe.y=BT.box.y0+30;BT.foe.tx=BT.foe.x;BT.foe.ty=BT.foe.y;btBlocks();btDrawShields();
   btMsg(`野生的${revealed?mon.name:"寶可夢"}擋住了去路！`);
   const meImg=$("btMeImg");meImg.style.transform="";
   await Promise.all([
@@ -2654,7 +2697,8 @@ async function foundPokemon(){
 let audioCtx=null;
 const MUTE_KEY="colormon-mute";
 let muted=false;try{muted=localStorage.getItem(MUTE_KEY)==="1";}catch(e){}
-function unlockAudio(){try{audioCtx??=new (window.AudioContext||window.webkitAudioContext)();if(audioCtx.state!=="running")audioCtx.resume();}catch(e){}}
+function bgmKick(){if(BGM_READY)bgmSync();}
+function unlockAudio(){try{audioCtx??=new (window.AudioContext||window.webkitAudioContext)();if(audioCtx.state!=="running")audioCtx.resume().then(bgmKick);}catch(e){}}
 addEventListener("pointerdown",unlockAudio,{passive:true});
 const GB={
   waves:{},noiseBuf:null,
@@ -2666,22 +2710,22 @@ const GB={
   },
   out(){ if(!this.master){this.master=audioCtx.createGain();this.master.gain.value=.16;this.master.connect(audioCtx.destination);} return this.master; },
   /* 一個音：頻率 f（或 [起,終] 做滑音），時長 d，佔空比 duty，音量 v */
-  tone(t,f,d,{duty=.5,v=.5,slide=null,decay=true}={}){
+  tone(t,f,d,{duty=.5,v=.5,slide=null,decay=true,out=null}={}){
     const o=audioCtx.createOscillator(),g=audioCtx.createGain();
     o.setPeriodicWave(this.wave(duty));
     o.frequency.setValueAtTime(f,t);
     if(slide) o.frequency.exponentialRampToValueAtTime(slide,t+d);
     g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.004);
     if(decay) g.gain.exponentialRampToValueAtTime(.001,t+d); else {g.gain.setValueAtTime(v,t+d-.01);g.gain.linearRampToValueAtTime(0,t+d);}
-    o.connect(g).connect(this.out());o.start(t);o.stop(t+d+.02);
+    o.connect(g).connect(out||this.out());o.start(t);o.stop(t+d+.02);
   },
-  noise(t,d,{v=.4,hp=800}={}){
+  noise(t,d,{v=.4,hp=800,out=null}={}){
     if(!this.noiseBuf){const b=audioCtx.createBuffer(1,audioCtx.sampleRate*.5,audioCtx.sampleRate),c=b.getChannelData(0);
       let lfsr=0x7fff;for(let i=0;i<c.length;i++){const bit=(lfsr^(lfsr>>1))&1;lfsr=(lfsr>>1)|(bit<<14);c[i]=(lfsr&1)?.8:-.8;} this.noiseBuf=b;}
     const s=audioCtx.createBufferSource(),f=audioCtx.createBiquadFilter(),g=audioCtx.createGain();
     s.buffer=this.noiseBuf;s.loop=true;f.type="highpass";f.frequency.value=hp;
     g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);
-    s.connect(f).connect(g).connect(this.out());s.start(t);s.stop(t+d+.02);
+    s.connect(f).connect(g).connect(out||this.out());s.start(t);s.stop(t+d+.02);
   },
   /* 旋律："E5:1 G5:1 -:1 C6:2"（音名:拍數，- 是休止） */
   seq(t,str,beat,opt){
@@ -2745,15 +2789,110 @@ const SFX={
 function sfx(name,arg){
   if(muted||!audioCtx||audioCtx.state!=="running")return;
   try{ SFX[name]?.(audioCtx.currentTime+.01,arg); }catch(e){}
+  if(name==="caught"||name==="btWin"||name==="found")bgmDuck(name==="found"?1.3:2.2);
 }
 function setMuted(m){
   muted=m;try{localStorage.setItem(MUTE_KEY,m?"1":"0");}catch(e){}
+  bgmKick();
   $("muteBtn").setAttribute("aria-pressed",m);$("muteBtn").setAttribute("aria-label",m?"開啟音效":"關閉音效");
   $("muteIcon").setAttribute("d",m?"M3 9v6h4l5 5V4L7 9H3zm13.6 3 2.7-2.7-1.4-1.4L15.2 10.6 12.5 7.9l-1.4 1.4 2.7 2.7-2.7 2.7 1.4 1.4 2.7-2.7 2.7 2.7 1.4-1.4z"
                                   :"M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z");
 }
 $("muteBtn").onclick=()=>{unlockAudio();setMuted(!muted);if(!muted)setTimeout(()=>sfx("tap"),30);};
 setMuted(muted);
+
+/* =========================================================
+   背景音樂（BGM）：Game Boy 風格的 8-bit 曲子，用 WebAudio 即時演奏（不用下載音檔）
+   - home：首頁、探索、圖鑑（輕快的冒險曲，C 大調）；wild：遇到寶可夢（緊張又有點俏皮，A 小調）
+     battle：特別對戰（快節奏，E 小調）；battle5：五星對戰（更快）
+   - 每首曲子由 旋律＋琶音＋貝斯＋鼓 四個聲部組成；和弦用名字寫（C、Am、G7…），旋律用「音名:長度」（長度單位是 16 分音符）
+   - 右上角的喇叭鈕會連 BGM 一起靜音；「圖鑑管理」裡有單獨關閉背景音樂的開關
+   ========================================================= */
+const BGM_KEY="colormon-bgm";
+const BGM={on:true,id:"",timer:0,nextT:0,step:0,trk:null,gain:null,cache:{}};
+try{BGM.on=localStorage.getItem(BGM_KEY)!=="0";}catch(e){}
+const BGM_TRK={
+  home:{bpm:108,
+    chords:"C G Am F C G F G  F G Em Am F G C G",
+    lead:["E5:2 G5:2 C6:4 B5:2 G5:2 E5:4","D5:2 G5:2 B5:4 A5:2 G5:2 D5:4","C5:2 E5:2 A5:4 G5:2 E5:2 C5:4","F5:2 A5:2 C6:4 A5:2 F5:2 A5:4",
+          "E5:2 G5:2 C6:2 D6:2 E6:4 C6:4","D6:2 B5:2 G5:4 B5:2 D6:2 G6:4","A5:2 C6:2 F6:4 E6:2 C6:2 A5:4","G5:4 B5:4 D6:4 -:4",
+          "A5:4 C6:2 A5:2 F5:4 A5:4","B5:4 D6:2 B5:2 G5:4 B5:4","G5:2 B5:2 E6:4 D6:2 B5:2 G5:4","A5:2 C6:2 E6:4 C6:2 A5:2 E5:4",
+          "F5:2 A5:2 C6:2 F6:2 E6:2 C6:2 A5:4","D6:2 G6:2 F6:2 D6:2 B5:2 D6:2 G5:4","E6:4 G6:4 E6:2 C6:2 G5:4","D6:2 B5:2 G5:2 B5:2 D6:8"],
+    leadSound:{duty:.25,v:.2},arp:{pat:[0,1,2,3,2,1,2,1],len:2,gate:.7,duty:.125,v:.07},
+    bass:[[0,0,4],[4,2,4],[8,0,4],[12,2,2]],bassOct:2,drums:{k:[0,8],s:[],h:[2,6,10,14]}},
+  wild:{bpm:136,
+    chords:"Am F G E Am F Dm E",
+    lead:["A5:2 -:1 A5:1 C6:2 B5:2 A5:2 E5:2 A5:4","F5:2 -:1 F5:1 A5:2 G5:2 F5:2 C5:2 F5:4","G5:2 -:1 G5:1 B5:2 A5:2 G5:2 D5:2 G5:4","E5:2 G#5:2 B5:4 G#5:2 E5:2 B4:4",
+          "C6:2 B5:2 A5:2 B5:2 C6:4 E6:4","A5:2 G5:2 F5:2 G5:2 A5:4 C6:4","D6:2 C6:2 A5:2 C6:2 D6:4 F6:4","E6:4 D6:2 B5:2 G#5:4 -:4"],
+    leadSound:{duty:.25,v:.2},arp:{pat:[0,2,1,2,0,2,1,3],len:1,gate:.55,duty:.125,v:.06},
+    bass:[[0,0,2],[2,0,2],[4,0,2],[6,0,2],[8,0,2],[10,0,2],[12,0,2],[14,2,2]],bassOct:2,bassJump:true,drums:{k:[0,8,10],s:[4,12],h:[0,2,4,6,8,10,12,14]}},
+  battle:{bpm:150,
+    chords:"Em C G D Em C D B7  Am Em F C Am Em F B7",
+    lead:["E5:1 G5:1 B5:1 G5:1 E6:2 B5:2 G5:2 E5:2 G5:2 B5:2","C5:1 E5:1 G5:1 E5:1 C6:2 G5:2 E5:2 G5:2 C6:2 E6:2","B5:1 D6:1 G6:1 D6:1 B5:2 G5:2 D5:2 G5:2 B5:2 D6:2","A5:1 D6:1 F#6:1 D6:1 A5:2 F#5:2 D5:2 F#5:2 A5:2 D6:2",
+          "G6:2 F#6:2 E6:4 B5:2 E6:2 G6:4","E6:2 D6:2 C6:4 G5:2 C6:2 E6:4","F#6:2 E6:2 D6:4 A5:2 D6:2 F#6:4","D#6:2 F#6:2 B6:4 F#6:2 D#6:2 B5:4",
+          "A5:1 C6:1 E6:1 C6:1 A5:2 E5:2 A5:2 C6:2 E6:4","G5:1 B5:1 E6:1 B5:1 G5:2 E5:2 G5:2 B5:2 E6:4","A5:1 C6:1 F6:1 C6:1 A5:2 F5:2 A5:2 C6:2 F6:4","G5:1 C6:1 E6:1 C6:1 G5:2 E5:2 G5:2 C6:2 G6:4",
+          "E6:2 E6:1 -:1 D6:2 C6:2 E6:2 A5:2 C6:4","B5:2 B5:1 -:1 A5:2 G5:2 B5:2 E5:2 G5:4","C6:2 C6:1 -:1 B5:2 A5:2 C6:2 F5:2 A5:4","F#6:2 D#6:2 B5:2 D#6:2 F#6:4 A6:2 F#6:2"],
+    leadSound:{duty:.25,v:.19},arp:{pat:[0,2,1,2],len:1,gate:.5,duty:.125,v:.06},
+    bass:[[0,0,2],[2,0,2],[4,0,2],[6,0,2],[8,0,2],[10,0,2],[12,0,2],[14,2,2]],bassOct:2,bassJump:true,drums:{k:[0,3,8,10],s:[4,12],h:[0,2,4,6,8,10,12,14]}},
+};
+BGM_TRK.battle5={...BGM_TRK.battle,bpm:164};
+const BGM_SEMI={C:0,D:2,E:4,F:5,G:7,A:9,B:11};
+function bgmChord(name,oct){                                                // "Am"、"B7"、"F#m" → [根音,三音,五音,高八度(,七音)] 的頻率
+  const m=/^([A-G])([#b]?)(m?)(7?)$/.exec(name);if(!m)return [];
+  const root=12*(oct+1)+BGM_SEMI[m[1]]+(m[2]==="#"?1:m[2]==="b"?-1:0),iv=[0,m[3]?3:4,7,12];if(m[4])iv.push(10);
+  return iv.map(i=>440*Math.pow(2,(root+i-69)/12));
+}
+function bgmBuild(id){
+  if(BGM.cache[id])return BGM.cache[id];
+  const T=BGM_TRK[id],ch=T.chords.split(/\s+/),map=[],add=(s,e)=>{(map[s]??=[]).push(e);};
+  let len=0;
+  T.lead.forEach((bar,b)=>{let s=b*16;for(const tok of bar.trim().split(/\s+/)){const [n,l]=tok.split(":"),d=+l||1;if(n!=="-")add(s,{f:noteHz(n),d,...T.leadSound});s+=d;}if(s!==(b+1)*16)throw new Error(`BGM ${id} 第 ${b+1} 小節旋律不是 16 拍（${s-b*16}）`);len=(b+1)*16;});
+  if(ch.length!==len/16)throw new Error(`BGM ${id} 和弦數 ${ch.length} 跟小節數 ${len/16} 不一樣`);
+  ch.forEach((name,b)=>{
+    const tones=bgmChord(name,4),low=bgmChord(name,T.bassOct),A=T.arp;
+    for(let i=0;i<16;i+=A.len)add(b*16+i,{f:tones[A.pat[(i/A.len)%A.pat.length]%tones.length],d:A.len*A.gate,duty:A.duty,v:A.v});
+    T.bass.forEach(([st,k,d],j)=>add(b*16+st,{f:low[k]*(T.bassJump&&j%2?2:1),d,duty:.5,v:.22,bass:1}));
+    const D=T.drums;D.k.forEach(st=>add(b*16+st,{drum:"k"}));D.s.forEach(st=>add(b*16+st,{drum:"s"}));D.h.forEach(st=>add(b*16+st,{drum:"h"}));
+  });
+  return BGM.cache[id]={len,bpm:T.bpm,map};
+}
+function bgmStepAt(trk,i,t,out){
+  const sd=60/trk.bpm/4;
+  for(const e of trk.map[i]||[]){
+    if(e.drum==="k"){GB.tone(t,170,.1,{duty:.5,v:.26,slide:45,out});}
+    else if(e.drum==="s"){GB.noise(t,.09,{v:.15,hp:1800,out});}
+    else if(e.drum==="h"){GB.noise(t,.03,{v:.05,hp:6500,out});}
+    else GB.tone(t,e.f,e.d*sd,{duty:e.duty,v:e.v,out,decay:!e.bass});
+  }
+}
+function bgmWant(){
+  if(BT.on)return current&&current.rarity>=5?"battle5":"battle";
+  return screen==="encounter"?"wild":"home";
+}
+function bgmStop(){clearInterval(BGM.timer);BGM.timer=0;BGM.id="";}
+function bgmSync(){
+  const ok=BGM.on&&!muted&&audioCtx&&audioCtx.state==="running"&&!document.hidden;
+  if(!ok){if(BGM.id)bgmStop();return;}
+  const want=bgmWant();if(BGM.id===want&&BGM.timer)return;
+  bgmStop();BGM.id=want;BGM.trk=bgmBuild(want);BGM.step=0;
+  if(!BGM.gain){BGM.gain=audioCtx.createGain();BGM.gain.connect(GB.out());}
+  const t=audioCtx.currentTime;BGM.gain.gain.cancelScheduledValues(t);BGM.gain.gain.setValueAtTime(0,t);BGM.gain.gain.linearRampToValueAtTime(.5,t+.5);   // 淡入
+  BGM.nextT=t+.08;
+  BGM.timer=setInterval(()=>{
+    if(!audioCtx||!BGM.trk)return;
+    const sd=60/BGM.trk.bpm/4;
+    while(BGM.nextT<audioCtx.currentTime+.3){bgmStepAt(BGM.trk,BGM.step%BGM.trk.len,BGM.nextT,BGM.gain);BGM.nextT+=sd;BGM.step++;}
+  },90);
+}
+function bgmDuck(sec){                                                       // 抓到、對戰勝利的短曲播放時，BGM 先小聲一下
+  if(!BGM.gain||!audioCtx)return;const t=audioCtx.currentTime;
+  BGM.gain.gain.cancelScheduledValues(t);BGM.gain.gain.setTargetAtTime(.08,t,.05);BGM.gain.gain.setTargetAtTime(.5,t+sec,.35);
+}
+function setBgm(on){BGM.on=on;try{localStorage.setItem(BGM_KEY,on?"1":"0");}catch(e){}bgmSync();}
+document.addEventListener("visibilitychange",bgmSync);
+addEventListener("pointerdown",()=>setTimeout(bgmSync,60),{passive:true});     // 第一次點螢幕解鎖聲音後開始放
+var BGM_READY=true;
+
 
 /* =========================================================
    搬家：遊戲換到新網址（config.home.url）。圖鑑存在瀏覽器裡、綁定網址，所以要幫忙帶過去：
