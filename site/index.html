@@ -200,7 +200,12 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 .rare-flash{position:absolute;inset:0;background:#fff;opacity:0;z-index:7;pointer-events:none}
 /* swipe ball */
 .hand.master{filter:drop-shadow(0 0 8px #c08aff) drop-shadow(0 0 4px #fff)}
-.hand.swipe{box-shadow:0 0 0 6px rgba(255,213,74,.35);border-radius:50%}
+.hand.swipe{border-radius:50%}
+.hand .ring{display:none;position:absolute;left:-30%;top:-30%;width:160%;height:160%;pointer-events:none;overflow:visible}
+.hand.swipe .ring{display:block}
+.hand .ring path{fill:none;stroke:rgba(255,255,255,.5);stroke-width:5;stroke-linecap:round;transition:stroke .12s}
+.hand .ring path.on{stroke:#ffc21a;stroke-width:8;filter:drop-shadow(0 0 3px rgba(255,194,26,.9))}
+.hand.touched .ring path{stroke:#4CC27E}
 .hand.touched{animation:none;transform:scale(1.2);box-shadow:0 0 0 10px rgba(76,194,126,.6);border-radius:50%}
 @media (prefers-reduced-motion:reduce){.shields i,.scene.gold::after,.scene.legend::after{animation:none}}
 
@@ -521,7 +526,7 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 <canvas id="cv" width="48" height="48" hidden></canvas>
 
 <script>
-const BUILD="2026.10.28-1454";
+const BUILD="2026.10.28-1528";
 /* =========================================================
    顏色寶可夢探險
    資料都在 data/：config.json 列出要載入的資料包（packs），
@@ -1803,8 +1808,42 @@ function sceneToVideo(px,py){
   const k=Math.max(s.width/vw,s.height/vh),dw=vw*k,dh=vh*k;
   return {x:(px+(dw-s.width)/2)/dw,y:(py+(dh-s.height)/2)/dh};
 }
-const SWIPE={hist:[],touchT:0,cool:0};
-function swipeConfig(){return {touchRadius:.13,minTouch:6,riseMin:.09,windowMs:600,minHit:10,hitRadius:.2,...(CFG?.swipe||{})};}
+const SWIPE={hist:[],touchT:0,cool:0,seg:[],ringSince:0,lockUntil:0,lastT:0};
+function resetSwipe(){Object.assign(SWIPE,{hist:[],touchT:0,cool:0,seg:[],ringSince:0,lockUntil:0,lastT:0});$("hand").classList.remove("touched");drawRing(0);}
+function swipeConfig(){return {ring:true,ringSegs:8,ringNeed:6,segMin:2,litMs:450,holdMs:200,ringScale:1.05,segHalf:.7,lockMs:500,upRatio:.8,
+  touchRadius:.13,minTouch:6,riseMin:.09,windowMs:600,minHit:10,hitRadius:.2,...(CFG?.swipe||{})};}
+/* 球周圍的分段圓環：每一段亮起代表那裡最近有動靜；亮夠多段、停留夠久才算「手放在球上」 */
+let RING=null;
+function buildRing(n){
+  const NS="http://www.w3.org/2000/svg",svg=document.createElementNS(NS,"svg");svg.setAttribute("viewBox","-50 -50 100 100");svg.setAttribute("class","ring");svg.setAttribute("aria-hidden","true");
+  const gap=Math.PI/36,paths=[];
+  for(let i=0;i<n;i++){
+    const a0=-Math.PI/2+i*2*Math.PI/n+gap,a1=-Math.PI/2+(i+1)*2*Math.PI/n-gap,r=45,p=document.createElementNS(NS,"path");
+    p.setAttribute("d",`M${r*Math.cos(a0)} ${r*Math.sin(a0)}A${r} ${r} 0 0 1 ${r*Math.cos(a1)} ${r*Math.sin(a1)}`);svg.appendChild(p);paths.push(p);
+  }
+  $("hand").appendChild(svg);return {svg,paths,n};
+}
+function drawRing(lit,flags){
+  const hand=$("hand");
+  if(!RING||RING.n!==swipeConfig().ringSegs){if(RING)RING.svg.remove();RING=buildRing(swipeConfig().ringSegs);}
+  RING.paths.forEach((p,i)=>p.classList.toggle("on",!!(flags&&flags[i])));
+  hand.classList.toggle("lit",lit>0);
+}
+function ringState(t,M,c){
+  // 每一段是球邊緣的一小塊；亮的條件＝這一小塊在 litMs 之內有動靜
+  const sRect=$("scene").getBoundingClientRect(),h=$("hand").getBoundingClientRect();
+  const v=$("arVideo"),vw=v.videoWidth||640,vh=v.videoHeight||480,k=Math.max(sRect.width/vw,sRect.height/vh),dw=vw*k,dh=vh*k;
+  const bx=h.left-sRect.left+h.width/2,by=h.top-sRect.top+h.height/2,R=h.width/2,rr=R*c.ringScale,hb=R*c.segHalf;
+  let lit=0,any=false;const flags=[];
+  for(let i=0;i<c.ringSegs;i++){
+    const ang=-Math.PI/2+(i+.5)*2*Math.PI/c.ringSegs,sc=sceneToVideo(bx+rr*Math.cos(ang),by+rr*Math.sin(ang));
+    const r=M.region(sc.x,sc.y,hb/dw,hb/dh);
+    if(r.n>=2)any=true;
+    if(r.n>=c.segMin)SWIPE.seg[i]=t;
+    const on=t-(SWIPE.seg[i]??-1e9)<=c.litMs;flags.push(on);if(on)lit++;
+  }
+  return {lit,any,flags,dw,dh,bx,by};
+}
 /* 每一格畫面：揮手甩球（碰到畫面下方的寶貝球、往上甩）和打護盾 */
 function motionActions(t,M){
   if(screen!=="encounter")return false;
@@ -1814,24 +1853,35 @@ function motionActions(t,M){
     const m=$("mon").getBoundingClientRect(),mc=sceneToVideo(m.left-sRect.left+m.width/2,m.top-sRect.top+m.height/2);
     const r=M.region(mc.x,mc.y,c.hitRadius,c.hitRadius*1.2);
     if(r.n>=3)active=true;
-    if(r.n>=c.minHit) hitShield();
+    if(r.n>=c.minHit){hitShield();if(!SWIPE.ringSince)SWIPE.lockUntil=t+c.lockMs;}       // 正在打護盾：先不開始判斷「手放在球上」
   }
-  if(!arArmed()){SWIPE.hist=[];$("hand").classList.remove("touched");return active;}
-  // 甩球：手碰到寶貝球，接著往上移動
+  if(!arArmed()){SWIPE.hist=[];SWIPE.ringSince=0;$("hand").classList.remove("touched");drawRing(0);return active;}
   const h=$("hand").getBoundingClientRect(),hc=sceneToVideo(h.left-sRect.left+h.width/2,h.top-sRect.top+h.height/2);
-  const touch=M.region(hc.x,hc.y,c.touchRadius,c.touchRadius*1.3);
-  if(touch.n>=2)active=true;
-  if(touch.n>=c.minTouch){SWIPE.touchT=t;$("hand").classList.add("touched");$("arChip").textContent="碰到了！往上甩！";}
+  let grabbed=false,geo=null;
+  if(c.ring){
+    // 甩球：球周圍亮起夠多段、停留夠久（才算手放在球上），接著往上移動
+    const st=ringState(t,M,c);geo=st;if(st.any||st.lit)active=true;
+    drawRing(st.lit,st.flags);
+    if(st.lit>=c.ringNeed&&(t>=SWIPE.lockUntil||SWIPE.ringSince)){SWIPE.ringSince=SWIPE.ringSince||t;grabbed=t-SWIPE.ringSince>=c.holdMs;}
+    else SWIPE.ringSince=0;
+    if(grabbed)SWIPE.touchT=t;
+  }else{
+    const touch=M.region(hc.x,hc.y,c.touchRadius,c.touchRadius*1.3);
+    if(touch.n>=2)active=true;
+    grabbed=touch.n>=c.minTouch;if(grabbed)SWIPE.touchT=t;
+  }
+  if(grabbed){$("hand").classList.add("touched");$("arChip").textContent="抓住了！往上甩！";}
   else if(t-SWIPE.touchT>c.windowMs)$("hand").classList.remove("touched");
   if(t-SWIPE.touchT<=c.windowMs){
     const area=M.region(hc.x,hc.y-c.touchRadius*2,c.touchRadius*2,c.touchRadius*3.2);   // 球上方一大塊
-    if(area.n>=c.minTouch) SWIPE.hist.push({y:area.y,t});
+    if(area.n>=c.minTouch) SWIPE.hist.push({x:area.x,y:area.y,t});
     SWIPE.hist=SWIPE.hist.filter(p=>t-p.t<=c.windowMs);
     if(SWIPE.hist.length>=2&&t>=SWIPE.cool){
       const a=SWIPE.hist[0],z=SWIPE.hist[SWIPE.hist.length-1],rise=a.y-z.y;
-      if(rise>=c.riseMin){
+      const vOk=!c.ring||!geo||rise*geo.dh>=c.upRatio*Math.abs(z.x-a.x)*geo.dw;       // 要是往上甩，不是橫著掃
+      if(rise>=c.riseMin&&vOk){
         const speed=Math.min(2,Math.max(.7,rise/((z.t-a.t)/1000||.1)/1.2));
-        SWIPE.hist=[];SWIPE.cool=t+1200;$("hand").classList.remove("touched");
+        SWIPE.hist=[];SWIPE.cool=t+1200;SWIPE.ringSince=0;SWIPE.seg=[];$("hand").classList.remove("touched");drawRing(0);
         sfx("throw");window.onBallThrown(speed);
         setTimeout(()=>window.onBallLanded(),T_(650));
       }
