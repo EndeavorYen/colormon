@@ -176,5 +176,14 @@
     "windowMs": 600,
     "minHit": 10,
     "hitRadius": 0.2
+  },
+  "shake": {
+    "threshold": 13,
+    "peak": 32,
+    "minSpanMs": 40,
+    "windowMs": 260,
+    "cooldownMs": 1500,
+    "armDelayMs": 700,
+    "gentleAbove": 48
   }
 }
