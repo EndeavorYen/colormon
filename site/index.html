@@ -526,7 +526,7 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 <canvas id="cv" width="48" height="48" hidden></canvas>
 
 <script>
-const BUILD="2026.10.28-1528";
+const BUILD="2026.10.28-1541";
 /* =========================================================
    顏色寶可夢探險
    資料都在 data/：config.json 列出要載入的資料包（packs），
@@ -835,13 +835,24 @@ $("toDexBtn").onclick=()=>go("dex");
 $("fledBtn").onclick=()=>go(home);
 
 /* ---------- 1 拍照 ---------- */
+/* 開相機：被擋下（NotReadable / Abort，常見於剛關掉另一個相機畫面）就換寬鬆的條件、等一下再試；沒給權限就不用試了 */
+async function openCamera(width){
+  const tries=[{video:{facingMode:"environment",width:{ideal:width}},audio:false},{video:{facingMode:"environment"},audio:false},{video:true,audio:false}];
+  let last;
+  for(let i=0;i<tries.length;i++){
+    try{return await navigator.mediaDevices.getUserMedia(tries[i]);}
+    catch(e){last=e;if(e.name==="NotAllowedError"||e.name==="SecurityError"||e.name==="NotFoundError")break;await new Promise(r=>setTimeout(r,400));}
+  }
+  throw last;
+}
+const camErrMsg=e=>e?.name==="NotAllowedError"||e?.name==="SecurityError"?"相機沒有權限：請到瀏覽器的網站設定允許相機，再重新整理":`相機暫時打不開（${e?.name||"錯誤"}），可能被別的程式用著；點一下鏡頭模式再試`;
 let stream=null,camWanted=false,liveTimer=0;
 async function startCamera(){
   if(!navigator.mediaDevices?.getUserMedia||!isSecureContext){
     $("camMsg").textContent="這裡不能直接開相機（需要 https）。請用下面的按鈕拍照。";$("liveBtn").hidden=true;return;
   }
   try{
-    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment",width:{ideal:1280}},audio:false});
+    stream=await openCamera(1280);
     const v=$("video");v.srcObject=stream;v.hidden=false;await v.play();
     camWanted=true;
     $("camOff").hidden=true;$("reticle").hidden=false;$("liveChip").hidden=false;$("shutter").hidden=false;
@@ -1544,22 +1555,34 @@ const BALL_MODE_KEY="colormon-ball-mode";
 function arConfig(){return CFG?.ball||{};}
 function arArmed(){return screen==="encounter"&&current&&!busy&&!$("throwBtn").disabled;}
 async function startAR(){
-  if(AR.stream) return;
-  if(!navigator.mediaDevices?.getUserMedia||!isSecureContext){toast("這裡不能開相機（需要 https）");setBallMode(false);return;}
-  if(streamLive(EX.stream)){AR.stream=EX.stream;AR.shared=true;}       // 從探索模式來：共用同一個相機
-  else try{
-    AR.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment",width:{ideal:640}},audio:false});AR.shared=false;
-  }catch(e){toast("相機打不開，請確認有給相機權限");setBallMode(false);return;}
+  if(AR.stream||AR.starting) return;
+  if(!navigator.mediaDevices?.getUserMedia||!isSecureContext){toast("這裡不能開相機（需要 https）");AR.failed=true;updateMotionBtn();return;}
+  AR.starting=true;
+  try{
+    if(streamLive(EX.stream)){AR.stream=EX.stream;AR.shared=true;}       // 從探索模式來：借用同一個相機
+    else{AR.stream=await openCamera(640);AR.shared=false;}
+  }catch(e){
+    AR.starting=false;AR.stream=null;AR.failed=true;updateMotionBtn();
+    toast(camErrMsg(e));return;                                           // 這次打不開不改掉你選的模式；點一下可以重試
+  }
+  AR.starting=false;AR.failed=false;
+  if(!AR.on||screen!=="encounter"){stopAR();return;}                      // 等相機的時候已經離開或關掉了
   const v=$("arVideo");v.srcObject=AR.stream;v.hidden=false;try{await v.play();}catch(e){}
   $("scene").classList.add("ar");$("arChip").hidden=false;
   AR.motion=new LiteMotion(AR.W,AR.H);AR.lastActive=performance.now();
   addEventListener("devicemotion",onPhoneMotion);
+  updateMotionBtn();
   clearTimeout(AR.raf);AR.raf=setTimeout(arLoop,100);
 }
 function stopAR(){
   clearTimeout(AR.raf);AR.raf=0;
   removeEventListener("devicemotion",onPhoneMotion);
-  if(AR.stream){if(!AR.shared)AR.stream.getTracks().forEach(t=>t.stop());AR.stream=null;}
+  if(AR.stream){
+    if(!AR.shared)AR.stream.getTracks().forEach(t=>t.stop());
+    else if(!EX.stream||EX.stream!==AR.stream||screen==="camera")AR.stream.getTracks().forEach(t=>t.stop());   // 借來的相機，原主人已經不管了就收掉
+    AR.stream=null;
+    if(EX.stream&&screen!=="explore"){clearTimeout(EX.closeTimer);EX.closeTimer=setTimeout(()=>{if(screen!=="explore"&&!AR.stream)stopExploreCamera();},CFG?.camera?.exploreKeepMs??15000);}
+  }
   $("arVideo").hidden=true;$("scene").classList.remove("ar");$("arChip").hidden=true;$("ballMark").hidden=true;
   AR.watcher=null;AR.longWatcher=null;AR.throwActive=false;
 }
@@ -1598,14 +1621,23 @@ AR.method="swipe";
 function setBallMode(on){
   AR.on=on;
   try{localStorage.setItem(BALL_MODE_KEY,on?"1":"0");}catch(e){}
-  $("motionBtn").setAttribute("aria-pressed",on);
-  $("motionBtn").textContent=on?"關閉鏡頭模式":"鏡頭模式：揮手甩球、打護盾";
+  if(!on)AR.failed=false;
+  updateMotionBtn();
   $("hand").classList.toggle("swipe",on);
   if(on&&SHAKE.on) setShakeMode(false);                  // 鏡頭模式和甩手機模式只開一個
   refreshHwText();
   if(on&&screen==="encounter") startAR(); else stopAR();
 }
-$("motionBtn").onclick=()=>{ if(!AR.on) askMotionPermission(); setBallMode(!AR.on); };
+function updateMotionBtn(){
+  const b=$("motionBtn");
+  b.textContent=!AR.on?"鏡頭模式：揮手甩球、打護盾":AR.failed?"鏡頭模式：沒有畫面，點一下重試":"關閉鏡頭模式";
+  b.setAttribute("aria-pressed",AR.on&&!AR.failed);
+}
+$("motionBtn").onclick=()=>{
+  if(AR.on&&AR.failed){AR.failed=false;updateMotionBtn();if(screen==="encounter")startAR();return;}    // 重試
+  if(!AR.on) askMotionPermission();
+  setBallMode(!AR.on);
+};
 AR.on=true;                                            // 預設是鏡頭模式；玩家自己關掉才記住關閉
 try{const v=localStorage.getItem(BALL_MODE_KEY);if(v!==null)AR.on=v==="1";}catch(e){}
 
@@ -1969,9 +2001,9 @@ async function startExploreCamera(){
     v.hidden=false;if(v.paused){try{await v.play();}catch(e){}}
   }else if(navigator.mediaDevices?.getUserMedia&&isSecureContext){
     try{
-      EX.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment",width:{ideal:1280}},audio:false});
+      EX.stream=await openCamera(1280);
       const v=$("exVideo");v.srcObject=EX.stream;v.hidden=false;try{await v.play();}catch(e){}
-    }catch(e){$("exNote").textContent="相機打不開，還是可以玩，找到後用範例顏色。";}
+    }catch(e){$("exNote").textContent=`相機打不開（${e?.name||"錯誤"}），還是可以玩，找到後用範例顏色。`;}
   }
   $("exReticle").hidden=false;$("exChip").hidden=false;
   addEventListener("deviceorientation",onOrient);
@@ -1980,7 +2012,7 @@ async function startExploreCamera(){
 function stopExploreCamera(){
   clearTimeout(EX.raf);clearTimeout(EX.closeTimer);
   removeEventListener("deviceorientation",onOrient);
-  if(AR.stream&&AR.stream===EX.stream){EX.stream=null;return;}   // 鏡頭模式正在共用，交給它關
+  if(AR.stream&&AR.stream===EX.stream)return;   // 鏡頭模式正在借用：先不關，離開遭遇畫面時會再檢查
   if(EX.stream){EX.stream.getTracks().forEach(t=>t.stop());EX.stream=null;}
   $("exVideo").hidden=true;
 }
