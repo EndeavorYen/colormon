@@ -21,6 +21,8 @@ jobs:
           node-version: 22
       - name: Validate Pokémon data packs
         run: node tools/validate-data.mjs
+      - name: Evolution tree tests
+        run: node tools/test-evolutions.mjs
       - name: CHANGELOG.md matches changelog.json
         run: |
           python3 tools/build-changelog.py

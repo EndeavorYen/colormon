@@ -135,7 +135,8 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 
 .info{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .info .name{font-family:var(--display);font-weight:900;font-size:1.5rem;line-height:1.1;margin:0}
-.type-pill{background:var(--type);color:#fff;padding:2px 10px;border-radius:999px;font-weight:700;font-size:.82rem}
+.type-pills{display:inline-flex;gap:4px;align-items:center}
+.type-pill{font-style:normal;background:var(--type);color:#fff;padding:2px 10px;border-radius:999px;font-weight:700;font-size:.82rem}
 .stars{color:#E8A100;letter-spacing:0;font-size:.92rem;white-space:nowrap}
 .orbs{margin-left:auto;display:flex;gap:6px}
 .orbs b{width:14px;height:14px;border-radius:50%;background:var(--sun);border:2px solid var(--ink)}
@@ -367,7 +368,6 @@ html.devtest .dev-tag{display:block}
 .sheet-meta{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;font-size:.88rem;color:var(--muted)}
 .sheet-evo{width:100%;text-align:left;display:flex;flex-direction:column;gap:8px}
 .evo-row small{display:block;font-size:.78rem;color:var(--muted);font-weight:700;margin-bottom:3px}
-.evo-row>div{display:flex;align-items:center;flex-wrap:wrap;gap:6px}
 .evo-arrow{color:var(--muted);font-size:.8rem}
 .evo-chip{display:flex;flex-direction:column;align-items:center;gap:1px;width:74px;padding:5px 3px 6px;border:2px solid var(--line);border-radius:14px;background:transparent;font:inherit;color:inherit;cursor:pointer}
 .evo-chip:active{transform:scale(.96)}
@@ -375,6 +375,14 @@ html.devtest .dev-tag{display:block}
 .evo-chip .q{display:grid;place-items:center;font-size:1.3rem;font-weight:900;color:var(--muted);font-style:normal}
 .evo-chip b{font-size:.68rem;color:var(--muted)}
 .evo-chip span{font-size:.78rem;font-weight:700;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.evo-node{display:flex;align-items:center;gap:6px}
+.evo-node.col{flex-direction:column;align-items:flex-start;gap:4px}
+.evo-kids{display:flex;flex-direction:column;gap:6px}
+.evo-kids.many{flex-direction:row;flex-wrap:wrap}
+.evo-arrow.down{padding-left:26px}
+.evo-done{color:#b7860b;font-size:.82rem;margin-left:6px}
+.sheet-evo.complete{padding:8px;border-radius:16px;background:linear-gradient(180deg,rgba(255,214,64,.2),rgba(255,214,64,.06));box-shadow:0 0 0 2px #f5b800,0 0 14px rgba(245,184,0,.45)}
+.sheet-evo.complete .evo-chip{border-color:#f5b800}
 .evo-chip.unk{opacity:.55}
 .evo-chip.cur{border-color:var(--c);background:color-mix(in srgb,var(--c) 16%,transparent);box-shadow:0 0 0 2px var(--c);cursor:default}
 .evo-chip.cur b{color:var(--c);filter:brightness(.8)}
@@ -427,6 +435,7 @@ html.devtest .dev-tag{display:block}
 .dex div .sw{width:40px;height:40px;border-radius:50%;margin:12px 0}
 .dex div b{font-family:var(--display);font-variant-numeric:tabular-nums;font-size:.76rem;color:var(--muted);font-weight:600}
 .dex div span{font-weight:700;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dex div s.fam{position:absolute;top:3px;left:7px;text-decoration:none;color:#f5b800;font-size:1rem;text-shadow:0 0 4px rgba(245,184,0,.6),0 1px 0 #0003}
 .dex div em{position:absolute;top:6px;right:8px;font-style:normal;font-size:.72rem;color:var(--muted);font-variant-numeric:tabular-nums}
 .empty{color:var(--muted);text-align:center;padding:32px 0}
 
@@ -551,7 +560,7 @@ html.noscroll,html.noscroll body{overflow:hidden}
     </div>
     <div class="info">
       <h2 class="name" id="monName"></h2>
-      <span class="type-pill" id="monType"></span><span class="stars" id="monStars"></span>
+      <span class="type-pills" id="monType"></span><span class="stars" id="monStars"></span>
       <div class="orbs" id="orbs"></div>
     </div>
     <div class="why">照片 <span class="dots" id="whyPhoto"></span> 牠的顏色 <span class="dots" id="whyMon"></span> <span id="sim"></span></div>
@@ -572,7 +581,7 @@ html.noscroll,html.noscroll body{overflow:hidden}
     <p class="got">抓到了！</p>
     <div class="burst" id="burst"></div>
     <h2 class="name" id="resName"></h2>
-    <div class="info" style="justify-content:center"><span class="type-pill" id="resType"></span><span class="stars" id="resStars"></span></div>
+    <div class="info" style="justify-content:center"><span class="type-pills" id="resType"></span><span class="stars" id="resStars"></span></div>
     <div class="sub" id="resSub"></div>
     <div class="actions">
       <button class="btn primary" id="moreBtn">繼續拍照</button>
@@ -652,7 +661,7 @@ html.noscroll,html.noscroll body{overflow:hidden}
     <button class="icon-btn sheet-trash" id="releaseBtn" aria-label="放生（從圖鑑移除）" hidden><svg viewBox="0 0 24 24"><path d="M9 3v1H4v2h16V4h-5V3H9zM6 8l1 13h10l1-13H6zm3 2h2v9H9v-9zm4 0h2v9h-2v-9z"/></svg></button>
     <img id="sheetArt" class="sheet-art" alt="">
     <h2><button type="button" class="say" id="sheetSay" aria-label="唸出名字"><span id="sheetName"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg></button></h2>
-    <div class="sheet-meta"><span id="sheetNo"></span><span class="type-pill" id="sheetType"></span><span class="stars" id="sheetStars"></span><span class="dots" id="sheetColors"></span></div>
+    <div class="sheet-meta"><span id="sheetNo"></span><span class="type-pills" id="sheetType"></span><span class="stars" id="sheetStars"></span><span class="dots" id="sheetColors"></span></div>
     <div class="sheet-evo" id="sheetEvo"></div>
     <div class="sheet-stats" id="sheetStats"></div>
     <button class="btn ghost" id="sheetBack">返回</button>
@@ -686,14 +695,14 @@ html.noscroll,html.noscroll body{overflow:hidden}
 <canvas id="cv" width="48" height="48" hidden></canvas>
 
 <script>
-const BUILD="2026.10.29-1949";
+const BUILD="2026.10.29-2024";
 /* =========================================================
    顏色寶可夢探險
    資料都在 data/：config.json 列出要載入的資料包（packs），
    types.json 定義屬性，packs/*.json 定義寶可夢。新增寶可夢只要加資料包。
    ========================================================= */
 const DATA_BASE = "data/";
-let CFG = null, TYPES = {}, MONS = [], EVO = {};
+let CFG = null, TYPES = {}, MONS = [], EVO = {}, PRON = {words:{},names:{}};
 
 /* ---------- 硬體介面（之後接寶貝球） ----------
    寶貝球只需要回報兩件事，不判斷丟得好不好：
@@ -950,6 +959,7 @@ async function loadData(){
   CFG=await get("config.json");
   try{BALLS=await get("balls.json");}catch(e){BALLS=null;}   // 寶可夢球種類（沒有也能玩）
   TYPES=await get("types.json");
+  try{PRON={words:{},names:{},...await get("pronounce.json")};}catch(e){}   // 唸法修正表（沒有也能玩）
   try{EVO=await get("evolutions.json");}catch(e){EVO={};}   // 進化關係：{"2":{"from":1,"to":[3]}}（沒有這個檔案也能玩，只是詳細頁不顯示）
   for(const t of Object.values(TYPES)) if(t.affinity) t.affLabs=t.affinity.map(hexLab);
   const packs=await Promise.all(CFG.packs.map(get));
@@ -957,6 +967,7 @@ async function loadData(){
   for(const pack of packs) for(const raw of pack.pokemon){
     const m={...(seen.get(raw.id)||{}),...raw};          // 後面的資料包可以只覆蓋部分欄位（例如只改顏色）
     if(!m.name||!TYPES[m.type]||!m.colors?.length){console.warn("略過格式不正確的寶可夢",raw);continue;}
+    if(m.type2&&(!TYPES[m.type2]||m.type2===m.type))delete m.type2;      // 第二屬性（可有可無）：type2.json 補的，不存在就忽略
     seen.set(m.id,{...m,labs:m.colors.map(hexLab)});
   }
   MONS=[...seen.values()];
@@ -1174,10 +1185,15 @@ const starText=r=>"★".repeat(r)+"☆".repeat(5-r);
 let revealed=true;
 const SIL_KEY="colormon-silhouette";
 function silhouetteOn(){try{const v=localStorage.getItem(SIL_KEY);if(v!==null)return v==="1";}catch(e){}return CFG?.silhouetteUnseen!==false;}
+/* 屬性小標籤：有第二屬性就兩顆。show=false（還沒揭曉）只顯示灰色的「？」 */
+const monTypes=m=>[m.type,m.type2].filter(Boolean);
+function typePills(m,show=true){
+  if(!show)return '<i class="type-pill" style="background:var(--muted)">？</i>';
+  return monTypes(m).map(k=>`<i class="type-pill" style="background:${TYPES[k].color}">${TYPES[k].name}</i>`).join("");
+}
 function showMonInfo(mon,show){
   $("monName").textContent=show?mon.name:"？？？";
-  $("monType").textContent=show?TYPES[mon.type].name:"？";
-  $("monType").style.background=show?"":"var(--muted)";
+  $("monType").innerHTML=typePills(mon,show);
   $("whyMon").innerHTML=show?mon.colors.map(c=>`<i style="background:${c}"></i>`).join(""):"<b>？</b>";
 }
 async function revealMon(mon){
@@ -1368,7 +1384,7 @@ function ballEffect(b,mon){
   if(b.guaranteed)return {mult:Infinity,hint:b.hint};
   let m=b.bonus||1,hint=null;
   const up=(v,ok)=>{if(ok&&v>m){m=v;hint=b.hint;}};
-  up(b.typeBonus,b.types?.includes(mon.type));
+  up(b.typeBonus,monTypes(mon).some(t=>b.types?.includes(t)));
   up(b.night,!!b.night&&encounterNight);
   up(b.firstThrow,!!b.firstThrow&&misses===0);
   up(1+(b.perMiss||0)*misses,!!b.perMiss&&misses>0);
@@ -1386,7 +1402,7 @@ function showResult(mon){
   $("burst").innerHTML=`<img alt="${mon.name}" hidden><div class="fb"><svg viewBox="0 0 24 24"><path d=""/></svg></div>`;
   setMonVisual(mon,{imgEl:$("burst").querySelector("img"),fbEl:$("burst").querySelector(".fb"),glyphEl:$("burst").querySelector("path")});
   $("resName").textContent=mon.name;
-  $("resType").textContent=T.name;
+  $("resType").innerHTML=typePills(mon);
   $("resStars").textContent=starText(mon.rarity);
   const n=dex[mon.id]?.n||1;
   $("toDexBtn").hidden=TEST;
@@ -1454,7 +1470,7 @@ function dexFiltered(){
     const st=dexStatus(m);
     if(DEXUI.status!=="all"&&st!==DEXUI.status)return false;
     if(DEXUI.gen&&genOf(m.id)!=DEXUI.gen)return false;
-    if(DEXUI.type&&(st==="unknown"||m.type!==DEXUI.type))return false;      // 沒發現的不透露屬性
+    if(DEXUI.type&&(st==="unknown"||!monTypes(m).includes(DEXUI.type)))return false;      // 沒發現的不透露屬性
     if(DEXUI.star&&(st==="unknown"||m.rarity!=DEXUI.star))return false;
     if(q){ if(/^\d+$/.test(q)){ if(!String(m.id).includes(q))return false; } else if(st==="unknown"||!m.name.includes(q))return false; }
     return true;
@@ -1486,7 +1502,7 @@ function renderDex(){
   const cells=list.slice(DEXUI.page*ps,(DEXUI.page+1)*ps).map(m=>{
     const st=dexStatus(m),c=dex[m.id];
     if(st==="unknown") return `<div class="unknown"><i class="q">？</i><b>#${pad3(m.id)}</b><span>？？？</span></div>`;
-    return `<div class="${st}" data-id="${m.id}" role="button" tabindex="0">${c&&c.n>1?`<em>×${c.n}</em>`:""}${st==="seen"?"<em>見過</em>":""}
+    return `<div class="${st}" data-id="${m.id}" role="button" tabindex="0">${c&&c.n>1?`<em>×${c.n}</em>`:""}${st==="seen"?"<em>見過</em>":""}${st==="caught"&&evoComplete(m.id)?`<s class="fam" title="這個系列全部抓到了">★</s>`:""}
       <img src="${spriteUrl(m.id)}" alt="" loading="lazy" onerror="this.outerHTML='<i class=sw style=background:${m.colors[0]}></i>'">
       <b>#${pad3(m.id)}</b><span>${m.name}</span><small>${"★".repeat(m.rarity)}</small></div>`;
   });
@@ -1564,7 +1580,7 @@ function openMonSheet(id){
   sheetMon=m;const c=dex[id],T=TYPES[m.type];
   $("sheetArt").src=artUrl(id);$("sheetArt").alt=m.name;
   $("sheetName").textContent=m.name;$("sheetNo").textContent=`#${pad3(id)}・第 ${genOf(id)} 代`;
-  $("sheetType").textContent=T.name;$("sheetType").style.background=T.color;
+  $("sheetType").innerHTML=typePills(m);
   $("sheetStars").textContent=starText(m.rarity);
   $("sheetColors").innerHTML=m.colors.map(x=>`<i style="background:${x}"></i>`).join("");
   fillEvo(id);
@@ -1587,13 +1603,22 @@ function evoChip(id,cur){
   if(st==="unknown")return `<button type="button" class="evo-chip unk" data-evo="${id}" aria-label="還沒見過"><i class="q">？</i><b>#${pad3(id)}</b><span>？？？</span></button>`;
   return `<button type="button" class="evo-chip ${st}" data-evo="${id}"><img src="${spriteUrl(id)}" alt="" loading="lazy" onerror="this.outerHTML='<i class=sw style=background:${m.colors[0]}></i>'"><b>#${pad3(id)}</b><span>${m.name}</span></button>`;
 }
+/* 進化家族：從最初的型態往下走完整棵樹（小火龍 → 火恐龍 → 噴火龍；伊布有 8 條分支） */
+function evoRoot(id){let n=0;while(EVO[id]?.from&&n++<12)id=EVO[id].from;return id;}
+function evoFamily(id){const out=[],walk=x=>{out.push(x);(EVO[x]?.to||[]).forEach(walk);};walk(evoRoot(id));return out;}
+const evoComplete=id=>{const f=evoFamily(id);return f.length>1&&f.every(x=>dex[x]&&MONS.some(m=>m.id===x));};   // 全家都抓到了
+function evoNode(x,cur){
+  const kids=EVO[x]?.to||[],chip=evoChip(x,x===cur);
+  if(!kids.length)return `<div class="evo-node">${chip}</div>`;
+  const many=kids.length>3;                                   // 分支很多（伊布）→ 往下排、換行
+  return `<div class="evo-node${many?" col":""}">${chip}<span class="evo-arrow${many?" down":""}" aria-hidden="true">${many?"▼":"▶"}</span><div class="evo-kids${many?" many":""}">${kids.map(k=>evoNode(k,cur)).join("")}</div></div>`;
+}
 function fillEvo(id){
-  const e=EVO[id]||{},up=[];let p=e.from,n=0;
-  while(p&&n++<6){up.unshift(p);p=EVO[p]?.from;}
-  const down=e.to||[],box=$("sheetEvo");
-  const arrow='<span class="evo-arrow" aria-hidden="true">▶</span>';
-  box.innerHTML=!up.length&&!down.length?'<p class="evo-none">沒有進化前後的型態</p>':
-    `<div class="evo-row"><small>進化</small><div>${up.map(x=>evoChip(x)).join(arrow)}${up.length?arrow:""}${evoChip(id,1)}${down.length?arrow:""}${down.map(x=>evoChip(x)).join("")}</div></div>`;
+  const box=$("sheetEvo"),fam=evoFamily(id);
+  const done=evoComplete(id);
+  box.classList.toggle("complete",done);
+  box.innerHTML=fam.length<2?'<p class="evo-none">沒有進化前後的型態</p>':
+    `<div class="evo-row"><small>進化${done?' <b class="evo-done">★ 全家到齊！</b>':""}</small>${evoNode(fam[0],id)}</div>`;
 }
 $("sheetEvo").addEventListener("click",e=>{
   const b=e.target.closest("[data-evo]");if(!b)return;
@@ -1610,6 +1635,12 @@ function ttsPick(){
   ttsVoice=vs.find(v=>/^zh[-_](TW|Hant)/i.test(v.lang))||vs.find(v=>/^zh/i.test(v.lang)&&!/CN|HK/i.test(v.lang))||vs.find(v=>/^zh/i.test(v.lang))||null;
 }
 if(TTS){ttsPick();speechSynthesis.addEventListener?.("voiceschanged",ttsPick);}
+/* 唸法修正：「龍頭地鼠」的「地」會被唸成助詞「的」，所以唸之前先換成同音字（pronounce.json）；畫面上的名字不變 */
+function spokenName(m){
+  if(PRON.names?.[m.id])return PRON.names[m.id];
+  let t=m.name;for(const [a,b] of Object.entries(PRON.words||{}))t=t.split(a).join(b);
+  return t;
+}
 function sayName(name){
   if(!TTS){toast("這支手機不能朗讀");return;}
   if(muted){toast("音效是關著的，按右上角喇叭打開就能聽到");return;}
@@ -1623,7 +1654,7 @@ function sayName(name){
     bgmDuck(2.5);speechSynthesis.speak(u);
   }catch(e){}
 }
-$("sheetSay").addEventListener("click",()=>{if(sheetMon){unlockAudio();sayName(sheetMon.name);}});
+$("sheetSay").addEventListener("click",()=>{if(sheetMon){unlockAudio();sayName(spokenName(sheetMon));}});
 function closeMonSheet(){if(TTS)try{speechSynthesis.cancel();}catch(e){}$("monSheet").hidden=true;sheetMon=null;}
 $("sheetClose").onclick=closeMonSheet;
 $("monSheet").addEventListener("click",e=>{if(e.target===$("monSheet"))closeMonSheet();});

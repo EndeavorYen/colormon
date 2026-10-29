@@ -35,6 +35,7 @@ for (const packPath of cfg.packs) {
     if (!Number.isInteger(m.id) || m.id < 1) errors.push(`${tag}：id 必須是正整數`);
     if (!m.name) errors.push(`${tag}：缺少 name`);
     if (!types[m.type]) errors.push(`${tag}：type「${m.type}」不在 types.json 裡`);
+    if (m.type2 != null && (!types[m.type2] || m.type2 === m.type)) errors.push(`${tag}：type2「${m.type2}」不在 types.json 裡，或和 type 一樣`);
     if (![1, 2, 3, 4, 5].includes(m.rarity)) errors.push(`${tag}：rarity 必須是 1～5`);
     if (!Array.isArray(m.colors) || !m.colors.length || !m.colors.every(c => HEX.test(c)))
       errors.push(`${tag}：colors 必須是 #RRGGBB 陣列（第一個是主色）`);
@@ -43,6 +44,13 @@ for (const packPath of cfg.packs) {
     total++;
   }
 }
+
+// 唸法修正表：每一條都要真的出現在某隻的名字裡（避免留著沒用的舊條目）
+try {
+  const pr = read("pronounce.json"), names = [...merged.values()].map(m => m.name);
+  for (const k of Object.keys(pr.words || {})) if (!names.some(n => n.includes(k))) errors.push(`pronounce.json：words 的「${k}」沒有出現在任何寶可夢的名字裡`);
+  for (const k of Object.keys(pr.names || {})) if (!merged.has(+k)) errors.push(`pronounce.json：names 的 #${k} 不存在`);
+} catch (e) { errors.push("pronounce.json 讀不到或格式錯誤：" + e.message); }
 
 // 寶可夢球
 try {

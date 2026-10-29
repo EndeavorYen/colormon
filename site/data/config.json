@@ -15,7 +15,8 @@
     "packs/gen7.json",
     "packs/gen8.json",
     "packs/gen9.json",
-    "packs/color-tweaks.json"
+    "packs/color-tweaks.json",
+    "packs/type2.json"
   ],
   "catchBase": {
     "1": 0.75,
