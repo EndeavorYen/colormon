@@ -127,7 +127,7 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 @keyframes bob{50%{transform:translateY(-6px)}}
 .flash{position:absolute;left:0;top:0;width:160px;height:160px;margin:-80px 0 0 -80px;border-radius:50%;background:radial-gradient(circle,#fff 0,#fff 30%,transparent 70%);opacity:0;pointer-events:none;z-index:4}
 .fx i{position:absolute;left:0;top:0;width:14px;height:14px;margin:-7px 0 0 -7px;background:var(--sun);clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);z-index:5}
-.bubble{position:absolute;left:50%;top:12px;transform:translateX(-50%);background:var(--card);color:var(--ink);border:2px solid var(--ink);border-radius:999px;padding:4px 16px;font-weight:900;white-space:nowrap;z-index:6;max-width:calc(100% - 24px);overflow:hidden;text-overflow:ellipsis}
+.bubble{position:absolute;left:50%;top:12px;transform:translateX(-50%);background:var(--card);color:var(--ink);border:2px solid var(--ink);border-radius:999px;padding:4px 16px;font-weight:900;white-space:nowrap;z-index:6;max-width:calc(100% - 110px);overflow:hidden;text-overflow:ellipsis}
 .bubble:empty{display:none}
 .shake-dots{position:absolute;right:14px;bottom:14px;display:flex;gap:6px;z-index:6}
 .shake-dots i{width:10px;height:10px;border-radius:50%;background:color-mix(in srgb,var(--ink) 20%,transparent)}
@@ -162,8 +162,8 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 .ar-chip{position:absolute;left:10px;bottom:10px;z-index:6;background:rgba(0,0,0,.6);color:#fff;border-radius:999px;padding:4px 12px;font-size:.8rem;font-weight:700;max-width:calc(100% - 70px)}
 .ball-mark{position:absolute;left:0;top:0;width:40px;height:40px;margin:-20px 0 0 -20px;border:3px solid #4CC27E;border-radius:50%;z-index:5;pointer-events:none;transition:transform .06s linear}
 .mode-btn{font-size:.92rem;padding:10px}
-.throw-row{display:grid;grid-template-columns:1fr auto;gap:10px}
-.run-btn{padding:14px 16px}
+.throw-row{display:block}
+.throw-row .btn{width:100%}
 .run-btn:disabled{opacity:.45;cursor:default}
 .sens{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .sens button{border:1.5px solid var(--line);background:var(--card);border-radius:12px;padding:6px 4px;font-weight:700;font-size:.88rem;display:flex;flex-direction:column;align-items:center;gap:1px}
@@ -333,8 +333,12 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 @keyframes bthand{50%{transform:translateY(-10px)}}
 @media (prefers-reduced-motion:reduce){.bt-me .bob,.bt-hand{animation:none}}
 /* 逃跑：紅字紅框＋離開圖示 */
-.btn.ghost.run-btn{display:flex;align-items:center;gap:6px;color:var(--bad);border:2px solid var(--bad);background:color-mix(in srgb,var(--bad) 9%,var(--card))}
-.run-btn svg{width:22px;height:22px;fill:currentColor;flex:none}
+/* 逃跑：場景左上角的小圓鈕，遠離底下整條的「丟出寶貝球」，避免誤觸；按一下會展開，要再按一次才離開 */
+.scene .btn.ghost.run-btn{position:absolute;left:10px;top:10px;z-index:7;display:flex;align-items:center;justify-content:center;gap:6px;width:38px;height:38px;min-height:0;padding:0;border-radius:999px;color:var(--bad);border:2px solid var(--bad);background:color-mix(in srgb,var(--bad) 14%,var(--card));font-size:.85rem;font-weight:900;white-space:nowrap;box-shadow:0 2px 6px #0003}
+.run-btn span{display:none}
+.scene .btn.ghost.run-btn.armed{width:auto;padding:0 12px 0 9px;background:var(--bad);color:#fff;border-color:#fff}
+.run-btn.armed span{display:inline}
+.run-btn svg{width:20px;height:20px;fill:currentColor;flex:none}
 /* 放生：詳細頁左上角的小垃圾桶 */
 .sheet-trash{position:absolute;left:12px;top:12px;color:var(--bad)}
 .sheet-trash svg{fill:currentColor}
@@ -354,6 +358,12 @@ html.devtest .dev-tag{display:block}
 .sheet-close{position:absolute;right:12px;top:12px}
 .sheet-art{width:min(60vw,220px);aspect-ratio:1;object-fit:contain}
 .sheet h2{margin:0;font-family:var(--display);font-weight:900;font-size:1.7rem}
+.say{display:inline-flex;align-items:center;gap:8px;border:0;background:transparent;font:inherit;color:inherit;cursor:pointer;padding:2px 8px;border-radius:14px}
+.say svg{width:26px;height:26px;fill:var(--muted);flex:none}
+.say:active{transform:scale(.97)}
+.say.on svg{fill:var(--sun,#f5a300);animation:sayPulse .45s ease-in-out infinite alternate}
+@keyframes sayPulse{to{transform:scale(1.25)}}
+@media (prefers-reduced-motion:reduce){.say.on svg{animation:none}}
 .sheet-meta{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;font-size:.88rem;color:var(--muted)}
 .sheet-evo{width:100%;text-align:left;display:flex;flex-direction:column;gap:8px}
 .evo-row small{display:block;font-size:.78rem;color:var(--muted);font-weight:700;margin-bottom:3px}
@@ -537,6 +547,7 @@ html.noscroll,html.noscroll body{overflow:hidden}
       <div class="shield-hud" id="shieldHud" hidden></div>
       <div class="rare-dim" id="rareDim" hidden></div>
       <div class="rare-flash" id="rareFlash" hidden></div>
+      <button class="btn ghost run-btn" id="runBtn" aria-label="逃跑，離開這隻寶可夢"><svg viewBox="0 0 24 24"><path d="M10 17l1.4-1.4-2.6-2.6H20v-2H8.8l2.6-2.6L10 7l-5 5 5 5zM4 5h7V3H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7v-2H4V5z"/></svg><span>再按一次逃跑</span></button>
     </div>
     <div class="info">
       <h2 class="name" id="monName"></h2>
@@ -547,7 +558,6 @@ html.noscroll,html.noscroll body{overflow:hidden}
     <div id="throwArea" style="display:flex;flex-direction:column;gap:10px">
       <div class="throw-row">
         <button class="btn sun throw" id="throwBtn">丟出寶貝球！</button>
-        <button class="btn ghost run-btn" id="runBtn" aria-label="逃跑，離開這隻寶可夢"><svg viewBox="0 0 24 24"><path d="M10 17l1.4-1.4-2.6-2.6H20v-2H8.8l2.6-2.6L10 7l-5 5 5 5zM4 5h7V3H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7v-2H4V5z"/></svg>逃跑</button>
       </div>
       <button class="btn ghost mode-btn" id="motionBtn" aria-pressed="false">鏡頭模式：揮手甩球、打護盾</button>
       <button class="btn ghost mode-btn" id="shakeBtn" aria-pressed="false">甩手機模式：甩一下就丟球</button>
@@ -607,7 +617,7 @@ html.noscroll,html.noscroll body{overflow:hidden}
     <div class="dex" id="dex"></div>
 
     <details class="panel manage" id="dexManage"><summary>圖鑑管理</summary>
-      <label class="setting"><input type="checkbox" id="bgmToggle"><span>背景音樂（只在特別對戰時播放，預設關閉）</span></label>
+      <label class="setting"><input type="checkbox" id="bgmToggle" checked><span>背景音樂（右上角的音符也可以開關）</span></label>
       <label class="setting"><input type="checkbox" id="silToggle"><span>沒抓過的寶可夢先用剪影顯示，抓到或跳出來時才揭曉</span></label>
       <h3>玩家</h3>
       <p class="note left">兄弟姊妹共用手機時，每個人有自己的圖鑑。</p>
@@ -641,7 +651,7 @@ html.noscroll,html.noscroll body{overflow:hidden}
     <button class="icon-btn sheet-close" id="sheetClose" aria-label="關閉"><svg viewBox="0 0 24 24"><path d="M18.3 5.7 16.9 4.3 12 9.2 7.1 4.3 5.7 5.7 10.6 10.6 5.7 15.5l1.4 1.4 4.9-4.9 4.9 4.9 1.4-1.4-4.9-4.9z"/></svg></button>
     <button class="icon-btn sheet-trash" id="releaseBtn" aria-label="放生（從圖鑑移除）" hidden><svg viewBox="0 0 24 24"><path d="M9 3v1H4v2h16V4h-5V3H9zM6 8l1 13h10l1-13H6zm3 2h2v9H9v-9zm4 0h2v9h-2v-9z"/></svg></button>
     <img id="sheetArt" class="sheet-art" alt="">
-    <h2 id="sheetName"></h2>
+    <h2><button type="button" class="say" id="sheetSay" aria-label="唸出名字"><span id="sheetName"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg></button></h2>
     <div class="sheet-meta"><span id="sheetNo"></span><span class="type-pill" id="sheetType"></span><span class="stars" id="sheetStars"></span><span class="dots" id="sheetColors"></span></div>
     <div class="sheet-evo" id="sheetEvo"></div>
     <div class="sheet-stats" id="sheetStats"></div>
@@ -676,7 +686,7 @@ html.noscroll,html.noscroll body{overflow:hidden}
 <canvas id="cv" width="48" height="48" hidden></canvas>
 
 <script>
-const BUILD="2026.10.29-1939";
+const BUILD="2026.10.29-1949";
 /* =========================================================
    顏色寶可夢探險
    資料都在 data/：config.json 列出要載入的資料包（packs），
@@ -1134,7 +1144,7 @@ async function startEncounter(pal,picked){
   $("monStars").textContent=starText(mon.rarity);
   $("whyPhoto").innerHTML=pal.slice(0,3).map(c=>`<i style="background:${css(c.rgb)}"></i>`).join("");
   $("sim").textContent=`相似 ${sim}%`;
-  $("throwArea").hidden=false;$("fledBtn").hidden=true;$("throwBtn").disabled=true;$("runBtn").disabled=false;
+  $("throwArea").hidden=false;$("fledBtn").hidden=true;$("throwBtn").disabled=true;$("runBtn").disabled=false;runDisarm();
   const ball=$("ball");ball.getAnimations().forEach(a=>a.cancel());ball.hidden=true;ball.classList.remove("locked");
   $("hand").hidden=false;$("shakeDots").hidden=true;
   const m=$("mon");m.getAnimations().forEach(a=>a.cancel());m.style.opacity="";
@@ -1294,8 +1304,12 @@ async function throwBall(speed=1){
 }
 
 /* 玩家逃跑：離開這隻寶可夢，回到拍照畫面 */
+function runDisarm(){const b=$("runBtn");b.classList.remove("armed");clearTimeout(b._t);}
 $("runBtn").addEventListener("click",async()=>{
-  if(!current||busy)return;
+  if(!current||busy||$("runBtn").disabled)return;
+  const b=$("runBtn");
+  if(!b.classList.contains("armed")){b.classList.add("armed");sfx("tap");clearTimeout(b._t);b._t=setTimeout(runDisarm,3000);return;}   // 第一下只展開，3 秒內再按一次才離開
+  runDisarm();
   busy=true;encounterId++;                                   // 停掉進行中的動畫
   $("throwBtn").disabled=true;$("runBtn").disabled=true;
   bubble("安全地逃走了！");sfx("flee");
@@ -1545,6 +1559,7 @@ let sheetMon=null;
 const TRASH_SVG='<svg viewBox="0 0 24 24"><path d="M9 3v1H4v2h16V4h-5V3H9zM6 8l1 13h10l1-13H6zm3 2h2v9H9v-9zm4 0h2v9h-2v-9z"/></svg>';
 const fmtDate=t=>{if(!t)return"—";const d=new Date(t);return `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;};
 function openMonSheet(id){
+  if(TTS)try{speechSynthesis.cancel();}catch(e){}
   const m=MONS.find(x=>x.id===id);if(!m)return;
   sheetMon=m;const c=dex[id],T=TYPES[m.type];
   $("sheetArt").src=artUrl(id);$("sheetArt").alt=m.name;
@@ -1586,7 +1601,30 @@ $("sheetEvo").addEventListener("click",e=>{
   if(m&&dexStatus(m)!=="unknown"){sfx("tap");openMonSheet(id);}
   else toast("還沒見過牠，遇到就會解鎖喔");
 });
-function closeMonSheet(){$("monSheet").hidden=true;sheetMon=null;}
+/* 點名字唸出來：用手機內建的語音朗讀（speechSynthesis，繁體中文），不用下載音檔；不認得字的小朋友也知道牠叫什麼 */
+const TTS=typeof speechSynthesis!=="undefined"&&typeof SpeechSynthesisUtterance!=="undefined";
+let ttsVoice=null;
+function ttsPick(){
+  if(!TTS)return;
+  const vs=speechSynthesis.getVoices();
+  ttsVoice=vs.find(v=>/^zh[-_](TW|Hant)/i.test(v.lang))||vs.find(v=>/^zh/i.test(v.lang)&&!/CN|HK/i.test(v.lang))||vs.find(v=>/^zh/i.test(v.lang))||null;
+}
+if(TTS){ttsPick();speechSynthesis.addEventListener?.("voiceschanged",ttsPick);}
+function sayName(name){
+  if(!TTS){toast("這支手機不能朗讀");return;}
+  if(muted){toast("音效是關著的，按右上角喇叭打開就能聽到");return;}
+  try{
+    speechSynthesis.cancel();ttsPick();
+    const u=new SpeechSynthesisUtterance(name);
+    u.lang=ttsVoice?.lang||"zh-TW";if(ttsVoice)u.voice=ttsVoice;
+    u.rate=.8;u.pitch=1.1;u.volume=1;
+    const b=$("sheetSay");b.classList.add("on");
+    const off=()=>b.classList.remove("on");u.onend=off;u.onerror=off;
+    bgmDuck(2.5);speechSynthesis.speak(u);
+  }catch(e){}
+}
+$("sheetSay").addEventListener("click",()=>{if(sheetMon){unlockAudio();sayName(sheetMon.name);}});
+function closeMonSheet(){if(TTS)try{speechSynthesis.cancel();}catch(e){}$("monSheet").hidden=true;sheetMon=null;}
 $("sheetClose").onclick=closeMonSheet;
 $("monSheet").addEventListener("click",e=>{if(e.target===$("monSheet"))closeMonSheet();});
 function releaseLabel(){const b=$("releaseBtn");delete b.dataset.armed;delete b.dataset.label;clearTimeout(b._t);b.innerHTML=TRASH_SVG;}
@@ -2905,13 +2943,14 @@ setMuted(muted);
    背景音樂（BGM）：Game Boy 風格的 8-bit 曲子，用 WebAudio 即時演奏（不用下載音檔）
    - home：首頁、探索、圖鑑（輕快的冒險曲，C 大調）；wild：遇到寶可夢（緊張又有點俏皮，A 小調）
      battle：特別對戰（快節奏，E 小調）；battle5：五星對戰（更快）
-   - 目前只有特別對戰會放；home、wild 兩首保留但沒有使用（探索的雷達嗶嗶聲會被蓋住）。預設關閉
+   - 音量比音效小（config.bgm.volume，預設 0.25），音效是主角；預設開
    - 每首曲子由 旋律＋琶音＋貝斯＋鼓 四個聲部組成；和弦用名字寫（C、Am、G7…），旋律用「音名:長度」（長度單位是 16 分音符）
-   - 右上角的喇叭＝音效開關；旁邊的音符＝背景音樂開關（兩個各自獨立）；「圖鑑管理」裡也有一個同樣的開關
+   - 右上角的喇叭＝音效開關；旁邊的音符＝背景音樂開關（兩個各自獨立）；「圖鑑管理」裡也有一個同樣的開關。喇叭靜音時 BGM 照放（各管各的）
    ========================================================= */
-const BGM_KEY="colormon-bgm";
-const BGM={on:false,id:"",timer:0,nextT:0,step:0,trk:null,gain:null,cache:{}};
-try{BGM.on=localStorage.getItem(BGM_KEY)==="1";}catch(e){}      // 預設關閉：想聽再按右上角的音符
+const BGM_KEY="colormon-bgm-on";                                  // 換了新的 key：之前的版本曾經預設關閉並寫下「關」，這次要讓大家預設是開的
+const bgmVol=()=>CFG?.bgm?.volume??.25;                              // BGM 音量（音效是主角，BGM 墊底；數字越小越小聲）
+const BGM={on:true,id:"",timer:0,nextT:0,step:0,trk:null,gain:null,cache:{}};
+try{BGM.on=localStorage.getItem(BGM_KEY)!=="0";}catch(e){}      // 預設開；右上角的音符可以單獨關
 const BGM_TRK={
   home:{bpm:108,
     chords:"C G Am F C G F G  F G Em Am F G C G",
@@ -2966,8 +3005,9 @@ function bgmStepAt(trk,i,t,out){
     else GB.tone(t,e.f,e.d*sd,{duty:e.duty,v:e.v,out,decay:!e.bass});
   }
 }
-function bgmWant(){                                                          // 只有特別對戰才放；探索、遭遇、圖鑑都不放（才聽得到雷達嗶嗶聲和各種音效）
-  return BT.on?(current&&current.rarity>=5?"battle5":"battle"):"";
+function bgmWant(){
+  if(BT.on)return current&&current.rarity>=5?"battle5":"battle";
+  return screen==="encounter"?"wild":"home";
 }
 function bgmStop(){clearInterval(BGM.timer);BGM.timer=0;BGM.id="";}
 function bgmSync(){
@@ -2976,7 +3016,7 @@ function bgmSync(){
   if(BGM.id===want&&BGM.timer)return;
   bgmStop();BGM.id=want;BGM.trk=bgmBuild(want);BGM.step=0;
   if(!BGM.gain){BGM.gain=audioCtx.createGain();BGM.gain.connect(GB.out());}
-  const t=audioCtx.currentTime;BGM.gain.gain.cancelScheduledValues(t);BGM.gain.gain.setValueAtTime(0,t);BGM.gain.gain.linearRampToValueAtTime(.5,t+.5);   // 淡入
+  const t=audioCtx.currentTime;BGM.gain.gain.cancelScheduledValues(t);BGM.gain.gain.setValueAtTime(0,t);BGM.gain.gain.linearRampToValueAtTime(bgmVol(),t+.5);   // 淡入
   BGM.nextT=t+.08;
   BGM.timer=setInterval(()=>{
     if(!audioCtx||!BGM.trk)return;
@@ -2986,15 +3026,15 @@ function bgmSync(){
 }
 function bgmDuck(sec){                                                       // 抓到、對戰勝利的短曲播放時，BGM 先小聲一下
   if(!BGM.gain||!audioCtx)return;const t=audioCtx.currentTime;
-  BGM.gain.gain.cancelScheduledValues(t);BGM.gain.gain.setTargetAtTime(.08,t,.05);BGM.gain.gain.setTargetAtTime(.5,t+sec,.35);
+  BGM.gain.gain.cancelScheduledValues(t);BGM.gain.gain.setTargetAtTime(bgmVol()*.16,t,.05);BGM.gain.gain.setTargetAtTime(bgmVol(),t+sec,.35);
 }
-function setBgm(on){
-  BGM.on=on;try{localStorage.setItem(BGM_KEY,on?"1":"0");}catch(e){}bgmSync();
+function setBgm(on,save=true){
+  BGM.on=on;if(save)try{localStorage.setItem(BGM_KEY,on?"1":"0");}catch(e){}bgmSync();
   $("bgmBtn").setAttribute("aria-pressed",on);$("bgmBtn").setAttribute("aria-label",on?"關閉背景音樂":"開啟背景音樂");$("bgmSlash").style.display=on?"none":"";
   const t=$("bgmToggle");if(t)t.checked=on;
 }
 $("bgmBtn").onclick=()=>{unlockAudio();setBgm(!BGM.on);if(!muted)setTimeout(()=>sfx("tap"),30);};
-setBgm(BGM.on);
+setBgm(BGM.on,false);                                                      // 只更新按鈕外觀，不寫入記憶
 document.addEventListener("visibilitychange",bgmSync);
 addEventListener("pointerdown",()=>setTimeout(bgmSync,60),{passive:true});     // 第一次點螢幕解鎖聲音後開始放
 var BGM_READY=true;
