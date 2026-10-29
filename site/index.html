@@ -30,8 +30,9 @@ button{font:inherit;cursor:pointer;color:inherit}
 button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline-offset:2px}
 
 /* top bar */
-.bar{display:flex;align-items:center;gap:10px;min-height:48px}
-.bar h1{font-family:var(--display);font-weight:900;font-size:1.3rem;margin:0;flex:1;line-height:1.2}
+.bar{display:flex;align-items:center;gap:8px;min-height:48px}
+.bar h1{font-family:var(--display);font-weight:900;font-size:1.3rem;margin:0;flex:1;line-height:1.2;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:400px){.bar{gap:6px}.bar h1{font-size:1.05rem}.bar .icon-btn{width:36px;height:36px}.bar .icon-btn svg{width:18px;height:18px}.dex-btn{padding:6px 10px;font-size:.85rem}}
 .icon-btn{width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--card);display:grid;place-items:center;flex:none}
 .icon-btn svg{width:20px;height:20px;fill:currentColor}
 .dex-btn{display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 12px;font-weight:700;font-size:.9rem}
@@ -445,6 +446,7 @@ html.noscroll,html.noscroll body{overflow:hidden}
     <button class="icon-btn" id="backBtn" aria-label="回到拍照" hidden><svg viewBox="0 0 24 24"><path d="M15.4 4.6 14 3.2 5.2 12 14 20.8l1.4-1.4L8 12z"/></svg></button>
     <h1 id="barTitle">顏色寶可夢探險</h1>
     <button class="icon-btn info-btn" id="infoBtn" aria-label="更新紀錄"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 15h-2v-6h2zm0-8h-2V7h2z"/></svg><i class="dot" id="infoDot" hidden></i></button>
+    <button class="icon-btn" id="bgmBtn" aria-label="開啟背景音樂" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/><path id="bgmSlash" d="M3.3 4.7 4.7 3.3 20.7 19.3 19.3 20.7z"/></svg></button>
     <button class="icon-btn" id="muteBtn" aria-label="關閉音效" aria-pressed="false"><svg viewBox="0 0 24 24"><path id="muteIcon" d=""/></svg></button>
     <button class="dex-btn" id="dexBtn">圖鑑 <b id="dexCount">0</b></button>
   </div>
@@ -605,7 +607,7 @@ html.noscroll,html.noscroll body{overflow:hidden}
     <div class="dex" id="dex"></div>
 
     <details class="panel manage" id="dexManage"><summary>圖鑑管理</summary>
-      <label class="setting"><input type="checkbox" id="bgmToggle" checked><span>背景音樂（右上角的喇叭可以全部靜音）</span></label>
+      <label class="setting"><input type="checkbox" id="bgmToggle"><span>背景音樂（只在特別對戰時播放，預設關閉）</span></label>
       <label class="setting"><input type="checkbox" id="silToggle"><span>沒抓過的寶可夢先用剪影顯示，抓到或跳出來時才揭曉</span></label>
       <h3>玩家</h3>
       <p class="note left">兄弟姊妹共用手機時，每個人有自己的圖鑑。</p>
@@ -674,7 +676,7 @@ html.noscroll,html.noscroll body{overflow:hidden}
 <canvas id="cv" width="48" height="48" hidden></canvas>
 
 <script>
-const BUILD="2026.10.29-0722";
+const BUILD="2026.10.29-1939";
 /* =========================================================
    顏色寶可夢探險
    資料都在 data/：config.json 列出要載入的資料包（packs），
@@ -2903,12 +2905,13 @@ setMuted(muted);
    背景音樂（BGM）：Game Boy 風格的 8-bit 曲子，用 WebAudio 即時演奏（不用下載音檔）
    - home：首頁、探索、圖鑑（輕快的冒險曲，C 大調）；wild：遇到寶可夢（緊張又有點俏皮，A 小調）
      battle：特別對戰（快節奏，E 小調）；battle5：五星對戰（更快）
+   - 目前只有特別對戰會放；home、wild 兩首保留但沒有使用（探索的雷達嗶嗶聲會被蓋住）。預設關閉
    - 每首曲子由 旋律＋琶音＋貝斯＋鼓 四個聲部組成；和弦用名字寫（C、Am、G7…），旋律用「音名:長度」（長度單位是 16 分音符）
-   - 右上角的喇叭鈕會連 BGM 一起靜音；「圖鑑管理」裡有單獨關閉背景音樂的開關
+   - 右上角的喇叭＝音效開關；旁邊的音符＝背景音樂開關（兩個各自獨立）；「圖鑑管理」裡也有一個同樣的開關
    ========================================================= */
 const BGM_KEY="colormon-bgm";
-const BGM={on:true,id:"",timer:0,nextT:0,step:0,trk:null,gain:null,cache:{}};
-try{BGM.on=localStorage.getItem(BGM_KEY)!=="0";}catch(e){}
+const BGM={on:false,id:"",timer:0,nextT:0,step:0,trk:null,gain:null,cache:{}};
+try{BGM.on=localStorage.getItem(BGM_KEY)==="1";}catch(e){}      // 預設關閉：想聽再按右上角的音符
 const BGM_TRK={
   home:{bpm:108,
     chords:"C G Am F C G F G  F G Em Am F G C G",
@@ -2963,15 +2966,14 @@ function bgmStepAt(trk,i,t,out){
     else GB.tone(t,e.f,e.d*sd,{duty:e.duty,v:e.v,out,decay:!e.bass});
   }
 }
-function bgmWant(){
-  if(BT.on)return current&&current.rarity>=5?"battle5":"battle";
-  return screen==="encounter"?"wild":"home";
+function bgmWant(){                                                          // 只有特別對戰才放；探索、遭遇、圖鑑都不放（才聽得到雷達嗶嗶聲和各種音效）
+  return BT.on?(current&&current.rarity>=5?"battle5":"battle"):"";
 }
 function bgmStop(){clearInterval(BGM.timer);BGM.timer=0;BGM.id="";}
 function bgmSync(){
-  const ok=BGM.on&&!muted&&audioCtx&&audioCtx.state==="running"&&!document.hidden;
+  const want=bgmWant(),ok=BGM.on&&want&&audioCtx&&audioCtx.state==="running"&&!document.hidden;
   if(!ok){if(BGM.id)bgmStop();return;}
-  const want=bgmWant();if(BGM.id===want&&BGM.timer)return;
+  if(BGM.id===want&&BGM.timer)return;
   bgmStop();BGM.id=want;BGM.trk=bgmBuild(want);BGM.step=0;
   if(!BGM.gain){BGM.gain=audioCtx.createGain();BGM.gain.connect(GB.out());}
   const t=audioCtx.currentTime;BGM.gain.gain.cancelScheduledValues(t);BGM.gain.gain.setValueAtTime(0,t);BGM.gain.gain.linearRampToValueAtTime(.5,t+.5);   // 淡入
@@ -2986,7 +2988,13 @@ function bgmDuck(sec){                                                       // 
   if(!BGM.gain||!audioCtx)return;const t=audioCtx.currentTime;
   BGM.gain.gain.cancelScheduledValues(t);BGM.gain.gain.setTargetAtTime(.08,t,.05);BGM.gain.gain.setTargetAtTime(.5,t+sec,.35);
 }
-function setBgm(on){BGM.on=on;try{localStorage.setItem(BGM_KEY,on?"1":"0");}catch(e){}bgmSync();}
+function setBgm(on){
+  BGM.on=on;try{localStorage.setItem(BGM_KEY,on?"1":"0");}catch(e){}bgmSync();
+  $("bgmBtn").setAttribute("aria-pressed",on);$("bgmBtn").setAttribute("aria-label",on?"關閉背景音樂":"開啟背景音樂");$("bgmSlash").style.display=on?"none":"";
+  const t=$("bgmToggle");if(t)t.checked=on;
+}
+$("bgmBtn").onclick=()=>{unlockAudio();setBgm(!BGM.on);if(!muted)setTimeout(()=>sfx("tap"),30);};
+setBgm(BGM.on);
 document.addEventListener("visibilitychange",bgmSync);
 addEventListener("pointerdown",()=>setTimeout(bgmSync,60),{passive:true});     // 第一次點螢幕解鎖聲音後開始放
 var BGM_READY=true;
