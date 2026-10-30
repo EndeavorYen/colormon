@@ -2,6 +2,10 @@
 
 遊戲裡右上角的 ⓘ 也看得到。這個檔案由 `site/data/changelog.json` 產生（`python3 tools/build-changelog.py`）。
 
+## v0.32（2026-10-30）換新 logo
+
+- logo 改成簡單的白色圓形、中間一條線
+
 ## v0.31（2026-10-30）新 logo、圖鑑介紹更好看
 
 - 新增遊戲 logo：彩虹色輪＋相機鏡頭，標題列和瀏覽器分頁都看得到

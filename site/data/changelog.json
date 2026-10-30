@@ -1,6 +1,14 @@
 {
   "versions": [
     {
+      "version": "0.32",
+      "date": "2026-10-30",
+      "title": "換新 logo",
+      "items": [
+        "logo 改成簡單的白色圓形、中間一條線"
+      ]
+    },
+    {
       "version": "0.31",
       "date": "2026-10-30",
       "title": "新 logo、圖鑑介紹更好看",
