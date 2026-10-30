@@ -359,6 +359,18 @@ html.devtest .dev-tag{display:block}
 .sheet-close{position:absolute;right:12px;top:12px}
 .sheet-art{width:min(60vw,220px);aspect-ratio:1;object-fit:contain}
 .sheet h2{margin:0;font-family:var(--display);font-weight:900;font-size:1.7rem}
+.dex-entry-btn{display:inline-flex;align-items:center;gap:6px;border:2px solid #c0272d;background:#e3383e;color:#fff;font:inherit;font-weight:900;font-size:.95rem;border-radius:999px;padding:7px 16px 7px 12px;cursor:pointer;box-shadow:0 3px 0 #9b1d22}
+.dex-entry-btn svg{width:20px;height:20px;fill:#fff}
+.dex-entry-btn:active{transform:translateY(2px);box-shadow:0 1px 0 #9b1d22}
+.dex-entry-btn.on{background:#555;border-color:#333;box-shadow:0 3px 0 #222}
+.dex-entry{width:100%;box-sizing:border-box;background:#9bbc0f;border:6px solid #3a3a3a;border-radius:12px;box-shadow:inset 0 0 0 3px #8bac0f,0 0 0 3px #c0272d;padding:10px 12px 12px;text-align:left;font-family:"Courier New",ui-monospace,monospace}
+.dex-entry .led{display:flex;gap:6px;margin-bottom:6px}
+.dex-entry .led i{width:10px;height:10px;border-radius:50%;background:#2f4f1f;opacity:.5}
+.dex-entry.talking .led i{background:#e3383e;opacity:1;animation:led .6s steps(2,end) infinite}
+.dex-entry.talking .led i:nth-child(2){animation-delay:.2s}.dex-entry.talking .led i:nth-child(3){animation-delay:.4s}
+@keyframes led{50%{opacity:.25}}
+.dex-entry p{margin:0;color:#0f380f;font-weight:900;font-size:.98rem;line-height:1.55;min-height:3.1em;white-space:pre-wrap}
+@media (prefers-reduced-motion:reduce){.dex-entry.talking .led i{animation:none}}
 .say{display:inline-flex;align-items:center;gap:8px;border:0;background:transparent;font:inherit;color:inherit;cursor:pointer;padding:2px 8px;border-radius:14px}
 .say svg{width:26px;height:26px;fill:var(--muted);flex:none}
 .say:active{transform:scale(.97)}
@@ -580,7 +592,7 @@ html.noscroll,html.noscroll body{overflow:hidden}
   <section class="screen result" id="s-result" hidden>
     <p class="got">抓到了！</p>
     <div class="burst" id="burst"></div>
-    <h2 class="name" id="resName"></h2>
+    <h2 class="name"><button type="button" class="say" id="resSay" aria-label="唸出名字"><span id="resName"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg></button></h2>
     <div class="info" style="justify-content:center"><span class="type-pills" id="resType"></span><span class="stars" id="resStars"></span></div>
     <div class="sub" id="resSub"></div>
     <div class="actions">
@@ -662,6 +674,8 @@ html.noscroll,html.noscroll body{overflow:hidden}
     <img id="sheetArt" class="sheet-art" alt="">
     <h2><button type="button" class="say" id="sheetSay" aria-label="唸出名字"><span id="sheetName"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg></button></h2>
     <div class="sheet-meta"><span id="sheetNo"></span><span class="type-pills" id="sheetType"></span><span class="stars" id="sheetStars"></span><span class="dots" id="sheetColors"></span></div>
+    <button type="button" class="dex-entry-btn" id="dexEntryBtn"></button>
+    <div class="dex-entry" id="dexEntry" hidden><div class="led"><i></i><i></i><i></i></div><p id="dexEntryText"></p></div>
     <div class="sheet-evo" id="sheetEvo"></div>
     <div class="sheet-stats" id="sheetStats"></div>
     <button class="btn ghost" id="sheetBack">返回</button>
@@ -695,7 +709,7 @@ html.noscroll,html.noscroll body{overflow:hidden}
 <canvas id="cv" width="48" height="48" hidden></canvas>
 
 <script>
-const BUILD="2026.10.29-2024";
+const BUILD="2026.10.30-1850";
 /* =========================================================
    顏色寶可夢探險
    資料都在 data/：config.json 列出要載入的資料包（packs），
@@ -1575,7 +1589,8 @@ let sheetMon=null;
 const TRASH_SVG='<svg viewBox="0 0 24 24"><path d="M9 3v1H4v2h16V4h-5V3H9zM6 8l1 13h10l1-13H6zm3 2h2v9H9v-9zm4 0h2v9h-2v-9z"/></svg>';
 const fmtDate=t=>{if(!t)return"—";const d=new Date(t);return `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;};
 function openMonSheet(id){
-  if(TTS)try{speechSynthesis.cancel();}catch(e){}
+  dexEntryStop(false);if(TTS)try{speechSynthesis.cancel();}catch(e){}
+  $("dexEntry").hidden=true;$("dexEntryText").textContent="";$("dexEntryBtn").innerHTML=DEXE_LABEL;
   const m=MONS.find(x=>x.id===id);if(!m)return;
   sheetMon=m;const c=dex[id],T=TYPES[m.type];
   $("sheetArt").src=artUrl(id);$("sheetArt").alt=m.name;
@@ -1641,21 +1656,76 @@ function spokenName(m){
   let t=m.name;for(const [a,b] of Object.entries(PRON.words||{}))t=t.split(a).join(b);
   return t;
 }
-function sayName(name){
+function ttsUtter(text,rate=.8){
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang=ttsVoice?.lang||"zh-TW";if(ttsVoice)u.voice=ttsVoice;
+  u.rate=rate;u.pitch=1.1;u.volume=1;return u;
+}
+function sayName(name,btn=$("sheetSay")){
   if(!TTS){toast("這支手機不能朗讀");return;}
   if(muted){toast("音效是關著的，按右上角喇叭打開就能聽到");return;}
   try{
-    speechSynthesis.cancel();ttsPick();
-    const u=new SpeechSynthesisUtterance(name);
-    u.lang=ttsVoice?.lang||"zh-TW";if(ttsVoice)u.voice=ttsVoice;
-    u.rate=.8;u.pitch=1.1;u.volume=1;
-    const b=$("sheetSay");b.classList.add("on");
-    const off=()=>b.classList.remove("on");u.onend=off;u.onerror=off;
+    dexEntryStop(false);speechSynthesis.cancel();ttsPick();
+    const u=ttsUtter(name);
+    btn.classList.add("on");
+    const off=()=>btn.classList.remove("on");u.onend=off;u.onerror=off;
     bgmDuck(2.5);speechSynthesis.speak(u);
   }catch(e){}
 }
 $("sheetSay").addEventListener("click",()=>{if(sheetMon){unlockAudio();sayName(spokenName(sheetMon));}});
-function closeMonSheet(){if(TTS)try{speechSynthesis.cancel();}catch(e){}$("monSheet").hidden=true;sheetMon=null;}
+$("resSay").addEventListener("click",()=>{const m=MONS.find(x=>x.id===RESULT_ID);if(m){unlockAudio();sayName(spokenName(m),$("resSay"));}});
+
+/* ---- 圖鑑介紹：像卡通裡的寶可夢圖鑑。按「圖鑑介紹」才開始（嗶嗶開機音 → 螢幕閃一下 → 一個字一個字打出來，同時唸），再按一次停止 ----
+   文字來自 dexinfo.json（PokeAPI 的中文分類和圖鑑說明；官方沒有中文的那些是從英文翻的），第一次按的時候才下載 */
+let DEXINFO=null;
+const DEXE={on:false,typeT:0,duckT:0};
+async function dexInfoLoad(){
+  if(DEXINFO)return DEXINFO;
+  try{const r=await fetch(DATA_BASE+"dexinfo.json",{cache:"no-cache"});DEXINFO=r.ok?await r.json():{};}catch(e){DEXINFO={};}
+  return DEXINFO;
+}
+function dexEntryStop(showAll=true){
+  if(!DEXE.on)return;
+  DEXE.on=false;clearInterval(DEXE.typeT);clearTimeout(DEXE.duckT);
+  if(TTS)try{speechSynthesis.cancel();}catch(e){}
+  const b=$("dexEntryBtn");b.classList.remove("on");b.innerHTML=DEXE_LABEL;
+  $("dexEntry").classList.remove("talking");
+  if(showAll&&DEXE.full)$("dexEntryText").textContent=DEXE.full;
+  bgmDuck(.01);
+}
+const DEXE_LABEL='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3h13l3 3v15H4zm3 4v4h10V7zm0 7v2h10v-2zm0 4v1h6v-1z"/></svg>圖鑑介紹';
+async function dexEntryPlay(m){
+  if(DEXE.on){dexEntryStop();return;}
+  unlockAudio();
+  const info=(await dexInfoLoad())[m.id]||{};
+  const types=monTypes(m).map(k=>TYPES[k].name).join("和");
+  const head=`${m.name}，${info.g||"寶可夢"}。${types}屬性。`;
+  const body=info.t||"關於這隻寶可夢的資料還不多。";
+  DEXE.full=head+body;DEXE.on=true;
+  const box=$("dexEntry"),txt=$("dexEntryText"),b=$("dexEntryBtn");
+  box.hidden=false;box.classList.add("talking");txt.textContent="";
+  b.classList.add("on");b.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6h12v12H6z"/></svg>停止';
+  sfx("dexOpen");
+  anim(box,[{filter:"brightness(2.2)"},{filter:"brightness(1)"}],{duration:T_(380),easing:"steps(3,end)",fill:"none"});
+  box.scrollIntoView({block:"nearest",behavior:"smooth"});
+  const speak=TTS&&!muted;
+  setTimeout(()=>{                                                 // 開機音之後才開始
+    if(!DEXE.on)return;
+    let i=0;const full=DEXE.full;
+    DEXE.typeT=setInterval(()=>{i++;txt.textContent=full.slice(0,i);if(i>=full.length){clearInterval(DEXE.typeT);if(!speak)dexEntryStop();}},T_(55));
+    if(!speak){if(TTS&&muted)toast("音效是關著的，只顯示文字");return;}
+    try{
+      speechSynthesis.cancel();ttsPick();
+      // 分句唸（有些手機一句太長會被切掉）；名字套用唸法修正表
+      const parts=[`${spokenName(m)}，${info.g||"寶可夢"}。`,`${types}屬性。`,...body.split(/(?<=[。！？])/).filter(x=>x.trim())];
+      parts.forEach((t,k)=>{const u=ttsUtter(t,.9);if(k===parts.length-1){u.onend=()=>{if(DEXE.on)dexEntryStop();};u.onerror=u.onend;}speechSynthesis.speak(u);});
+      const sec=DEXE.full.length/4.5+2;bgmDuck(sec);
+    }catch(e){}
+  },T_(650));
+}
+$("dexEntryBtn").addEventListener("click",()=>{if(sheetMon)dexEntryPlay(sheetMon);});
+
+function closeMonSheet(){dexEntryStop(false);if(TTS)try{speechSynthesis.cancel();}catch(e){}$("monSheet").hidden=true;sheetMon=null;}
 $("sheetClose").onclick=closeMonSheet;
 $("monSheet").addEventListener("click",e=>{if(e.target===$("monSheet"))closeMonSheet();});
 function releaseLabel(){const b=$("releaseBtn");delete b.dataset.armed;delete b.dataset.label;clearTimeout(b._t);b.innerHTML=TRASH_SVG;}
@@ -2905,6 +2975,7 @@ const GB={
 function noteHz(n){const m=/^([A-G])(#?)(\d)$/.exec(n);const idx={C:-9,D:-7,E:-5,F:-4,G:-2,A:0,B:2}[m[1]]+(m[2]?1:0)+(+m[3]-4)*12;return 440*Math.pow(2,idx/12);}
 
 const SFX={
+  dexOpen:t=>{ GB.seq(t,"C7:1 E7:1 G7:1 -:1 G6:1 C8:3",.055,{duty:.125,v:.3}); GB.noise(t+.3,.08,{v:.12,hp:6000}); },   // 圖鑑開機：嗶嗶噔
   appear:t=>{ GB.seq(t,"B4:1 D5:1 F#5:1 B5:1 D6:1 F#6:2",.05,{duty:.125,v:.45});            // 「！」快速上升琶音
               GB.seq(t,"B3:3 F#4:3",.05,{duty:.5,v:.3}); },
   reveal:t=>{ GB.seq(t,"E6:1 G6:1 B6:1 E7:3",.045,{duty:.125,v:.35}); GB.noise(t+.18,.15,{v:.15,hp:5000}); },   // 揭曉：閃亮聲
