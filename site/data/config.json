@@ -224,7 +224,7 @@
   "eyecare": {
     "restMinutes": 15,
     "restSeconds": 20,
-    "questEveryMinutes": 10,
+    "questEveryMinutes": 6,
     "questMinutes": 15,
     "breakMinutes": 5,
     "shakeScale": 0.6

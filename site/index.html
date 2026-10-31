@@ -352,6 +352,17 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 .sheet-trash[data-armed]{background:var(--bad);color:#fff;border-color:var(--bad);width:auto;padding:0 12px;gap:6px;font-weight:900;font-size:.85rem;display:flex;align-items:center}
 .dev-tag{position:fixed;left:50%;top:4px;transform:translateX(-50%);z-index:60;display:none;pointer-events:none;background:#6a1b9a;color:#fff;font-size:.72rem;font-weight:900;border-radius:999px;padding:2px 10px;opacity:.92}
 html.devtest .dev-tag{display:block}
+.quest-pop{text-align:center;align-items:center}
+.quest-pop .btn{width:100%}
+.quest-pop h2{margin:0;font-size:1.5rem}
+.quest-pop p{margin:0}
+.quest-tag{font-weight:900;color:#b7860b;letter-spacing:2px}
+.quest-orb{position:relative;width:150px;height:150px;border-radius:50%;background:var(--c,#e53935);box-shadow:0 0 0 6px #fff,0 0 0 9px var(--c),0 0 36px 10px color-mix(in srgb,var(--c) 55%,transparent);display:grid;place-items:center;font-size:84px;line-height:1;animation:questGlow 2.4s ease-in-out infinite}
+.quest-orb.obj{background:#fff;box-shadow:0 0 0 6px #ffd54a,0 0 30px 8px rgba(255,213,74,.55)}
+.quest-orb::after{content:"✨";position:absolute;right:-6px;top:-10px;font-size:30px}
+@keyframes questGlow{50%{transform:scale(1.05)}}
+@media (prefers-reduced-motion:reduce){.quest-orb{animation:none}}
+.quest-card{cursor:pointer}
 .rest-card{text-align:center;align-items:center}
 .rest-card h2{margin:0;font-size:1.15rem}
 .rest-card p{margin:0;font-size:.98rem;line-height:1.55}
@@ -730,6 +741,16 @@ html.noscroll,html.noscroll body{overflow:hidden}
   </div>
 </div>
 <div class="dev-tag" title="測試遭遇：不會記入圖鑑">🧪 測試</div>
+<div class="sheet-wrap center" id="questPanel" hidden>
+  <div class="modal quest-pop" role="dialog" aria-label="新任務">
+    <small class="quest-tag">✨ 新任務 ✨</small>
+    <div class="quest-orb" id="questOrb"></div>
+    <h2 id="questPopTitle"></h2>
+    <p>拍下來，可能會遇到<b>稀有寶可夢</b>喔！</p>
+    <button class="btn ghost" id="questSayBtn">🔊 再聽一次</button>
+    <button class="btn sun" id="questGo">好！出發！</button>
+  </div>
+</div>
 <div class="sheet-wrap center" id="restPanel" hidden>
   <div class="modal rest-card" role="dialog" aria-label="休息一下">
     <div class="rest-art"><img id="restArt" alt=""><div class="rest-ring" id="restRing"><b id="restCount">20</b></div></div>
@@ -743,7 +764,7 @@ html.noscroll,html.noscroll body{overflow:hidden}
 <canvas id="cv" width="48" height="48" hidden></canvas>
 
 <script>
-const BUILD="2026.10.31-1737";
+const BUILD="2026.10.31-1755";
 /* =========================================================
    顏色寶可夢探險
    資料都在 data/：config.json 列出要載入的資料包（packs），
@@ -1063,7 +1084,7 @@ function show(name){
   bgmKick();
   if(name==="dex"){if(DEXUI.focus)focusDexOn(DEXUI.focus);renderDex();if(!DEXUI.focus)$("dexScroll").scrollTop=0;}
   if(name==="info") renderInfo();
-  if(typeof questUI==="function")try{questUI();}catch(e){}
+  if(typeof questUI==="function")try{questUI();if(name==="camera"||name==="explore")setTimeout(questMaybeStart,600);}catch(e){}
   scrollTo(0,0);
 }
 addEventListener("popstate",()=>show(location.hash.slice(1)));
@@ -1375,7 +1396,7 @@ async function throwBall(speed=1){
     ball.classList.add("locked");
     shakeScene(8,420);stars(P.ground,14);sfx("caught");bubble(`喀擦！抓到${mon.name}了！`);
     try{navigator.vibrate&&navigator.vibrate(200);}catch(e){}
-    saveDex(mon);lastCaught=mon;current=null;
+    saveDex(mon);lastCaught=mon;current=null;if(!TEST&&typeof questOnCatch==='function')questOnCatch();
     await wait(1500);if(stale())return;
     anim(sh,[{opacity:1},{opacity:0}],{duration:200});
     showResult(mon);
@@ -3381,7 +3402,7 @@ const QUEST_COLORS=[
   {key:"yellow",name:"黃色",hex:"#fdd835",h:[40,68]},{key:"green",name:"綠色",hex:"#43a047",h:[75,165]},
   {key:"blue",name:"藍色",hex:"#1e88e5",h:[190,250]},{key:"purple",name:"紫色",hex:"#8e24aa",h:[255,295]},
   {key:"pink",name:"粉紅色",hex:"#ec407a",h:[300,345]}];
-const eyeCfg=()=>({restMinutes:15,restSeconds:20,questEveryMinutes:10,questMinutes:15,breakMinutes:5,...(CFG?.eyecare||{})});
+const eyeCfg=()=>({restMinutes:15,restSeconds:20,questEveryMinutes:6,questMinutes:15,breakMinutes:5,...(CFG?.eyecare||{})});
 let EYE={play:0,last:Date.now(),questPlay:0,quest:null};
 try{Object.assign(EYE,JSON.parse(localStorage.getItem(EYE_KEY)||"{}"));}catch(e){}
 let QUEST_LAST=null;
@@ -3434,7 +3455,7 @@ async function objDetect(img){
   return d.map(x=>({k:x.class,score:x.score,o:QUEST_OBJS.find(o=>o.k===x.class)})).filter(x=>x.o);
 }
 function questStart(){
-  const c=eyeCfg();
+  const c=eyeCfg();EYE.caught=0;EYE.need=3+Math.floor(Math.random()*3);   // 下一次：再抓 3～5 隻
   if(objOn()&&Math.random()<.5){                                       // 物品任務（設定有打開才會出）
     const prev=EYE.quest?.obj,opts=QUEST_OBJS.filter(x=>x.k!==prev),O=opts[Math.floor(Math.random()*opts.length)];
     EYE.quest={obj:O.k,until:Date.now()+c.questMinutes*60000};EYE.questPlay=0;eyeSave();questUI();
@@ -3455,16 +3476,45 @@ function questUI(){
   if(q.obj){
     const O=QUEST_OBJS.find(o=>o.k===q.obj)||{name:q.obj,emoji:"🔍"};
     $("questDot").hidden=true;$("questEmoji").hidden=false;$("questEmoji").textContent=O.emoji;
-    $("questText").innerHTML=`任務：去找一個 <b>${O.name}</b>，拍下來就會遇到<b>稀有寶可夢</b>！<small>（還有 ${min} 分鐘${OBJ.model?"":OBJ.err?"・辨識載入失敗":"・準備辨識中…"}）</small>`;
+    $("questText").innerHTML=`任務：去找一個 <b>${O.name}</b>，拍下來就會遇到<b>稀有寶可夢</b>！<small>（還有 ${min} 分鐘${OBJ.model?"":OBJ.err?"・辨識載入失敗":"・準備辨識中…"}・點我聽）</small>`;
     if(!OBJ.model&&!OBJ.loading&&!OBJ.err&&objOn())objLoad().then(questUI,questUI);
     return;
   }
   const C=QUEST_COLORS.find(c=>c.key===q.color);
   $("questDot").hidden=false;$("questEmoji").hidden=true;
   $("questDot").style.background=C.hex;
-  $("questText").innerHTML=`任務：去遠一點的地方，找一個 <b style="color:${C.hex}">${C.name}</b> 的東西拍下來，就會遇到<b>稀有寶可夢</b>！<small>（還有 ${min} 分鐘）</small>`;
+  $("questText").innerHTML=`任務：去遠一點的地方，找一個 <b style="color:${C.hex}">${C.name}</b> 的東西拍下來，就會遇到<b>稀有寶可夢</b>！<small>（還有 ${min} 分鐘・點我聽）</small>`;
 }
-$("questClose").onclick=()=>{EYE.quest=null;eyeSave();questUI();};
+$("questClose").onclick=e=>{e.stopPropagation();EYE.quest=null;eyeSave();questUI();};
+/* 看不懂字也知道要找什麼：唸出來＋大大的顏色（或東西的圖案） */
+function questInfo(q=questActive()){
+  if(!q)return null;
+  if(q.obj){const O=QUEST_OBJS.find(o=>o.k===q.obj)||{name:q.obj,emoji:"🔍"};return {title:`去找一個${O.name}！`,say:`去找一個${O.name}！拍下來，可能會遇到稀有寶可夢喔！`,emoji:O.emoji,hex:"#ffffff"};}
+  const C=QUEST_COLORS.find(c=>c.key===q.color);return {title:`去找${C.name}的東西！`,say:`去找${C.name}的東西！拍下來，可能會遇到稀有寶可夢喔！`,hex:C.hex};
+}
+function questSay(){
+  const I=questInfo();if(!I||!TTS||muted)return;
+  try{dexEntryStop(false);speechSynthesis.cancel();ttsPick();const u=ttsUtter(I.say,1);bgmDuck(4);speechSynthesis.speak(u);}catch(e){}
+}
+function questAnnounce(){
+  const I=questInfo();if(!I)return;
+  $("questOrb").style.setProperty("--c",I.hex);$("questOrb").textContent=I.emoji||"";$("questOrb").classList.toggle("obj",!!I.emoji);
+  $("questPopTitle").textContent=I.title;
+  $("questPanel").hidden=false;sfx("reveal");
+  setTimeout(()=>{if(!$("questPanel").hidden)questSay();},650);
+}
+$("questGo").onclick=()=>{$("questPanel").hidden=true;try{speechSynthesis.cancel();}catch(e){}};
+$("questSayBtn").onclick=()=>{unlockAudio();questSay();};
+$("questCard").addEventListener("click",()=>{                           // 點任務卡：再唸一次、顏色圓圈跳一下
+  unlockAudio();questSay();
+  anim($("questDot").hidden?$("questEmoji"):$("questDot"),[{transform:"scale(1)"},{transform:"scale(1.35)"},{transform:"scale(1)"}],{duration:500,easing:"ease-out",fill:"none"});
+});
+/* 抓到寶可夢：沒有任務時累計，抓滿 3～5 隻就出任務（回到拍照／探索畫面時跳出來） */
+function questOnCatch(){if(questActive())return;EYE.caught=(EYE.caught||0)+1;if(!EYE.need)EYE.need=3+Math.floor(Math.random()*3);eyeSave();}
+function questMaybeStart(){
+  if(questActive()||!(screen==="camera"||screen==="explore")||!$("restPanel").hidden||!$("questPanel").hidden)return;
+  if((EYE.caught||0)>=(EYE.need||4)){questStart();questAnnounce();}
+}
 function eyeRestShow(){
   const c=eyeCfg(),ids=Object.keys(dex).map(Number).filter(id=>MONS.some(m=>m.id===id));
   const id=ids.length?ids[Math.floor(Math.random()*ids.length)]:25,m=MONS.find(x=>x.id===id);
@@ -3477,7 +3527,7 @@ function eyeRestShow(){
 }
 function eyeRestClose(rested){
   clearInterval(EYE.restT);$("restPanel").hidden=true;EYE.play=0;eyeSave();
-  if(!questActive()){const C=questStart();setTimeout(()=>toast(C.obj?`遠方好像有稀有寶可夢！去找一個${C.name}吧`:`遠方好像有稀有寶可夢！去找一個${C.name}的東西吧`),300);}
+  if(!questActive()){questStart();setTimeout(questAnnounce,300);}
 }
 $("restOk").onclick=()=>eyeRestClose(true);
 $("restSkip").onclick=()=>eyeRestClose(false);
@@ -3486,10 +3536,10 @@ function eyeTick(){
   if(document.hidden){eyeSave();return;}
   if(dt>c.breakMinutes*60000){EYE.play=0;}                        // 離開很久了＝休息過了
   else{EYE.play+=dt;EYE.questPlay=(EYE.questPlay||0)+dt;}
-  const calm=!BT.on&&!busy&&!scanning&&$("restPanel").hidden&&["camera","explore","dex","result"].includes(screen);
+  const calm=!BT.on&&!busy&&!scanning&&$("restPanel").hidden&&$("questPanel").hidden&&["camera","explore","dex","result"].includes(screen);
   if(calm&&EYE.play>=c.restMinutes*60000){eyeRestShow();}
   else if(calm&&!questActive()&&EYE.questPlay>=c.questEveryMinutes*60000&&(screen==="camera"||screen==="explore")){
-    const C=questStart();toast(C.obj?`遠方好像有稀有寶可夢！去找一個${C.name}吧`:`遠方好像有稀有寶可夢！去找一個${C.name}的東西吧`);
+    questStart();questAnnounce();
   }
   if(EYE.quest&&!questActive()){EYE.quest=null;}
   questUI();eyeSave();
