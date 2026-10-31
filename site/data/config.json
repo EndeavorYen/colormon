@@ -93,8 +93,8 @@
     "holdMs": 700,
     "minTargetDeg": 70,
     "maxTargetDeg": 170,
-    "minPitch": -20,
-    "maxPitch": 35,
+    "minPitch": -32,
+    "maxPitch": 28,
     "slowBeatMs": 1300,
     "fastBeatMs": 140
   },
@@ -211,7 +211,7 @@
       "default": 2,
       "5": 3
     },
-    "shakePx": 5,
+    "shakePx": 3.5,
     "shotScale": 0.8
   },
   "rarityCap": {
@@ -220,5 +220,13 @@
   },
   "bgm": {
     "volume": 0.25
+  },
+  "eyecare": {
+    "restMinutes": 15,
+    "restSeconds": 20,
+    "questEveryMinutes": 10,
+    "questMinutes": 15,
+    "breakMinutes": 5,
+    "shakeScale": 0.6
   }
 }
