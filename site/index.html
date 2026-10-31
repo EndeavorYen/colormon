@@ -714,7 +714,7 @@ html.noscroll,html.noscroll body{overflow:hidden}
 <canvas id="cv" width="48" height="48" hidden></canvas>
 
 <script>
-const BUILD="2026.10.30-1903";
+const BUILD="2026.10.31-1137";
 /* =========================================================
    顏色寶可夢探險
    資料都在 data/：config.json 列出要載入的資料包（packs），
@@ -1035,7 +1035,7 @@ $("backBtn").onclick=()=>go(screen==="explore"?"camera":home);
 $("dexBtn").onclick=()=>openDex();
 $("infoBtn").onclick=()=>go("info");
 $("moreBtn").onclick=()=>go(home);
-$("toDexBtn").onclick=()=>openDex(RESULT_ID);
+$("toDexBtn").onclick=()=>{if(RESULT_ID){openMonSheet(RESULT_ID);$("releaseBtn").hidden=true;}};   // 直接在「抓到了」畫面上跳出這隻的介紹視窗；按 ✕ 就回到原畫面（不從這裡放生）
 $("fledBtn").onclick=()=>go(home);
 
 /* ---------- 1 拍照 ---------- */

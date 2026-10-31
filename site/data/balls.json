@@ -1,6 +1,6 @@
 {
   "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/{key}.png",
-  "cycleMs": 120,
+  "cycleMs": 200,
   "balls": [
     {"key":"poke-ball","name":"精靈球","weight":30},
     {"key":"great-ball","name":"超級球","weight":18,"bonus":1.25},
@@ -27,6 +27,6 @@
     {"key":"dream-ball","name":"夢境球","weight":2,"types":["psychic","fairy"],"typeBonus":1.5,"hint":"超能力和妖精屬性很有效"},
     {"key":"beast-ball","name":"究極球","weight":1.5,"minRarity":4,"rarityBonus":2.0,"hint":"四星以上的寶可夢很有效"},
     {"key":"cherish-ball","name":"貴重球","weight":1.5,"bonus":1.5},
-    {"key":"master-ball","name":"大師球","weight":1,"guaranteed":true,"hint":"一定抓得到！"}
+    {"key":"master-ball","name":"大師球","weight":0.25,"guaranteed":true,"hint":"一定抓得到！"}
   ]
 }

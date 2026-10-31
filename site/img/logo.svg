@@ -1,4 +1,26 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <circle cx="32" cy="32" r="28" fill="#fff" stroke="#2b2f3a" stroke-width="4"/>
-  <line x1="4" y1="32" x2="60" y2="32" stroke="#2b2f3a" stroke-width="4"/>
+  <defs>
+    <radialGradient id="body" cx="38%" cy="32%" r="72%">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset=".55" stop-color="#eef1f6"/>
+      <stop offset="1" stop-color="#b9c0cc"/>
+    </radialGradient>
+    <radialGradient id="shine" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#fff" stop-opacity=".95"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="shadow" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#1d2330" stop-opacity=".35"/>
+      <stop offset="1" stop-color="#1d2330" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="c"><circle cx="32" cy="30" r="25"/></clipPath>
+  </defs>
+  <ellipse cx="32" cy="58" rx="20" ry="4" fill="url(#shadow)"/>
+  <circle cx="32" cy="30" r="25" fill="url(#body)"/>
+  <g clip-path="url(#c)">
+    <path d="M5 31.5Q32 38.5 59 31.5" stroke="#2b2f3a" stroke-width="3.6" fill="none"/>
+    <path d="M7 34.6Q32 41 57 34.6" stroke="#fff" stroke-opacity=".5" stroke-width="1.2" fill="none"/>
+  </g>
+  <circle cx="32" cy="30" r="25" fill="none" stroke="#2b2f3a" stroke-width="3"/>
+  <ellipse cx="23" cy="19" rx="8" ry="5" transform="rotate(-30 23 19)" fill="url(#shine)"/>
 </svg>
