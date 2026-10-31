@@ -4,6 +4,7 @@
    - 網頁本身和資料檔：先上網拿最新版，沒網路時才用手機裡存的（所以改版會馬上看到，離線也能開） */
 const IMG_CACHE = "colormon-img-v1";
 const APP_CACHE = "colormon-app-v1";
+const MODEL_CACHE = "colormon-model-v1";
 const IMG_MAX = 1500;                         // 圖片最多存幾張（全部寶可夢＋球大約 1100 張）
 
 self.addEventListener("install", () => self.skipWaiting());
@@ -16,6 +17,11 @@ self.addEventListener("fetch", e => {
 
   if (url.hostname === "raw.githubusercontent.com" && url.pathname.startsWith("/PokeAPI/sprites/")) {
     e.respondWith(cacheFirst(url.href));
+    return;
+  }
+  // 物品辨識的程式庫和模型（約 6MB，檔名有版本號、不會變）：存一次就一直用，不要每次重新下載
+  if (url.origin === self.location.origin && /^\/(vendor|models)\//.test(url.pathname)) {
+    e.respondWith(caches.open(MODEL_CACHE).then(async c => (await c.match(req)) || fetch(req).then(r => { if (r.ok) c.put(req, r.clone()); return r; })));
     return;
   }
   if (url.origin === self.location.origin) {

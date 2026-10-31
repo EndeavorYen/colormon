@@ -109,7 +109,7 @@ async def main():
         await pg.evaluate("localStorage.setItem('colormon-ball-mode','0')"); await pg.reload(); await pg.wait_for_timeout(700)
         await pg.click("[data-s=night]"); await pg.wait_for_selector("#throwBtn:not([disabled])",timeout=15000); await pg.wait_for_timeout(1500)
         # 不開真的相機（假相機的畫面會自己動）；用假的影片尺寸和鏡頭模式版面，只吃合成畫面
-        await pg.evaluate("Object.defineProperty($('arVideo'),'videoWidth',{get:()=>640});Object.defineProperty($('arVideo'),'videoHeight',{get:()=>480});$('scene').classList.add('ar');SHIELD.hp=3;0")
+        await pg.evaluate("Object.defineProperty($('arVideo'),'videoWidth',{get:()=>640});Object.defineProperty($('arVideo'),'videoHeight',{get:()=>480});$('scene').classList.add('ar');$('hand').classList.add('swipe');SHIELD.hp=3;0")
         await pg.evaluate(JS)
         await pg.evaluate("window.onBallThrown=()=>{window.__thr&&window.__thr()};window.onBallLanded=()=>{};window.hitShield=()=>{window.__hit&&window.__hit()};0")
         import os

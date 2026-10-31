@@ -128,7 +128,8 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 .ball.locked .cap::after{background:var(--ink)}
 .ball-shadow{position:absolute;left:0;top:0;width:44px;height:12px;margin:-6px 0 0 -22px;border-radius:50%;background:rgba(0,0,0,.25);z-index:2;opacity:0}
 .hand{position:absolute;left:50%;top:auto;bottom:6px;margin:0;width:min(34%,140px);height:auto;aspect-ratio:1;translate:-50% 0;z-index:3;animation:bob 1.6s ease-in-out 6}
-.hand img{scale:1.3}   /* 球的圖片四周有留白，放大一點讓球本身佔滿 */   /* 選球時的球放大（約畫面三分之一），比較不用盯著小小的球；丟出去才縮回一般大小 */
+.hand img{scale:1.3}
+.hand.swipe{width:64px}   /* 開鏡頭（揮手甩球）時維持原本大小，揮手判斷比較準 */   /* 球的圖片四周有留白，放大一點讓球本身佔滿 */   /* 選球時的球放大（約畫面三分之一），比較不用盯著小小的球；丟出去才縮回一般大小 */
 @keyframes bob{50%{transform:translateY(-6px)}}
 .flash{position:absolute;left:0;top:0;width:160px;height:160px;margin:-80px 0 0 -80px;border-radius:50%;background:radial-gradient(circle,#fff 0,#fff 30%,transparent 70%);opacity:0;pointer-events:none;z-index:4}
 .fx i{position:absolute;left:0;top:0;width:14px;height:14px;margin:-7px 0 0 -7px;background:var(--sun);clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);z-index:5}
@@ -363,6 +364,7 @@ html.devtest .dev-tag{display:block}
 .quest-card{display:flex;align-items:center;gap:10px;background:var(--card);border:2px solid var(--line);border-radius:16px;padding:8px 8px 8px 12px;margin:0 0 10px}
 .quest-card[hidden]{display:none}
 .quest-card i{flex:none;width:26px;height:26px;border-radius:50%;box-shadow:inset 0 0 0 3px #fff8,0 0 0 2px #0002}
+.quest-emoji{flex:none;font-size:1.7rem;line-height:1}
 .quest-card p{margin:0;flex:1;font-size:.88rem;line-height:1.45}
 .quest-card small{color:var(--muted)}
 .quest-x{flex:none;border:0;background:transparent;color:var(--muted);font-size:1rem;width:32px;height:32px;cursor:pointer}
@@ -503,7 +505,7 @@ html.noscroll,html.noscroll body{overflow:hidden}
     <button class="dex-btn" id="dexBtn">圖鑑 <b id="dexCount">0</b></button>
   </div>
 
-  <div class="quest-card" id="questCard" hidden><i id="questDot"></i><p id="questText"></p><button class="quest-x" id="questClose" aria-label="不玩這個任務">✕</button></div>
+  <div class="quest-card" id="questCard" hidden><i id="questDot"></i><span class="quest-emoji" id="questEmoji" hidden></span><p id="questText"></p><button class="quest-x" id="questClose" aria-label="不玩這個任務">✕</button></div>
   <!-- 1 拍照 -->
   <section class="screen" id="s-camera">
     <div class="move-box" id="moveBox" hidden>
@@ -661,6 +663,7 @@ html.noscroll,html.noscroll body{overflow:hidden}
 
     <details class="panel manage" id="dexManage"><summary>圖鑑管理</summary>
       <label class="setting"><input type="checkbox" id="bgmToggle" checked><span>背景音樂（右上角的音符也可以開關）</span></label>
+      <label class="setting"><input type="checkbox" id="objToggle"><span>物品任務：用手機認出東西（例如「去找一個時鐘」），第一次會下載約 6MB</span></label>
       <label class="setting"><input type="checkbox" id="silToggle"><span>沒抓過的寶可夢先用剪影顯示，抓到或跳出來時才揭曉</span></label>
       <h3>玩家</h3>
       <p class="note left">兄弟姊妹共用手機時，每個人有自己的圖鑑。</p>
@@ -740,7 +743,7 @@ html.noscroll,html.noscroll body{overflow:hidden}
 <canvas id="cv" width="48" height="48" hidden></canvas>
 
 <script>
-const BUILD="2026.10.31-1417";
+const BUILD="2026.10.31-1737";
 /* =========================================================
    顏色寶可夢探險
    資料都在 data/：config.json 列出要載入的資料包（packs），
@@ -1161,6 +1164,8 @@ function startScan(src,real=false){                          // real＝真的拍
     const preload=new Promise(res=>{const im=new Image();im.onload=im.onerror=res;im.src=artUrl(picked.mon.id);});
     $("scanImg").src=src;$("sceneBg").style.backgroundImage=`url("${src}")`;
     $("scanText").textContent="分析顏色中…";
+    const oq=real&&!picked.night&&questActive()?.obj?questActive():null;            // 物品任務：一邊分析顏色一邊認東西
+    const objP=oq?objDetect(img).catch(()=>null):null;
     $("palette").innerHTML=pal.map(c=>`<i style="background:${css(c.rgb)}"></i>`).join("");
     $("palLegend").innerHTML="";
     drawSubjectMask(an);
@@ -1176,7 +1181,22 @@ function startScan(src,real=false){                          // real＝真的拍
     const subj=pal.filter(c=>c.subject),bgc=pal.find(c=>!c.subject);
     const seen=subj.length?`看到${subj[0].word}的東西！${bgc?`（背景是${bgc.word}）`:""}`:`看到${words.join(" + ")}！`;
     await wait(600); $("scanText").textContent=picked.night?"好暗喔…什麼都看不清楚":questHit?`找到${QUEST_LAST.name}的東西了！任務完成！`:seen;
-    await wait(an?.mask?1300:900); $("scanText").textContent=picked.night?"黑暗中有東西在動！":questHit?"遠方的稀有寶可夢出現了！":"草叢裡有東西在動…";
+    let objHit=false;
+    if(objP){
+      const OQ=QUEST_OBJS.find(o=>o.k===oq.obj);
+      await wait(700);$("scanText").textContent="認認看拍到了什麼…";
+      const found=await objP;
+      if(found&&found.some(f=>f.k===oq.obj&&f.score>=.4)){
+        objHit=true;picked=pickQuestMon(pal);questDone();
+        const im=new Image();im.src=artUrl(picked.mon.id);
+        $("scanText").textContent=`${OQ.emoji} 找到${OQ.name}了！任務完成！`;
+      }else{
+        const names=[...new Set((found||[]).map(f=>f.o.name))];
+        $("scanText").textContent=found==null?"這次認不出來，等一下再試試":names.length?`我看到了${names.join("、")}，可是沒有${OQ.name}`:`沒有認出${OQ.name}，換個角度再拍拍看`;
+      }
+      await wait(1100);
+    }
+    await wait(an?.mask?1300:900); $("scanText").textContent=picked.night?"黑暗中有東西在動！":(questHit||objHit)?"遠方的稀有寶可夢出現了！":"草叢裡有東西在動…";
     await Promise.race([preload,wait(800)]);
     scanning=false;
     startEncounter(pal,picked);
@@ -1275,7 +1295,7 @@ function pts(){
   const s=$("scene").getBoundingClientRect(), m=$("mon").getBoundingClientRect();
   const mon={x:m.left-s.left+m.width/2,y:m.top-s.top+m.height/2};
   const hEl=$("hand");                                         // 選球時的大球：記住位置和大小（丟出去時從這裡縮回一般大小飛出）
-  if(!hEl.hidden){const h=hEl.getBoundingClientRect();if(h.width)PTS_HAND={x:h.left-s.left+h.width/2,y:h.top-s.top+h.height/2,k:h.width/64};}
+  if(!hEl.hidden){const h=hEl.getBoundingClientRect();if(h.width)PTS_HAND={x:h.left-s.left+h.width/2,y:h.top-s.top+h.height/2,k:Math.max(1.25,h.width/64)};}
   const hand=PTS_HAND||{x:s.width/2,y:s.height-42,k:1.25};
   return {hand,mon,ground:{x:mon.x,y:s.height*0.76}};
 }
@@ -1568,7 +1588,7 @@ function renderDex(){
       <b>#${pad3(m.id)}</b><span>${m.name}</span><small>${"★".repeat(m.rarity)}</small></div>`;
   });
   $("dex").innerHTML=cells.length?cells.join(""):`<p class="empty">${got?"沒有符合的寶可夢":"還沒有抓到寶可夢。<br>去拍張照片吧！"}</p>`;
-  $("silToggle").checked=silhouetteOn();$("bgmToggle").checked=BGM.on;
+  $("silToggle").checked=silhouetteOn();$("objToggle").checked=objOn();$("bgmToggle").checked=BGM.on;
   renderProfiles();
   if(DEXUI.focus){
     const id=DEXUI.focus;DEXUI.focus=0;
@@ -1577,6 +1597,11 @@ function renderDex(){
   }
 }
 $("bgmToggle").addEventListener("change",e=>{unlockAudio();setBgm(e.target.checked);});
+$("objToggle").addEventListener("change",e=>{
+  try{localStorage.setItem(OBJ_KEY,e.target.checked?"1":"0");}catch(err){}
+  if(!e.target.checked&&EYE.quest?.obj){EYE.quest=null;eyeSave();questUI();}
+  if(e.target.checked)toast("之後的任務有時會要你去找東西（例如時鐘、杯子）");
+});
 $("silToggle").addEventListener("change",e=>{try{localStorage.setItem(SIL_KEY,e.target.checked?"1":"0");}catch(err){}});
 // 篩選、排序、搜尋
 document.querySelectorAll("#dexStatus button").forEach(b=>b.onclick=()=>{DEXUI.status=b.dataset.s;DEXUI.page=0;
@@ -3365,7 +3390,7 @@ function questActive(){return EYE.quest&&EYE.quest.until>Date.now()?EYE.quest:nu
 function hueOf([r,g,b]){return rgb2hsv(r,g,b);}
 /* 拍到的圓圈裡，有沒有一塊夠大（25% 以上）、夠鮮豔的任務顏色 */
 function questMatch(pal){
-  const q=questActive();if(!q)return false;
+  const q=questActive();if(!q||q.obj)return false;
   const C=QUEST_COLORS.find(c=>c.key===q.color);if(!C)return false;
   return pal.slice(0,3).some(c=>{
     if(c.share<.25)return false;
@@ -3379,18 +3404,63 @@ function pickQuestMon(pal){
   const p=pickFrom(pool,pal,Math.random(),{rw:{3:1,4:1,5:.3},cap:{4:.4,5:.1},noVivid:true});
   return {mon:p.m,sim:Math.max(5,Math.min(99,Math.round(100-scoreMon(pal,p.m)*1.3))),quest:true};
 }
+/* ---- 物品任務：用 COCO-SSD（TensorFlow.js，能認 80 種常見東西）在手機上辨識，照片不會上傳 ----
+   程式庫和模型放在自己的網站（vendor/、models/），模型量化過約 4.5MB；設定裡打開才會用，第一次出物品任務時才下載 */
+const OBJ_KEY="colormon-objquest";
+const QUEST_OBJS=[
+  ["clock","時鐘","🕰️"],["cup","杯子","☕"],["chair","椅子","🪑"],["book","書","📖"],["teddy bear","布偶熊","🧸"],
+  ["banana","香蕉","🍌"],["apple","蘋果","🍎"],["orange","橘子","🍊"],["bottle","瓶子","🧴"],["umbrella","雨傘","☂️"],
+  ["remote","遙控器","🎛️"],["bowl","碗","🥣"],["potted plant","盆栽","🪴"],["tv","電視","📺"],["laptop","筆記型電腦","💻"],
+  ["sports ball","球","⚽"],["toothbrush","牙刷","🪥"],["backpack","書包","🎒"],["couch","沙發","🛋️"],["keyboard","鍵盤","⌨️"],
+  ["bed","床","🛏️"],["refrigerator","冰箱","🧊"]].map(([k,name,emoji])=>({k,name,emoji}));
+const objOn=()=>{try{return localStorage.getItem(OBJ_KEY)==="1";}catch(e){return false;}};
+const OBJ={model:null,loading:null,err:null};
+function loadScript(src){return new Promise((res,rej)=>{if(document.querySelector(`script[src="${src}"]`))return res();const s=document.createElement("script");s.src=src;s.onload=res;s.onerror=()=>rej(new Error("load "+src));document.head.appendChild(s);});}
+function objLoad(){
+  if(OBJ.model)return Promise.resolve(OBJ.model);
+  if(OBJ.loading)return OBJ.loading;
+  OBJ.loading=(async()=>{
+    await loadScript("vendor/tf-4.22.0.min.js");await loadScript("vendor/coco-ssd-2.2.3.min.js");
+    OBJ.model=await cocoSsd.load({base:"lite_mobilenet_v2",modelUrl:"models/coco-ssd-lite/model.json"});
+    return OBJ.model;
+  })().catch(e=>{OBJ.err=e;OBJ.loading=null;throw e;});
+  return OBJ.loading;
+}
+const withTimeout=(p,ms)=>Promise.race([p,new Promise((_,rej)=>setTimeout(()=>rej(new Error("timeout")),ms))]);
+/* 照片裡認出了哪些東西（只回傳任務清單裡有的，給小朋友看「我看到了杯子、書」） */
+async function objDetect(img){
+  const m=await withTimeout(objLoad(),20000);
+  const d=await withTimeout(m.detect(img,12,.35),12000);
+  return d.map(x=>({k:x.class,score:x.score,o:QUEST_OBJS.find(o=>o.k===x.class)})).filter(x=>x.o);
+}
 function questStart(){
-  const c=eyeCfg(),prev=EYE.quest?.color,opts=QUEST_COLORS.filter(x=>x.key!==prev);
+  const c=eyeCfg();
+  if(objOn()&&Math.random()<.5){                                       // 物品任務（設定有打開才會出）
+    const prev=EYE.quest?.obj,opts=QUEST_OBJS.filter(x=>x.k!==prev),O=opts[Math.floor(Math.random()*opts.length)];
+    EYE.quest={obj:O.k,until:Date.now()+c.questMinutes*60000};EYE.questPlay=0;eyeSave();questUI();
+    objLoad().catch(()=>{});                                           // 先在背景下載模型
+    return {name:O.name,emoji:O.emoji,obj:true};
+  }
+  const prev=EYE.quest?.color,opts=QUEST_COLORS.filter(x=>x.key!==prev);
   const C=opts[Math.floor(Math.random()*opts.length)];
   EYE.quest={color:C.key,until:Date.now()+c.questMinutes*60000};EYE.questPlay=0;eyeSave();questUI();
   return C;
 }
-function questDone(){QUEST_LAST=QUEST_COLORS.find(c=>c.key===EYE.quest?.color)||null;EYE.quest=null;EYE.questPlay=0;eyeSave();questUI();}
+function questDone(){QUEST_LAST=QUEST_COLORS.find(c=>c.key===EYE.quest?.color)||QUEST_OBJS.find(o=>o.k===EYE.quest?.obj)||null;EYE.quest=null;EYE.questPlay=0;eyeSave();questUI();}
 function questUI(){
   const q=questActive(),el=$("questCard");
   el.hidden=!q||!(screen==="camera"||screen==="explore");
   if(!q)return;
-  const C=QUEST_COLORS.find(c=>c.key===q.color),min=Math.max(1,Math.ceil((q.until-Date.now())/60000));
+  const min=Math.max(1,Math.ceil((q.until-Date.now())/60000));
+  if(q.obj){
+    const O=QUEST_OBJS.find(o=>o.k===q.obj)||{name:q.obj,emoji:"🔍"};
+    $("questDot").hidden=true;$("questEmoji").hidden=false;$("questEmoji").textContent=O.emoji;
+    $("questText").innerHTML=`任務：去找一個 <b>${O.name}</b>，拍下來就會遇到<b>稀有寶可夢</b>！<small>（還有 ${min} 分鐘${OBJ.model?"":OBJ.err?"・辨識載入失敗":"・準備辨識中…"}）</small>`;
+    if(!OBJ.model&&!OBJ.loading&&!OBJ.err&&objOn())objLoad().then(questUI,questUI);
+    return;
+  }
+  const C=QUEST_COLORS.find(c=>c.key===q.color);
+  $("questDot").hidden=false;$("questEmoji").hidden=true;
   $("questDot").style.background=C.hex;
   $("questText").innerHTML=`任務：去遠一點的地方，找一個 <b style="color:${C.hex}">${C.name}</b> 的東西拍下來，就會遇到<b>稀有寶可夢</b>！<small>（還有 ${min} 分鐘）</small>`;
 }
@@ -3407,7 +3477,7 @@ function eyeRestShow(){
 }
 function eyeRestClose(rested){
   clearInterval(EYE.restT);$("restPanel").hidden=true;EYE.play=0;eyeSave();
-  if(!questActive()){const C=questStart();setTimeout(()=>toast(`遠方好像有稀有寶可夢！去找一個${C.name}的東西吧`),300);}
+  if(!questActive()){const C=questStart();setTimeout(()=>toast(C.obj?`遠方好像有稀有寶可夢！去找一個${C.name}吧`:`遠方好像有稀有寶可夢！去找一個${C.name}的東西吧`),300);}
 }
 $("restOk").onclick=()=>eyeRestClose(true);
 $("restSkip").onclick=()=>eyeRestClose(false);
@@ -3419,7 +3489,7 @@ function eyeTick(){
   const calm=!BT.on&&!busy&&!scanning&&$("restPanel").hidden&&["camera","explore","dex","result"].includes(screen);
   if(calm&&EYE.play>=c.restMinutes*60000){eyeRestShow();}
   else if(calm&&!questActive()&&EYE.questPlay>=c.questEveryMinutes*60000&&(screen==="camera"||screen==="explore")){
-    const C=questStart();toast(`遠方好像有稀有寶可夢！去找一個${C.name}的東西吧`);
+    const C=questStart();toast(C.obj?`遠方好像有稀有寶可夢！去找一個${C.name}吧`:`遠方好像有稀有寶可夢！去找一個${C.name}的東西吧`);
   }
   if(EYE.quest&&!questActive()){EYE.quest=null;}
   questUI();eyeSave();
