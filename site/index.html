@@ -36,10 +36,10 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 .bar h1{font-family:var(--display);font-weight:900;font-size:clamp(1rem,4.3vw,1.3rem);margin:0;flex:1;line-height:1.2;min-width:0;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bar .logo{width:30px;height:30px;flex:none;margin-right:-2px}
 @media (max-width:380px){.bar h1{font-size:1rem !important}.dex-btn{padding:6px 8px !important}}
-@media (max-width:400px){.bar{gap:4px}.bar .logo{width:26px;height:26px}.bar h1{font-size:1.05rem}.bar .icon-btn{width:34px;height:34px}.bar .icon-btn svg{width:18px;height:18px}.dex-btn{padding:6px 10px;font-size:.85rem}}
+@media (max-width:400px){.bar{gap:4px}.bar .logo{width:26px;height:26px}.bar h1{font-size:1.05rem}.bar .icon-btn{width:40px;height:40px}.bar .icon-btn svg{width:18px;height:18px}.dex-btn{padding:6px 10px;font-size:.85rem}}
 .icon-btn{width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--card);display:grid;place-items:center;flex:none}
 .icon-btn svg{width:20px;height:20px;fill:currentColor}
-.dex-btn{display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 12px;font-weight:700;font-size:.9rem}
+.dex-btn{display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 12px;font-weight:700;font-size:.9rem;min-height:40px}
 .dex-btn b{font-family:var(--display);font-variant-numeric:tabular-nums}
 
 .screen{flex:1;display:flex;flex-direction:column;gap:14px;padding-top:6px;animation:enter .3s ease-out}
@@ -54,7 +54,7 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 
 /* camera screen */
-.viewer{position:relative;width:100%;max-width:100%;aspect-ratio:3/4;max-height:60vh;border-radius:20px;overflow:hidden;background:#0d1117;display:grid;place-items:center}
+.viewer{position:relative;width:100%;max-width:min(100%,45vh);margin:0 auto;aspect-ratio:3/4;max-height:60vh;border-radius:20px;overflow:hidden;background:#0d1117;display:grid;place-items:center}
 .viewer video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .reticle{position:absolute;width:56%;aspect-ratio:1;border:3px dashed rgba(255,255,255,.85);border-radius:50%;pointer-events:none}
 .live-chip{position:absolute;left:12px;right:12px;bottom:12px;display:flex;gap:8px;align-items:center;background:rgba(0,0,0,.55);color:#fff;border-radius:999px;padding:6px 14px 6px 6px;font-size:.9rem;font-weight:700}
@@ -66,7 +66,7 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 .note{font-size:.84rem;color:var(--muted);margin:0;text-align:center}
 .samples{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center}
 .samples span{font-size:.84rem;color:var(--muted)}
-.chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:5px 12px;font-size:.86rem}
+.chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:5px 14px;font-size:.86rem;min-height:40px}
 
 /* explore mode */
 .explore-btn{background:color-mix(in srgb,var(--good) 18%,var(--card));color:var(--ink);border:2px solid var(--good)}
@@ -127,13 +127,13 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 .ball.locked img{filter:brightness(.75)}
 .ball.locked .cap::after{background:var(--ink)}
 .ball-shadow{position:absolute;left:0;top:0;width:44px;height:12px;margin:-6px 0 0 -22px;border-radius:50%;background:rgba(0,0,0,.25);z-index:2;opacity:0}
-.hand{position:absolute;left:50%;top:auto;bottom:6px;margin:0;width:min(34%,140px);height:auto;aspect-ratio:1;translate:-50% 0;z-index:3;animation:bob 1.6s ease-in-out 6}
+.hand{position:absolute;left:50%;top:auto;bottom:6px;margin:0;width:min(34%,140px,16vh);height:auto;aspect-ratio:1;translate:-50% 0;z-index:3;animation:bob 1.6s ease-in-out 6}
 .hand img{scale:1.3}
 .hand.swipe{width:64px}   /* 開鏡頭（揮手甩球）時維持原本大小，揮手判斷比較準 */   /* 球的圖片四周有留白，放大一點讓球本身佔滿 */   /* 選球時的球放大（約畫面三分之一），比較不用盯著小小的球；丟出去才縮回一般大小 */
 @keyframes bob{50%{transform:translateY(-6px)}}
 .flash{position:absolute;left:0;top:0;width:160px;height:160px;margin:-80px 0 0 -80px;border-radius:50%;background:radial-gradient(circle,#fff 0,#fff 30%,transparent 70%);opacity:0;pointer-events:none;z-index:4}
 .fx i{position:absolute;left:0;top:0;width:14px;height:14px;margin:-7px 0 0 -7px;background:var(--sun);clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);z-index:5}
-.bubble{position:absolute;left:50%;top:12px;transform:translateX(-50%);background:var(--card);color:var(--ink);border:2px solid var(--ink);border-radius:999px;padding:4px 16px;font-weight:900;white-space:nowrap;z-index:6;max-width:calc(100% - 110px);overflow:hidden;text-overflow:ellipsis}
+.bubble{position:absolute;left:50%;top:12px;transform:translateX(-50%);background:var(--card);color:var(--ink);border:2px solid var(--ink);border-radius:999px;padding:4px 14px;font-weight:900;z-index:6;max-width:calc(100% - 116px);width:max-content;text-align:center;line-height:1.3;border-radius:18px;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}   /* 提示太長時換行（最多兩行），不要被「…」切掉 */
 .bubble:empty{display:none}
 .shake-dots{position:absolute;right:14px;bottom:14px;display:flex;gap:6px;z-index:6}
 .shake-dots i{width:10px;height:10px;border-radius:50%;background:color-mix(in srgb,var(--ink) 20%,transparent)}
@@ -143,7 +143,7 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 .info .name{font-family:var(--display);font-weight:900;font-size:1.5rem;line-height:1.1;margin:0}
 .type-pills{display:inline-flex;gap:4px;align-items:center}
 .type-pill{font-style:normal;background:var(--type);color:#fff;padding:2px 10px;border-radius:999px;font-weight:700;font-size:.82rem}
-.stars{color:#E8A100;letter-spacing:0;font-size:.92rem;white-space:nowrap}
+.stars{color:#B07600;letter-spacing:0;font-size:.92rem;white-space:nowrap}
 .orbs{margin-left:auto;display:flex;gap:6px}
 .orbs b{width:14px;height:14px;border-radius:50%;background:var(--sun);border:2px solid var(--ink)}
 .orbs b.used{background:transparent;opacity:.3}
@@ -162,6 +162,16 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 .hw.on .dot{background:var(--good)}
 .throw:disabled{opacity:.45;cursor:default}
 
+/* 橫拿手機（矮螢幕）：遭遇畫面左右兩欄，丟球按鈕不用往下捲 */
+@media (orientation:landscape) and (max-height:520px){
+  #s-encounter:not([hidden]){display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);grid-template-rows:auto auto 1fr;column-gap:16px;align-content:start}
+  #s-encounter .scene{grid-column:1;grid-row:1 / span 3;height:calc(100dvh - 80px);min-height:240px}
+  #s-encounter>*:not(.scene){grid-column:2}
+  .app{max-width:900px}
+  #s-result:not([hidden]){display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto auto auto auto 1fr;column-gap:24px;align-items:center;justify-items:center}
+  #s-result .burst{grid-column:1;grid-row:1 / span 6;width:min(42vw,calc(100dvh - 90px))}
+  #s-result>*:not(.burst){grid-column:2}
+}
 /* real-ball mode: live camera behind the scene */
 .ar-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
 .scene.ar .scene-bg,.scene.ar .ground{display:none}
@@ -197,7 +207,7 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 .shields{position:absolute;inset:0;pointer-events:none;z-index:3}
 .shields i{position:absolute;border-radius:50%;border:3px solid rgba(120,205,255,.85);box-shadow:0 0 12px rgba(120,205,255,.7),inset 0 0 14px rgba(120,205,255,.45);background:radial-gradient(circle,transparent 55%,rgba(120,205,255,.12));animation:shieldspin 2.4s ease-in-out 4}
 @keyframes shieldspin{50%{opacity:.6;transform:scale(1.03)}}
-.shield-hud{position:absolute;left:50%;transform:translateX(-50%);top:52px;z-index:6;background:rgba(10,30,60,.65);color:#9fdcff;font-weight:900;font-size:.85rem;border-radius:999px;padding:3px 10px;letter-spacing:1px}
+.shield-hud{position:absolute;left:50%;transform:translateX(-50%);top:74px;z-index:6;background:rgba(10,30,60,.65);color:#9fdcff;font-weight:900;font-size:.85rem;border-radius:999px;padding:3px 10px;letter-spacing:1px}
 /* rarity entrance */
 .scene.gold::after,.scene.legend::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:4}
 .scene.gold::after{box-shadow:inset 0 0 40px 8px rgba(255,200,60,.75);animation:goldpulse 1.6s ease-in-out 4}
@@ -222,7 +232,9 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 
 /* info / changelog */
 .info-btn{position:relative}
-.info-btn .dot{position:absolute;top:6px;right:6px;width:9px;height:9px;border-radius:50%;background:#ff4d4d;box-shadow:0 0 0 2px var(--card)}
+.ver-row{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.info-btn{display:inline-flex;align-items:center;gap:6px}
+.info-btn .dot{position:absolute;top:2px;right:2px;width:9px;height:9px;border-radius:50%;background:#ff4d4d;box-shadow:0 0 0 2px var(--card)}
 .info-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
 .info-head h2{margin:0;font-family:var(--display);font-weight:900;font-size:1.3rem}
 .info-head span{color:var(--muted);font-size:.85rem;font-variant-numeric:tabular-nums}
@@ -241,25 +253,25 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 .ball-guide .row span{color:var(--muted)}
 
 /* dex management */
-.player-chip{display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:5px 12px;font-weight:700;font-size:.88rem}
+.player-chip{display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:5px 14px;font-weight:700;font-size:.88rem;min-height:40px}
 .dex-sum{display:flex;flex-direction:column;gap:6px}
 .dex-sum b{font-variant-numeric:tabular-nums}
 .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 14px}
-.panel summary{font-weight:700;cursor:pointer}
+.panel summary{font-weight:700;cursor:pointer;padding:9px 0;margin:-9px 0}   /* 點的範圍大一點 */
 .gen-bars{display:flex;flex-direction:column;gap:6px;margin-top:10px}
 .gen-row{display:grid;grid-template-columns:4.2em 1fr 4.6em;gap:8px;align-items:center;font-size:.84rem}
 .gen-row b{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;color:var(--muted)}
 .dex-tools{display:flex;flex-direction:column;gap:8px}
 .dex-tools input[type=search]{font:inherit;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);width:100%}
 .seg{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:var(--line);padding:3px;border-radius:12px}
-.seg button{border:0;background:transparent;border-radius:9px;padding:7px 2px;font-weight:700;font-size:.85rem}
+.seg button{border:0;background:transparent;border-radius:9px;padding:10px 2px;font-weight:700;font-size:.85rem}
 .seg button[aria-pressed="true"]{background:var(--card);box-shadow:0 1px 3px rgba(0,0,0,.12)}
-.dex-selects{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
-.dex-selects select{font:inherit;font-size:.82rem;padding:7px 4px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);min-width:0}
+.dex-selects{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+.dex-selects select{font:inherit;font-size:.9rem;padding:9px 6px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);min-width:0}
 @media (max-width:380px){.dex-selects{grid-template-columns:repeat(2,1fr)}}
 .dex-result{font-size:.8rem;color:var(--muted)}
 .dex div[data-id]{cursor:pointer}
-.dex div small{color:#E8A100;font-size:.62rem;letter-spacing:-1px}
+.dex div small{color:#B07600;font-size:.72rem;letter-spacing:-1px}
 .dex div.unknown{opacity:.55}
 .dex div.focus{animation:dexFocus 2.4s ease-out 1;border-radius:14px;box-shadow:0 0 0 3px var(--sun)}
 @keyframes dexFocus{0%{transform:scale(.8);box-shadow:0 0 0 12px rgba(255,194,26,.9)}30%{transform:scale(1.12)}100%{transform:scale(1);box-shadow:0 0 0 3px rgba(255,194,26,.6)}}
@@ -341,7 +353,7 @@ button:focus-visible,label.btn:focus-within{outline:3px solid var(--sun);outline
 @media (prefers-reduced-motion:reduce){.bt-me .bob,.bt-hand{animation:none}}
 /* 逃跑：紅字紅框＋離開圖示 */
 /* 逃跑：場景左上角的小圓鈕，遠離底下整條的「丟出寶貝球」，避免誤觸；按一下會展開，要再按一次才離開 */
-.scene .btn.ghost.run-btn{position:absolute;left:10px;top:10px;z-index:7;display:flex;align-items:center;justify-content:center;gap:6px;width:38px;height:38px;min-height:0;padding:0;border-radius:999px;color:var(--bad);border:2px solid var(--bad);background:color-mix(in srgb,var(--bad) 14%,var(--card));font-size:.85rem;font-weight:900;white-space:nowrap;box-shadow:0 2px 6px #0003}
+.scene .btn.ghost.run-btn{position:absolute;left:10px;top:10px;z-index:7;display:flex;align-items:center;justify-content:center;gap:6px;width:44px;height:44px;min-height:0;padding:0;border-radius:999px;color:var(--bad);border:2px solid var(--bad);background:color-mix(in srgb,var(--bad) 14%,var(--card));font-size:.85rem;font-weight:900;white-space:nowrap;box-shadow:0 2px 6px #0003}
 .run-btn span{display:none}
 .scene .btn.ghost.run-btn.armed{width:auto;padding:0 12px 0 9px;background:var(--bad);color:#fff;border-color:#fff}
 .run-btn.armed span{display:inline}
@@ -356,7 +368,7 @@ html.devtest .dev-tag{display:block}
 .quest-pop .btn{width:100%}
 .quest-pop h2{margin:0;font-size:1.5rem}
 .quest-pop p{margin:0}
-.quest-tag{font-weight:900;color:#b7860b;letter-spacing:2px}
+.quest-tag{font-weight:900;color:#9a6f00;letter-spacing:2px}
 .quest-orb{position:relative;width:150px;height:150px;border-radius:50%;background:var(--c,#e53935);box-shadow:0 0 0 6px #fff,0 0 0 9px var(--c),0 0 36px 10px color-mix(in srgb,var(--c) 55%,transparent);display:grid;place-items:center;font-size:84px;line-height:1;animation:questGlow 2.4s ease-in-out infinite}
 .quest-orb.obj{background:#fff;box-shadow:0 0 0 6px #ffd54a,0 0 30px 8px rgba(255,213,74,.55)}
 .quest-orb::after{content:"✨";position:absolute;right:-6px;top:-10px;font-size:30px}
@@ -371,6 +383,7 @@ html.devtest .dev-tag{display:block}
 .rest-ring{position:absolute;right:-8px;bottom:-4px;width:52px;height:52px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(#4CC27E var(--p,0%),var(--line) 0);box-shadow:0 2px 6px #0002}
 .rest-ring b{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:var(--card);font-size:1.05rem}
 .rest-card .btn{width:100%}
+.rest-card .btn:disabled{background:var(--line);color:var(--muted);cursor:default}
 .rest-skip{font-size:.85rem;padding:8px}
 .quest-card{display:flex;align-items:center;gap:10px;background:var(--card);border:2px solid var(--line);border-radius:16px;padding:8px 8px 8px 12px;margin:0 0 10px}
 .quest-card[hidden]{display:none}
@@ -378,7 +391,9 @@ html.devtest .dev-tag{display:block}
 .quest-emoji{flex:none;font-size:1.7rem;line-height:1}
 .quest-card p{margin:0;flex:1;font-size:.88rem;line-height:1.45}
 .quest-card small{color:var(--muted)}
-.quest-x{flex:none;border:0;background:transparent;color:var(--muted);font-size:1rem;width:32px;height:32px;cursor:pointer}
+.qpill{display:inline-block;padding:0 9px;border-radius:999px;font-weight:900;color:#fff;text-shadow:0 1px 2px #0006;box-shadow:inset 0 0 0 1.5px #0002}
+.qpill.light{color:#2b2f3a;text-shadow:none}
+.quest-x{flex:none;border:0;background:transparent;color:var(--muted);font-size:1.05rem;width:40px;height:40px;cursor:pointer}
 .dev-form{display:flex;flex-direction:column;gap:10px;text-align:left}
 .dev-form label{font-size:.88rem;font-weight:700;display:flex;flex-direction:column;gap:4px}
 .dev-form label.chk{flex-direction:row;align-items:center;gap:8px}
@@ -396,13 +411,13 @@ html.devtest .dev-tag{display:block}
 .dex-entry-btn svg{width:20px;height:20px;fill:#fff}
 .dex-entry-btn:active{transform:translateY(2px);box-shadow:0 1px 0 #9b1d22}
 .dex-entry-btn.on{background:#555;border-color:#333;box-shadow:0 3px 0 #222}
-.dex-entry{width:100%;box-sizing:border-box;background:#fff;border:2px solid #e3383e;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);padding:10px 14px 12px;text-align:left}
+.dex-entry{width:100%;box-sizing:border-box;background:var(--card);border:2px solid #e3383e;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);padding:10px 14px 12px;text-align:left}
 .dex-entry .led{display:flex;gap:5px;margin-bottom:6px}
 .dex-entry .led i{width:8px;height:8px;border-radius:50%;background:#d9dde6}
 .dex-entry.talking .led i{background:#e3383e;animation:led .6s steps(2,end) infinite}
 .dex-entry.talking .led i:nth-child(2){animation-delay:.2s}.dex-entry.talking .led i:nth-child(3){animation-delay:.4s}
 @keyframes led{50%{opacity:.25}}
-.dex-entry p{margin:0;color:#1d2330;font-weight:600;font-size:1rem;line-height:1.65;min-height:3.3em;white-space:pre-wrap}
+.dex-entry p{margin:0;color:var(--ink);font-weight:600;font-size:1rem;line-height:1.65;min-height:3.3em;white-space:pre-wrap}
 @media (prefers-reduced-motion:reduce){.dex-entry.talking .led i{animation:none}}
 .say{display:inline-flex;align-items:center;gap:8px;border:0;background:transparent;font:inherit;color:inherit;cursor:pointer;padding:2px 8px;border-radius:14px}
 .say svg{width:26px;height:26px;fill:var(--muted);flex:none}
@@ -418,7 +433,7 @@ html.devtest .dev-tag{display:block}
 .evo-chip:active{transform:scale(.96)}
 .evo-chip img,.evo-chip .sw,.evo-chip .q{width:48px;height:48px;object-fit:contain;image-rendering:pixelated}
 .evo-chip .q{display:grid;place-items:center;font-size:1.3rem;font-weight:900;color:var(--muted);font-style:normal}
-.evo-chip b{font-size:.68rem;color:var(--muted)}
+.evo-chip b{font-size:.74rem;color:var(--muted)}
 .evo-chip span{font-size:.78rem;font-weight:700;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .evo-node{display:flex;align-items:center;gap:6px}
 .evo-node.col{flex-direction:column;align-items:flex-start;gap:4px}
@@ -454,7 +469,7 @@ html.devtest .dev-tag{display:block}
 
 /* result screen */
 .result{align-items:center;text-align:center;justify-content:center}
-.burst{position:relative;width:min(78vw,300px);aspect-ratio:1;display:grid;place-items:center}
+.burst{position:relative;width:min(78vw,300px);aspect-ratio:1;display:grid;place-items:center;overflow:hidden;border-radius:50%}
 .burst::before{content:"";position:absolute;inset:0;border-radius:50%;
   background:repeating-conic-gradient(color-mix(in srgb,var(--main) 45%,transparent) 0 10deg,transparent 10deg 20deg);animation:spin 12s linear 1;
   -webkit-mask:radial-gradient(circle,#000 30%,transparent 70%);mask:radial-gradient(circle,#000 30%,transparent 70%)}
@@ -463,7 +478,7 @@ html.devtest .dev-tag{display:block}
 .burst .fb{width:60%;height:60%;border-radius:50%;background:var(--main);box-shadow:0 0 0 10px var(--accent);display:grid;place-items:center}
 .burst .fb svg{width:46%;height:46%;fill:var(--glyph)}
 @keyframes popin{from{transform:scale(.2)}}
-.got{font-family:var(--display);font-weight:900;font-size:1.1rem;color:var(--good);margin:0}
+.got{font-family:var(--display);font-weight:900;font-size:1.25rem;color:color-mix(in srgb,var(--good) 80%,var(--ink));margin:0}
 .result .name{font-family:var(--display);font-weight:900;font-size:2.2rem;margin:0;line-height:1.1}
 .result .sub{color:var(--muted);font-variant-numeric:tabular-nums}
 .result .actions{width:100%;display:flex;flex-direction:column;gap:10px;margin-top:8px}
@@ -510,7 +525,6 @@ html.noscroll,html.noscroll body{overflow:hidden}
     <button class="icon-btn" id="backBtn" aria-label="回到拍照" hidden><svg viewBox="0 0 24 24"><path d="M15.4 4.6 14 3.2 5.2 12 14 20.8l1.4-1.4L8 12z"/></svg></button>
     <img class="logo" src="img/logo.svg" alt="" aria-hidden="true">
     <h1 id="barTitle">顏色寶可夢探險</h1>
-    <button class="icon-btn info-btn" id="infoBtn" aria-label="更新紀錄"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 15h-2v-6h2zm0-8h-2V7h2z"/></svg><i class="dot" id="infoDot" hidden></i></button>
     <button class="icon-btn" id="bgmBtn" aria-label="開啟背景音樂" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/><path id="bgmSlash" d="M3.3 4.7 4.7 3.3 20.7 19.3 19.3 20.7z"/></svg></button>
     <button class="icon-btn" id="muteBtn" aria-label="關閉音效" aria-pressed="false"><svg viewBox="0 0 24 24"><path id="muteIcon" d=""/></svg></button>
     <button class="dex-btn" id="dexBtn">圖鑑 <b id="dexCount">0</b></button>
@@ -542,7 +556,7 @@ html.noscroll,html.noscroll body{overflow:hidden}
     <label class="btn ghost" for="photo">用手機相機拍一張 / 選照片
       <input id="photo" type="file" accept="image/*" capture="environment">
     </label>
-    <p class="note" id="ver"></p>
+    <div class="ver-row"><p class="note" id="ver"></p><button class="chip info-btn" id="infoBtn"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 15h-2v-6h2zm0-8h-2V7h2z"/></svg>更新紀錄<i class="dot" id="infoDot" hidden></i></button></div>
     <div class="samples"><span>範例：</span>
       <button class="chip" data-s="grass">草地</button><button class="chip" data-s="sky">天空</button>
       <button class="chip" data-s="sunset">夕陽</button><button class="chip" data-s="banana">香蕉</button>
@@ -764,7 +778,7 @@ html.noscroll,html.noscroll body{overflow:hidden}
 <canvas id="cv" width="48" height="48" hidden></canvas>
 
 <script>
-const BUILD="2026.10.31-1755";
+const BUILD="2026.10.31-2117";
 /* =========================================================
    顏色寶可夢探險
    資料都在 data/：config.json 列出要載入的資料包（packs），
@@ -1087,7 +1101,20 @@ function show(name){
   if(typeof questUI==="function")try{questUI();if(name==="camera"||name==="explore")setTimeout(questMaybeStart,600);}catch(e){}
   scrollTo(0,0);
 }
-addEventListener("popstate",()=>show(location.hash.slice(1)));
+/* 手機的「返回」鍵：先關掉最上面的視窗（詳細頁、任務、休息提醒、對戰…），畫面留在原地；沒有視窗才回上一個畫面 */
+function closeTopOverlay(){
+  if(!$("questPanel").hidden){$("questGo").click();return true;}
+  if(!$("restPanel").hidden){$("restSkip").click();return true;}
+  if(!$("devPanel").hidden){closeDev();return true;}
+  if(!$("shakeWarn").hidden){$("shakeNo").click();return true;}
+  if(!$("monSheet").hidden){closeMonSheet();return true;}
+  if(typeof BT!=="undefined"&&BT.on){btFinish("skip");return true;}
+  return false;
+}
+addEventListener("popstate",()=>{
+  if(closeTopOverlay()){history.pushState(null,"","#"+screen);return;}
+  show(location.hash.slice(1));
+});
 let home="camera";
 $("backBtn").onclick=()=>go(screen==="explore"?"camera":home);
 $("dexBtn").onclick=()=>openDex();
@@ -3483,7 +3510,8 @@ function questUI(){
   const C=QUEST_COLORS.find(c=>c.key===q.color);
   $("questDot").hidden=false;$("questEmoji").hidden=true;
   $("questDot").style.background=C.hex;
-  $("questText").innerHTML=`任務：去遠一點的地方，找一個 <b style="color:${C.hex}">${C.name}</b> 的東西拍下來，就會遇到<b>稀有寶可夢</b>！<small>（還有 ${min} 分鐘・點我聽）</small>`;
+  const light=["yellow","orange","pink"].includes(C.key);                 // 淺色的底配深色字，看得清楚
+  $("questText").innerHTML=`任務：去遠一點的地方，找一個 <b class="qpill${light?" light":""}" style="background:${C.hex}">${C.name}</b> 的東西拍下來，就會遇到<b>稀有寶可夢</b>！<small>（還有 ${min} 分鐘・點我聽）</small>`;
 }
 $("questClose").onclick=e=>{e.stopPropagation();EYE.quest=null;eyeSave();questUI();};
 /* 看不懂字也知道要找什麼：唸出來＋大大的顏色（或東西的圖案） */
@@ -3522,7 +3550,7 @@ function eyeRestShow(){
   let left=c.restSeconds;const btn=$("restOk");btn.disabled=true;
   const tick=()=>{$("restCount").textContent=left>0?`${left}`:"✓";$("restRing").style.setProperty("--p",`${(1-left/c.restSeconds)*100}%`);
     if(left<=0){btn.disabled=false;btn.textContent="眼睛休息好了！";clearInterval(EYE.restT);}left--;};
-  btn.textContent="看看遠方…";tick();clearInterval(EYE.restT);EYE.restT=setInterval(tick,1000);
+  btn.textContent="看看遠方…（數到 20）";tick();clearInterval(EYE.restT);EYE.restT=setInterval(tick,1000);
   $("restPanel").hidden=false;sfx("reveal");
 }
 function eyeRestClose(rested){
