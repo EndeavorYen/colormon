@@ -778,7 +778,7 @@ html.noscroll,html.noscroll body{overflow:hidden}
 <canvas id="cv" width="48" height="48" hidden></canvas>
 
 <script>
-const BUILD="2026.10.31-2117";
+const BUILD="2026.10.31-2143";
 /* =========================================================
    顏色寶可夢探險
    資料都在 data/：config.json 列出要載入的資料包（packs），
@@ -1076,11 +1076,57 @@ function go(name,replace){
   if(replace) history.replaceState(null,"",h); else history.pushState(null,"",h);
   show(name);
 }
+/* =========================================================
+   狀態機：遊戲同一時間只在一個畫面（狀態），所有切換都經過 show()
+     camera ─拍照→ scan ─分析完→ encounter ─抓到→ result ─繼續→ camera／explore
+     explore ─對準→ scan …；任何畫面都可以開 dex（圖鑑）、info（更新紀錄）
+   進行中的流程（分析、出場動畫、丟球、對戰）都有編號，離開它所屬的畫面就作廢：
+     - 離開 scan（不是分析完進遭遇）→ 取消分析，不會突然跳到遭遇
+     - 離開 encounter 去圖鑑／更新紀錄 → 打斷進行中的動作，寶可夢留著，回來可以重新丟
+     - 回到 camera／explore → 這次遭遇結束（就像逃跑）
+     - 切到別的 App：分析取消、丟到一半的球取消（寶可夢還在）
+   GAME.log 記錄每次切換，給自動測試檢查
+   ========================================================= */
+const GAME={log:[],illegal:0};
+const FLOW_NEXT={camera:["scan","explore","encounter"],explore:["scan","camera","encounter"],scan:["encounter","camera","explore"],encounter:["result","camera","explore"],result:["camera","explore"]};
+const ENC={reset:false};
+function encounterInterrupt(why){                       // 打斷遭遇裡正在做的事（丟球、出場、對戰），寶可夢留著
+  encounterId++;busy=false;
+  if(typeof BT!=="undefined"&&BT.on)btFinish("abort");
+  if(landedResolve){landedResolve();landedResolve=null;}
+  stopBallCycle();
+  if(current){ENC.reset=true;}
+  GAME.log.push({t:Date.now(),ev:"interrupt",why});
+}
+function encounterEnd(why){                             // 結束這次遭遇（回到拍照／探索）
+  if(!current&&!fled&&!busy)return;
+  encounterInterrupt(why);current=null;fled=false;ENC.reset=false;
+}
+function encounterResume(){                             // 回到遭遇畫面：把畫面整理回「可以丟球」的樣子
+  if(!current||!ENC.reset)return;
+  ENC.reset=false;const mon=current;
+  ["ball","mon","glow","scene","rareDim","rareFlash"].forEach(id=>$(id)?.getAnimations().forEach(a=>a.cancel()));
+  $("ball").hidden=true;$("ball").classList.remove("locked");$("shakeDots").hidden=true;$("hand").hidden=false;
+  $("mon").style.opacity="";$("rareDim").hidden=true;$("rareFlash").hidden=true;
+  if(!SHIELD.total&&(CFG.shields||{3:3,4:4,5:5})[mon.rarity])setupShields(mon);
+  $("throwBtn").disabled=false;$("runBtn").disabled=false;runDisarm();
+  bubble(revealed?`${mon.name}還在等你！`:"寶可夢還在等你！");
+  startBallCycle();
+  GAME.log.push({t:Date.now(),ev:"resume"});
+}
 function show(name){
   if(!SCREENS.includes(name)) name="camera";
   if(name==="scan"&&!scanning) name="camera";
   if(name==="encounter"&&!current&&!fled) name="camera";
   if(name==="result"&&!lastCaught) name="camera";
+  const prev=screen;
+  if(prev!==name){
+    if(prev==="scan"&&name!=="encounter")cancelScan();                       // 分析到一半離開
+    if(prev==="encounter"&&name!=="result"){if(name==="camera"||name==="explore")encounterEnd("leave:"+name);else encounterInterrupt("leave:"+name);}
+    if((name==="camera"||name==="explore")&&(current||busy))encounterEnd("home");  // 在拍照／探索畫面＝沒有進行中的遭遇
+    if(FLOW_NEXT[prev]&&FLOW_NEXT[name]&&!FLOW_NEXT[prev].includes(name)&&!(prev==="result"&&name==="encounter")){GAME.illegal++;GAME.log.push({t:Date.now(),illegal:prev+"->"+name});}
+    GAME.log.push({t:Date.now(),from:prev,to:name});if(GAME.log.length>200)GAME.log.shift();
+  }
   screen=name;
   if(name!=="encounter"&&name!=="result"&&TEST)setTest(false);
   SCREENS.forEach(s=>$("s-"+s).hidden=s!==name);
@@ -1089,7 +1135,7 @@ function show(name){
   $("dexBtn").hidden=name==="dex";
   if(name==="camera") resumeCamera(); else pauseCamera();
   if(name==="explore") resumeExplore(); else pauseExplore(name);
-  if(name!=="encounter") stopBallCycle(); else if(current&&!busy) startBallCycle();
+  if(name!=="encounter") stopBallCycle(); else if(ENC.reset) encounterResume(); else if(current&&!busy&&!$("throwBtn").disabled) startBallCycle();
   if(name==="camera"||name==="explore") home=name;           // 抓完、逃跑後回到哪裡
   $("moreBtn").textContent=home==="explore"?"繼續探險":"繼續拍照";
   if(name==="encounter"&&AR.on) startAR(); else if(name!=="encounter") stopAR();
@@ -1178,7 +1224,8 @@ $("photo").addEventListener("change",e=>{const f=e.target.files[0];if(!f)return;
 document.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>startScan(sample(b.dataset.s)));
 
 /* ---------- 2 分析顏色 ---------- */
-let scanning=false;
+let scanning=false,SCAN_TOK=0;
+function cancelScan(){if(!scanning&&!SCAN_TOK)return;SCAN_TOK++;scanning=false;}
 /* 5. 分析畫面：在照片上把背景變暗、主體留亮，讓人看得出程式把哪裡當成主體 */
 function drawSubjectMask(an){
   const c=$("scanMask"),tag=$("scanTag");
@@ -1202,13 +1249,16 @@ function showSubjectMask(){
 function startScan(src,real=false){                          // real＝真的拍到的照片（相機、探索、手機拍照）；範例圖不算
   if(!MONS.length){toast("寶可夢資料還沒載入");return;}
   const img=new Image();
+  const tok=++SCAN_TOK,from=screen;                            // 這次分析的編號：離開分析畫面、切到背景就作廢
   img.onload=async()=>{
+    if(tok!==SCAN_TOK||screen!==from||document.hidden)return;   // 照片還沒讀好就已經離開了
     scanning=true;
+    const alive=()=>tok===SCAN_TOK&&scanning;
     const pal=palette(img,img.naturalWidth,img.naturalHeight);
     const an=lastAnalysis;
     let picked=pickMon(pal);                                    // 先決定是誰，趁分析動畫時下載圖片
     const questHit=real&&!picked.night&&questMatch(pal);       // 顏色任務：拍到指定顏色 → 稀有寶可夢
-    if(questHit){picked=pickQuestMon(pal);questDone();}
+    if(questHit){picked=pickQuestMon(pal);QUEST_LAST=QUEST_COLORS.find(c=>c.key===questActive()?.color)||null;}   // 任務真的完成（進到遭遇）才算數
     const preload=new Promise(res=>{const im=new Image();im.onload=im.onerror=res;im.src=artUrl(picked.mon.id);});
     $("scanImg").src=src;$("sceneBg").style.backgroundImage=`url("${src}")`;
     $("scanText").textContent="分析顏色中…";
@@ -1219,7 +1269,7 @@ function startScan(src,real=false){                          // real＝真的拍
     drawSubjectMask(an);
     $("scanNote").textContent=an?.wb?.note?`${an.wb.note}，已自動校正成接近眼睛看到的顏色`:"";
     go("scan");
-    await wait(450);
+    await wait(450);if(!alive())return;
     if(an?.mask&&!picked.night) showSubjectMask();
     [...$("palette").children].forEach((el,i)=>el.style.flex=pal[i].share);
     // 圖例：同一個名字的顏色（例如亮面和陰影）合併顯示
@@ -1228,24 +1278,25 @@ function startScan(src,real=false){                          // real＝真的拍
     const words=pal.slice(0,2).map(c=>c.word).filter((w,i,a)=>a.indexOf(w)===i);
     const subj=pal.filter(c=>c.subject),bgc=pal.find(c=>!c.subject);
     const seen=subj.length?`看到${subj[0].word}的東西！${bgc?`（背景是${bgc.word}）`:""}`:`看到${words.join(" + ")}！`;
-    await wait(600); $("scanText").textContent=picked.night?"好暗喔…什麼都看不清楚":questHit?`找到${QUEST_LAST.name}的東西了！任務完成！`:seen;
+    await wait(600);if(!alive())return; $("scanText").textContent=picked.night?"好暗喔…什麼都看不清楚":questHit?`找到${QUEST_LAST.name}的東西了！任務完成！`:seen;
     let objHit=false;
     if(objP){
       const OQ=QUEST_OBJS.find(o=>o.k===oq.obj);
-      await wait(700);$("scanText").textContent="認認看拍到了什麼…";
-      const found=await objP;
+      await wait(700);if(!alive())return;$("scanText").textContent="認認看拍到了什麼…";
+      const found=await objP;if(!alive())return;
       if(found&&found.some(f=>f.k===oq.obj&&f.score>=.4)){
-        objHit=true;picked=pickQuestMon(pal);questDone();
+        objHit=true;picked=pickQuestMon(pal);QUEST_LAST=QUEST_OBJS.find(o=>o.k===oq.obj)||null;
         const im=new Image();im.src=artUrl(picked.mon.id);
         $("scanText").textContent=`${OQ.emoji} 找到${OQ.name}了！任務完成！`;
       }else{
         const names=[...new Set((found||[]).map(f=>f.o.name))];
         $("scanText").textContent=found==null?"這次認不出來，等一下再試試":names.length?`我看到了${names.join("、")}，可是沒有${OQ.name}`:`沒有認出${OQ.name}，換個角度再拍拍看`;
       }
-      await wait(1100);
+      await wait(1100);if(!alive())return;
     }
-    await wait(an?.mask?1300:900); $("scanText").textContent=picked.night?"黑暗中有東西在動！":(questHit||objHit)?"遠方的稀有寶可夢出現了！":"草叢裡有東西在動…";
-    await Promise.race([preload,wait(800)]);
+    await wait(an?.mask?1300:900);if(!alive())return; $("scanText").textContent=picked.night?"黑暗中有東西在動！":(questHit||objHit)?"遠方的稀有寶可夢出現了！":"草叢裡有東西在動…";
+    await Promise.race([preload,wait(800)]);if(!alive())return;
+    if(questHit||objHit)questDone();
     scanning=false;
     startEncounter(pal,picked);
   };
@@ -1269,7 +1320,8 @@ async function startEncounter(pal,picked){
   const {mon,sim}=picked, T=TYPES[mon.type];
   setTest(!!picked.test);
   encounterNight=!!picked.night;
-  current=mon;fled=false;misses=0;busy=false;encounterId++;
+  current=mon;fled=false;misses=0;busy=false;encounterId++;ENC.reset=false;
+  const eid=encounterId,alive=()=>current===mon&&encounterId===eid;    // 被打斷（離開畫面、切到背景）就不再往下做
   $("glow").getAnimations().forEach(a=>a.cancel());
   setMonVisual(mon,{imgEl:$("art"),fbEl:$("monFb"),glyphEl:$("glyph")});
   revealed=picked.test?!picked.silhouette:(!silhouetteOn()||!!dex[mon.id]);                 // 沒抓過的寶可夢先用剪影
@@ -1285,23 +1337,24 @@ async function startEncounter(pal,picked){
   clearShields();$("scene").classList.remove("gold","legend");
   drawOrbs();bubble("！");
   go("encounter",true);
-  if(mon.rarity===5){m.style.opacity="0";await legendIntro();m.style.opacity="";if(current!==mon)return;}   // 五星：畫面先暗下來
+  if(mon.rarity===5){m.style.opacity="0";await legendIntro();m.style.opacity="";if(!alive())return;}   // 五星：畫面先暗下來
   // 從草叢跳出來
   await anim(m,[{transform:"translate(-50%,-10%) scale(.6)",opacity:0},{transform:"translate(-50%,-62%) scale(1.05)",opacity:1,offset:.6},{transform:"translate(-50%,-50%) scale(1)",opacity:1}],{duration:550,easing:"ease-out"});
+  if(!alive())return;
   shakeScene(5,300);
   bubble(revealed?`野生的${mon.name}出現了！`:"野生的寶可夢出現了！是誰呢？");sfx("appear");
   await rarityEntrance(mon);
-  if(current!==mon)return;
+  if(!alive())return;
   setupShields(mon);
   Hardware.notifyEncounter(mon);
   if(battleEligible(mon)){                                   // 四、五星＋圖鑑有寶可夢：特別對戰（可以跳過）
-    const eid0=encounterId,r=await startBattle(mon);
-    if(current!==mon||encounterId!==eid0)return;
+    const r=await startBattle(mon);
+    if(!alive())return;
     if(r==="win")bubble("護盾全部打破了！現在很好抓！");
     else if(r==="skip")bubble(`牠有 ${shieldLayersLeft()} 層護盾！${AR.on?"對著鏡頭揮手":"點牠"}打破，或直接丟球`);
   }
   $("throwBtn").disabled=false;
-  startBallCycle();
+  if(screen==="encounter")startBallCycle();
 }
 const starText=r=>"★".repeat(r)+"☆".repeat(5-r);
 /* ---------- 剪影：沒抓過的寶可夢先藏起來，抓到或跳出來時揭曉 ---------- */
@@ -1688,7 +1741,7 @@ function closeDex(){
   else go(home,true);
 }
 $("dexClose").onclick=closeDex;
-$("dexBack").onclick=()=>{DEXUI.pushed=false;go(home);};
+$("dexBack").onclick=()=>{DEXUI.pushed=false;go(current?"encounter":home);};   // 正在遭遇就回到那隻寶可夢
 $("playerChip").onclick=()=>{$("dexManage").open=true;$("dexManage").scrollIntoView({behavior:"smooth"});};
 $("dex").addEventListener("click",e=>{const el=e.target.closest("[data-id]");if(el)openMonSheet(+el.dataset.id);});
 $("dex").addEventListener("keydown",e=>{if(e.key==="Enter"){const el=e.target.closest("[data-id]");if(el)openMonSheet(+el.dataset.id);}});
@@ -2979,6 +3032,7 @@ function resumeExplore(){
 }
 /* 離開探索畫面：如果是去遭遇／結果（還會回來），相機保持開著，只停提示；回到拍照畫面才關相機 */
 function pauseExplore(next){
+  EX.gen=(EX.gen||0)+1;                                          // 離開探索：還沒跑完的「找到了」作廢
   clearTimeout(EX.raf);removeEventListener("deviceorientation",onOrient);
   clearTimeout(EX.closeTimer);
   if(next==="camera"||!EX.started){stopExploreCamera();return;}
@@ -3055,7 +3109,7 @@ function pulse(w,iv){
   try{navigator.vibrate&&navigator.vibrate(Math.round(15+90*w));}catch(e){}   // Android 才有；iPhone 會自動略過
 }
 async function foundPokemon(){
-  EX.found=true;setWarm(1);
+  EX.found=true;setWarm(1);const g=EX.gen=(EX.gen||0)+1;
   $("exText").textContent="找到了！";$("exLeft").hidden=$("exRight").hidden=true;
   sfx("found");
   try{navigator.vibrate&&navigator.vibrate([90,60,90,60,250]);}catch(e){}
@@ -3072,7 +3126,7 @@ async function foundPokemon(){
   if(v.videoWidth){const c=document.createElement("canvas");c.width=v.videoWidth;c.height=v.videoHeight;c.getContext("2d").drawImage(v,0,0);src=c.toDataURL("image/jpeg",.85);real=true;}
   else src=sample(["grass","sky","sunset","banana","night"][Math.floor(Math.random()*5)]);
   await wait(900);
-  if(screen==="explore") startScan(src,real);
+  if(screen==="explore"&&g===EX.gen&&!document.hidden) startScan(src,real);
 }
 
 /* =========================================================
@@ -3289,6 +3343,13 @@ function setBgm(on,save=true){
 $("bgmBtn").onclick=()=>{unlockAudio();setBgm(!BGM.on);if(!muted)setTimeout(()=>sfx("tap"),30);};
 setBgm(BGM.on,false);                                                      // 只更新按鈕外觀，不寫入記憶
 document.addEventListener("visibilitychange",bgmSync);
+/* 切到別的 App／關螢幕：分析取消、丟到一半的球取消（寶可夢還在），回來時整理好畫面 */
+document.addEventListener("visibilitychange",()=>{
+  if(document.hidden){
+    if(scanning){cancelScan();GAME.log.push({t:Date.now(),ev:"hidden-scan"});go(home,true);}
+    else if(screen==="encounter"&&busy&&!BT.on)encounterInterrupt("hidden");
+  }else if(screen==="encounter"&&ENC.reset)encounterResume();
+});
 addEventListener("pointerdown",()=>setTimeout(bgmSync,60),{passive:true});     // 第一次點螢幕解鎖聲音後開始放
 var BGM_READY=true;
 
@@ -3494,7 +3555,7 @@ function questStart(){
   EYE.quest={color:C.key,until:Date.now()+c.questMinutes*60000};EYE.questPlay=0;eyeSave();questUI();
   return C;
 }
-function questDone(){QUEST_LAST=QUEST_COLORS.find(c=>c.key===EYE.quest?.color)||QUEST_OBJS.find(o=>o.k===EYE.quest?.obj)||null;EYE.quest=null;EYE.questPlay=0;eyeSave();questUI();}
+function questDone(){QUEST_LAST=QUEST_COLORS.find(c=>c.key===EYE.quest?.color)||QUEST_OBJS.find(o=>o.k===EYE.quest?.obj)||QUEST_LAST;EYE.quest=null;EYE.questPlay=0;eyeSave();questUI();}
 function questUI(){
   const q=questActive(),el=$("questCard");
   el.hidden=!q||!(screen==="camera"||screen==="explore");
@@ -3575,6 +3636,7 @@ function eyeTick(){
 setInterval(eyeTick,15000);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)eyeTick();else{EYE.last=Date.now();eyeSave();}});
 
+if(/^#(scan|encounter|result)$/.test(location.hash))history.replaceState(null,"","#camera");   // 重新整理：回到安全的首頁
 show("camera");
 loadData().then(()=>{updateCount();fillDexSelects();setupBallArt();setBallMode(AR.on);setShakeMode(SHAKE.on);loadChangelog();checkMove(incomingMove);if(/[?&]dev(=|&|$)/.test(location.search))openDev();}).catch(err=>{
   console.error(err);
