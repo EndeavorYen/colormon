@@ -146,8 +146,8 @@
   "subject": {
     "enabled": true,
     "threshold": 22,
-    "minFraction": 0.015,
-    "maxFraction": 0.7,
+    "minFraction": 0.04,
+    "maxFraction": 0.9,
     "weight": 0.75
   },
   "color": {
